@@ -1,0 +1,279 @@
+
+<div class="hims-layout">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="brand">
+      <span class="brand-icon">+</span>
+      <span class="brand-name">HealthCare <strong>IMS</strong></span>
+    </div>
+
+    <div class="sidebar-section">MAIN MENU</div>
+
+    <nav class="sidebar-nav">
+      <a routerLink="/dashboard" routerLinkActive="active"
+         [routerLinkActiveOptions]="{ exact: true }" class="nav-link">
+        <span class="nav-icon">▦</span> Dashboard
+      </a>
+
+      <a routerLink="/items" routerLinkActive="active" class="nav-link">
+        <span class="nav-icon">▤</span> Inventory Items
+      </a>
+
+      <a routerLink="/stock" routerLinkActive="active" class="nav-link">
+        <span class="nav-icon">▣</span> Stock Management
+      </a>
+
+      <a routerLink="/users" routerLinkActive="active" class="nav-link">
+        <span class="nav-icon">♙</span> User Management
+      </a>
+    </nav>
+
+    <div class="sidebar-bottom">
+      <div class="admin-profile">
+        <div class="avatar">A</div>
+        <div>
+          <strong>Administrator</strong>
+          <small>System Admin</small>
+        </div>
+      </div>
+
+      <a routerLink="/login" class="nav-link logout-link">
+        <span class="nav-icon">↪</span> Logout
+      </a>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+
+    <!-- Page Header -->
+    <header class="top-header">
+      <div>
+        <p class="breadcrumb">Dashboard / Inventory</p>
+        <h1>Inventory Items</h1>
+        <p class="page-description">
+          Manage healthcare item details and reorder settings.
+        </p>
+      </div>
+
+      <button
+        type="button"
+        class="btn-primary"
+        (click)="openAddForm()">
+        <span>＋</span> Add New Item
+      </button>
+    </header>
+
+    <!-- Success and Error Messages -->
+    @if (message) {
+      <div
+        class="message-box"
+        role="status"
+        aria-live="polite">
+        {{ message }}
+      </div>
+    }
+
+    <!-- Loading Indicator -->
+    @if (isLoading) {
+      <div class="message-box" role="status" aria-live="polite">
+        Loading inventory...
+      </div>
+    }
+
+    <!-- Statistics -->
+    <section class="stats-grid">
+
+      <div class="stat-card">
+        <div class="stat-icon total-icon">▤</div>
+        <div>
+          <p>Total Items</p>
+          <h2>{{ items.length }}</h2>
+          <small>Item records</small>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon warning-icon">⚠</div>
+        <div>
+          <p>Items With Reorder Level</p>
+          <h2>{{ lowStockCount }}</h2>
+          <small>Stock checks depend on actual quantities</small>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon units-icon">▦</div>
+        <div>
+          <p>Total Units</p>
+          <h2>{{ totalUnits | number:'1.0-0' }}</h2>
+          <small>Stock integration pending</small>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon value-icon">₨</div>
+        <div>
+          <p>Inventory Value</p>
+          <h2>—</h2>
+          <small>Purchasing data integration pending</small>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- Inventory Card -->
+    <section class="inventory-card">
+
+      <div class="inventory-heading">
+        <div>
+          <h2>All Inventory Items</h2>
+          <p>View, search, edit, or remove item records.</p>
+        </div>
+
+        <span class="record-count">
+          {{ filteredItems.length }} records
+        </span>
+      </div>
+
+      <!-- Search and Filters -->
+      <div class="filter-bar">
+
+        <div class="search-box">
+          <span class="search-icon">⌕</span>
+          <input
+            type="text"
+            placeholder="Search by name, category, or SKU..."
+            [(ngModel)]="searchText"
+            aria-label="Search inventory items">
+        </div>
+
+        <select
+          class="category-filter"
+          [(ngModel)]="selectedCategory"
+          aria-label="Filter by category">
+          <option value="All">All Categories</option>
+
+          @for (category of categories; track category) {
+            <option [value]="category">{{ category }}</option>
+          }
+        </select>
+
+        <button
+          type="button"
+          class="btn-secondary"
+          (click)="clearFilters()">
+          Clear
+        </button>
+
+      </div>
+
+      <!-- Inventory Table -->
+      <div class="table-wrapper">
+        <table class="inventory-table">
+
+          <thead>
+            <tr>
+              <th>ITEM</th>
+              <th>CATEGORY</th>
+              <th>SKU</th>
+              <th>UNIT</th>
+              <th>REORDER LEVEL</th>
+              <th>STATUS</th>
+              <th>ACTIONS</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            @for (item of filteredItems; track item.id) {
+              <tr>
+                <td>
+                  <div class="item-name-cell">
+                    <div class="item-avatar">
+                      {{ item.name.charAt(0).toUpperCase() }}
+                    </div>
+                    <div>
+                      <strong>{{ item.name }}</strong>
+                      <small>ID: {{ item.id }}</small>
+                    </div>
+                  </div>
+                </td>
+
+                <td>
+                  <span class="category-badge">{{ item.category }}</span>
+                </td>
+
+                <td>{{ item.sku }}</td>
+                <td>{{ item.unit }}</td>
+                <td>{{ item.reorderLevel }}</td>
+
+                <td>
+                  @if (item.isActive) {
+                    <span class="status-badge in-stock">Active</span>
+                  } @else {
+                    <span class="status-badge low-stock">Inactive</span>
+                  }
+                </td>
+
+                <td>
+                  <div class="action-buttons">
+                    <button
+                      type="button"
+                      class="action-button edit-button"
+                      title="Edit item"
+                      aria-label="Edit item"
+                      (click)="editItem(item)">
+                      ✎
+                    </button>
+
+                    <button
+                      type="button"
+                      class="action-button delete-button"
+                      title="Delete item"
+                      aria-label="Delete item"
+                      (click)="deleteItem(item.id)"
+                      [disabled]="isLoading">
+                      🗑
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            }
+
+            @if (filteredItems.length === 0 && !isLoading) {
+              <tr>
+                <td colspan="7" class="empty-state">
+                  <div class="empty-icon">⌕</div>
+                  <h3>No inventory items found</h3>
+                  <p>Try changing your search or category filter.</p>
+
+                  <button
+                    type="button"
+                    class="btn-secondary"
+                    (click)="clearFilters()">
+                    Clear Filters
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Table Footer -->
+      <div class="table-footer">
+        <span>
+          Showing {{ filteredItems.length }} of {{ items.length }} items
+        </span>
+        <span>Healthcare Inventory Management System</span>
+      </div>
+
+    </section>
+
+    <footer class="page-footer">
+      <p>© 2026 HIMS · Healthcare Inventory Management System</p>
+    </footer>
+
+  </main>
+</div>

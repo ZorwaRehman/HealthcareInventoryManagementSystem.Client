@@ -1,0 +1,92 @@
+
+<div class="stock-layout">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+
+    <div class="sidebar-brand">
+      <span class="brand-icon">+</span>
+      <span class="brand-name">HealthCare <strong>IMS</strong></span>
+    </div>
+
+    <!-- Main navigation -->
+    <nav class="sidebar-nav">
+      <a routerLink="/dashboard" routerLinkActive="active"
+         [routerLinkActiveOptions]="{ exact: true }" class="nav-link">
+        <span class="nav-icon">▦</span>
+        <span>Dashboard</span>
+      </a>
+
+      <a routerLink="/items" routerLinkActive="active" class="nav-link">
+        <span class="nav-icon">▤</span>
+        <span>Inventory Items</span>
+      </a>
+
+      <a routerLink="/stock" routerLinkActive="active" class="nav-link">
+        <span class="nav-icon">▣</span>
+        <span>Stock Management</span>
+      </a>
+
+      <a routerLink="/users" routerLinkActive="active" class="nav-link">
+        <span class="nav-icon">♙</span>
+        <span>User Management</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <p>Healthcare Inventory Management System</p>
+    </div>
+
+  </aside>
+
+  <!-- Main content -->
+  <main class="stock-main">
+
+    <header class="stock-header">
+      <div>
+        <h1>Stock Management</h1>
+        <p>Manage stock batches, quantities, and inventory transactions.</p>
+      </div>
+    </header>
+
+    <!-- Stock overview -->
+    <section class="stock-overview">
+      <div class="stock-card">
+        <h3>Total Stock Batches</h3>
+        <p>—</p>
+      </div>
+
+      <div class="stock-card">
+        <h3>Available Stock</h3>
+        <p>—</p>
+      </div>
+
+      <div class="stock-card">
+        <h3>Low Stock Items</h3>
+        <p>—</p>
+      </div>
+
+      <div class="stock-card">
+        <h3>Expiring Batches</h3>
+        <p>—</p>
+      </div>
+    </section>
+
+    <!-- Stock actions -->
+    <section class="stock-panel">
+      <div class="stock-panel-header">
+        <div>
+          <h2>Stock Batches</h2>
+          <p>View batches and manage stock quantities.</p>
+        </div>
+      </div>
+
+      <div class="stock-empty">
+        <p>Stock data will appear here after connecting the backend API.</p>
+      </div>
+    </section>
+
+  </main>
+
+</div>
+

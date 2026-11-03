@@ -1,0 +1,268 @@
+
+:host {
+  display: block;
+  min-height: 100vh;
+  font-family: "Segoe UI", Arial, sans-serif;
+}
+
+.login-page {
+  box-sizing: border-box;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(12px, 2.5vh, 24px) 20px;
+  background:
+    radial-gradient(circle at top left, #e2f5f1 0, transparent 36%),
+    linear-gradient(135deg, #f6fbfa, #eef5f7);
+}
+
+.login-card {
+  width: 100%;
+  max-width: 460px;
+  box-sizing: border-box;
+  padding: clamp(22px, 3vh, 34px) 42px;
+  background: #ffffff;
+  border: 1px solid #e5eeec;
+  border-radius: 20px;
+  box-shadow: 0 18px 55px rgba(23, 78, 75, 0.09);
+}
+
+.brand-section {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.brand-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 54px;
+  height: 54px;
+  margin: 0 auto 14px;
+  border-radius: 16px;
+  color: white;
+  background: #087f72;
+  box-shadow: 0 7px 18px rgba(8, 127, 114, 0.2);
+}
+
+.brand-icon span {
+  font-size: 40px;
+  font-weight: 300;
+  line-height: 1;
+}
+
+.brand-section h1 {
+  margin: 0;
+  color: #183b40;
+  font-size: 25px;
+  font-weight: 750;
+  letter-spacing: -0.7px;
+}
+
+.brand-section h1 span {
+  color: #087f72;
+}
+
+.brand-section p {
+  margin: 7px 0 0;
+  color: #71838a;
+  font-size: 13px;
+}
+
+.welcome-section {
+  margin-bottom: 18px;
+}
+
+.welcome-section h2 {
+  margin-bottom: 8px;
+  color: #193b40;
+  font-size: 27px;
+  font-weight: 700;
+}
+
+.welcome-section p {
+  margin: 0;
+  color: #74858b;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.form-group {
+  margin-bottom: 14px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  color: #29454a;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.form-group input {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 44px;
+  padding: 10px 14px;
+  color: #203c40;
+  background: #fbfdfd;
+  border: 1px solid #dce7e6;
+  border-radius: 9px;
+  outline: none;
+  font-size: 14px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-group input::placeholder {
+  color: #a1afb3;
+}
+
+.form-group input:focus {
+  border-color: #078778;
+  box-shadow: 0 0 0 3px rgba(7, 135, 120, 0.1);
+}
+
+.password-wrapper {
+  position: relative;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.password-wrapper input {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  padding-right: 68px;
+}
+
+.password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  transform: translateY(-50%);
+  padding: 5px;
+  color: #087f72;
+  background: transparent;
+  border: none;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.field-error {
+  display: block;
+  margin-top: 6px;
+  color: #c43f46;
+  font-size: 12px;
+}
+
+.login-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 45px;
+  margin-top: 8px;
+  padding: 10px 14px;
+  color: #ffffff;
+  background: #087f72;
+  border: none;
+  border-radius: 9px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.login-button:hover {
+  background: #066b61;
+}
+
+.login-button:active {
+  transform: scale(0.99);
+}
+
+.alert-message {
+  margin-bottom: 20px;
+  padding: 12px;
+  color: #a62c37;
+  background: #fff0f0;
+  border: 1px solid #f4d0d2;
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.alert-message.success {
+  color: #17664b;
+  background: #eaf8f0;
+  border-color: #c8e9d5;
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 17px 0 14px;
+  color: #96a6a9;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1.1px;
+  text-align: center;
+}
+
+.register-text {
+  margin: 0;
+  color: #6f8185;
+  font-size: 13px;
+  text-align: center;
+}
+
+.register-text a {
+  margin-left: 4px;
+  color: #087f72;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.register-text a:hover {
+  text-decoration: underline;
+}
+
+.security-note {
+  margin: 15px 0 0;
+  color: #9aa8ab;
+  font-size: 11px;
+  text-align: center;
+}
+
+.page-footer {
+  margin-top: 12px;
+  color: #89999d;
+  font-size: 11px;
+  text-align: center;
+}
+
+@media (max-width: 480px) {
+  .login-page {
+    padding: 12px 14px;
+  }
+
+  .login-card {
+    padding: 22px 22px;
+    border-radius: 15px;
+  }
+
+  .brand-section h1 {
+    font-size: 23px;
+  }
+
+  .welcome-section h2 {
+    font-size: 24px;
+  }
+}

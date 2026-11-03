@@ -1,0 +1,163 @@
+<div class="register-page">
+  <div class="register-card">
+    <div class="brand-section">
+      <div class="brand-icon">
+        <span>+</span>
+      </div>
+      <h1>HealthCare <span>IMS</span></h1>
+      <p>Inventory Management System</p>
+    </div>
+
+    <div class="welcome-section">
+      <h2>Create your account</h2>
+      <p>Register to access your healthcare inventory workspace.</p>
+    </div>
+
+    @if (message) {
+      <div class="alert-message" [class.success]="messageType === 'success'" role="status">
+        {{ message }}
+      </div>
+    }
+
+    <form (ngSubmit)="onRegister()" #registerForm="ngForm">
+      <div class="name-row">
+        <div class="form-group">
+          <label for="firstName">First name</label>
+          <input
+            id="firstName"
+            type="text"
+            name="firstName"
+            [(ngModel)]="firstName"
+            placeholder="First name"
+            autocomplete="given-name"
+            required
+            maxlength="100"
+            #firstNameField="ngModel"
+          />
+          @if (firstNameField.invalid && firstNameField.touched) {
+            <small class="field-error">First name is required.</small>
+          }
+        </div>
+
+        <div class="form-group">
+          <label for="lastName">Last name</label>
+          <input
+            id="lastName"
+            type="text"
+            name="lastName"
+            [(ngModel)]="lastName"
+            placeholder="Last name"
+            autocomplete="family-name"
+            required
+            maxlength="100"
+            #lastNameField="ngModel"
+          />
+          @if (lastNameField.invalid && lastNameField.touched) {
+            <small class="field-error">Last name is required.</small>
+          }
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="email">Email address</label>
+        <input
+          id="email"
+          type="email"
+          name="email"
+          [(ngModel)]="email"
+          placeholder="you@hospital.com"
+          autocomplete="email"
+          required
+          email
+          maxlength="256"
+          #emailField="ngModel"
+        />
+        @if (emailField.invalid && emailField.touched) {
+          <small class="field-error">
+            @if (emailField.errors?.['required']) {
+              Email address is required.
+            } @else if (emailField.errors?.['email']) {
+              Please enter a valid email address.
+            }
+          </small>
+        }
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <div class="password-wrapper">
+          <input
+            id="password"
+            [type]="showPassword ? 'text' : 'password'"
+            name="password"
+            [(ngModel)]="password"
+            placeholder="At least 8 characters"
+            autocomplete="new-password"
+            required
+            minlength="8"
+            #passwordField="ngModel"
+          />
+          <button
+            type="button"
+            class="password-toggle"
+            (click)="showPassword = !showPassword"
+            [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'"
+          >
+            {{ showPassword ? 'Hide' : 'Show' }}
+          </button>
+        </div>
+        @if (passwordField.invalid && passwordField.touched) {
+          <small class="field-error">
+            @if (passwordField.errors?.['required']) {
+              Password is required.
+            } @else if (passwordField.errors?.['minlength']) {
+              Password must contain at least 8 characters.
+            }
+          </small>
+        }
+      </div>
+
+      <div class="form-group">
+        <label for="confirmPassword">Confirm password</label>
+        <div class="password-wrapper">
+          <input
+            id="confirmPassword"
+            [type]="showConfirmPassword ? 'text' : 'password'"
+            name="confirmPassword"
+            [(ngModel)]="confirmPassword"
+            placeholder="Re-enter your password"
+            autocomplete="new-password"
+            required
+            #confirmPasswordField="ngModel"
+          />
+          <button
+            type="button"
+            class="password-toggle"
+            (click)="showConfirmPassword = !showConfirmPassword"
+            [attr.aria-label]="showConfirmPassword ? 'Hide password' : 'Show password'"
+          >
+            {{ showConfirmPassword ? 'Hide' : 'Show' }}
+          </button>
+        </div>
+        @if (confirmPasswordField.touched && !confirmPassword) {
+          <small class="field-error">Please confirm your password.</small>
+        }
+      </div>
+
+      <button type="submit" class="register-button" [disabled]="isLoading || registerForm.invalid">
+        @if (isLoading) {
+          Creating account...
+        } @else {
+          Create account
+        }
+      </button>
+    </form>
+
+    <p class="login-text">
+      Already have an account?
+      <a routerLink="/login">Sign in</a>
+    </p>
+
+    <p class="security-note">Healthcare Inventory Management System</p>
+  </div>
+</div>

@@ -1,0 +1,229 @@
+
+<div class="hims-layout">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-icon">+</div>
+      <div>
+        <h2>HealthCare <span>IMS</span></h2>
+        <p>Inventory Management</p>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a routerLink="/dashboard" routerLinkActive="active">
+        <span class="nav-icon">▦</span>
+        Dashboard
+      </a>
+
+      <a routerLink="/items" routerLinkActive="active">
+        <span class="nav-icon">▤</span>
+        Inventory Items
+      </a>
+
+      <a routerLink="/stock" routerLinkActive="active">
+        <span class="nav-icon">⇅</span>
+        Stock Management
+      </a>
+
+      <a routerLink="/users" routerLinkActive="active">
+        <span class="nav-icon">♙</span>
+        User Management
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <p>HealthCare Inventory System</p>
+      <small>Version 1.0</small>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+
+    <header class="page-header">
+      <div>
+        <div class="breadcrumb">
+          <a routerLink="/dashboard">Dashboard</a>
+          <span>/</span>
+          <a routerLink="/items">Inventory Items</a>
+          <span>/</span>
+          <span>{{ editingId !== null ? 'Edit Item' : 'Add Item' }}</span>
+        </div>
+
+        <h1>
+          {{ editingId !== null ? 'Update Inventory Item' : 'Add New Item' }}
+        </h1>
+
+        <p>
+          {{
+            editingId !== null
+              ? 'Update the details of this inventory item.'
+              : 'Enter the details below to add a new inventory item.'
+          }}
+        </p>
+      </div>
+
+      <button type="button" class="back-button" (click)="cancel()">
+        ← Back to Inventory
+      </button>
+    </header>
+
+    <!-- Error Message -->
+    @if (message) {
+      <div class="message-box" [class.error]="messageType === 'error'">
+        {{ message }}
+      </div>
+    }
+
+    <!-- Loading -->
+    @if (isLoading) {
+      <div class="loading-message">
+        Loading item details...
+      </div>
+    } @else {
+
+      <!-- Item Form -->
+      <section class="form-panel">
+
+        <div class="form-heading">
+          <div>
+            <h2>Item Information</h2>
+            <p>Fill in the required inventory item details.</p>
+          </div>
+        </div>
+
+        <form #itemForm="ngForm" (ngSubmit)="saveItem()">
+
+          <div class="form-grid">
+
+            <!-- Item Name -->
+            <div class="form-group">
+              <label for="name">Item Name <span>*</span></label>
+              <input
+                id="name"
+                type="text"
+                name="name"
+                [(ngModel)]="formItem.name"
+                placeholder="Enter item name"
+                maxlength="150"
+                required
+              />
+            </div>
+
+            <!-- Category -->
+            <div class="form-group">
+              <label for="category">Category <span>*</span></label>
+              <select
+                id="category"
+                name="category"
+                [(ngModel)]="formItem.category"
+                required
+              >
+                @for (category of categories; track category) {
+                  <option [value]="category">{{ category }}</option>
+                }
+              </select>
+            </div>
+
+            <!-- SKU -->
+            <div class="form-group">
+              <label for="sku">SKU <span>*</span></label>
+              <input
+                id="sku"
+                type="text"
+                name="sku"
+                [(ngModel)]="formItem.sku"
+                placeholder="Enter unique SKU"
+                maxlength="50"
+                required
+              />
+            </div>
+
+            <!-- Unit -->
+            <div class="form-group">
+              <label for="unit">Unit <span>*</span></label>
+              <input
+                id="unit"
+                type="text"
+                name="unit"
+                [(ngModel)]="formItem.unit"
+                placeholder="e.g. Piece, Box, Pack"
+                maxlength="30"
+                required
+              />
+            </div>
+
+            <!-- Reorder Level -->
+            <div class="form-group">
+              <label for="reorderLevel">Reorder Level <span>*</span></label>
+              <input
+                id="reorderLevel"
+                type="number"
+                name="reorderLevel"
+                [(ngModel)]="formItem.reorderLevel"
+                min="0"
+                step="1"
+                required
+              />
+              <small>Minimum stock quantity before a low-stock alert.</small>
+            </div>
+
+            <!-- Image URL -->
+            <div class="form-group">
+              <label for="imageUrl">Image URL</label>
+              <input
+                id="imageUrl"
+                type="url"
+                name="imageUrl"
+                [(ngModel)]="formItem.imageUrl"
+                placeholder="https://example.com/image.png"
+              />
+            </div>
+
+            <!-- Description -->
+            <div class="form-group full-width">
+              <label for="description">Description</label>
+              <textarea
+                id="description"
+                name="description"
+                [(ngModel)]="formItem.description"
+                rows="4"
+                maxlength="500"
+                placeholder="Enter item description (optional)"
+              ></textarea>
+            </div>
+
+          </div>
+
+          <!-- Form Actions -->
+          <div class="form-actions">
+            <button
+              type="button"
+              class="cancel-button"
+              (click)="cancel()"
+              [disabled]="isSaving"
+            >
+              Cancel
+            </button>
+
+            <button
+              type="submit"
+              class="save-button"
+              [disabled]="itemForm.invalid || isSaving || isLoading"
+            >
+              @if (isSaving) {
+                Saving...
+              } @else {
+                {{ editingId !== null ? 'Update Item' : 'Save Item' }}
+              }
+            </button>
+          </div>
+
+        </form>
+      </section>
+    }
+
+  </main>
+</div>

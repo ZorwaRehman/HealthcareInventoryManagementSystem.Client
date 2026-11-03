@@ -1,0 +1,102 @@
+<div class="login-page">
+  <div class="login-card">
+    <div class="brand-section">
+      <div class="brand-icon">
+        <span>+</span>
+      </div>
+      <h1>HealthCare <span>IMS</span></h1>
+      <p>Inventory Management System</p>
+    </div>
+
+    <div class="welcome-section">
+      <h2>Welcome back</h2>
+      <p>Sign in to manage your healthcare inventory.</p>
+    </div>
+
+    @if (message) {
+      <div class="alert-message" [class.success]="messageType === 'success'" role="status">
+        {{ message }}
+      </div>
+    }
+
+    <form (ngSubmit)="onLogin()" #loginForm="ngForm">
+      <div class="form-group">
+        <label for="email">Email address</label>
+        <input
+          id="email"
+          type="email"
+          name="email"
+          [(ngModel)]="email"
+          placeholder="you@hospital.com"
+          autocomplete="username"
+          required
+          email
+          #emailField="ngModel"
+        />
+
+        @if (emailField.invalid && emailField.touched) {
+          <small class="field-error">
+            @if (emailField.errors?.['required']) {
+              Email address is required.
+            } @else if (emailField.errors?.['email']) {
+              Please enter a valid email address.
+            }
+          </small>
+        }
+      </div>
+
+      <div class="form-group">
+        <div class="label-row">
+          <label for="password">Password</label>
+        </div>
+
+        <div class="password-wrapper">
+          <input
+            id="password"
+            [type]="showPassword ? 'text' : 'password'"
+            name="password"
+            [(ngModel)]="password"
+            placeholder="Enter your password"
+            autocomplete="current-password"
+            required
+            #passwordField="ngModel"
+          />
+
+          <button
+            type="button"
+            class="password-toggle"
+            (click)="showPassword = !showPassword"
+            [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'"
+          >
+            {{ showPassword ? 'Hide' : 'Show' }}
+          </button>
+        </div>
+
+        @if (passwordField.invalid && passwordField.touched) {
+          <small class="field-error">Password is required.</small>
+        }
+      </div>
+
+      <button type="submit" class="login-button" [disabled]="isLoading || loginForm.invalid">
+        @if (isLoading) {
+          Signing in...
+        } @else {
+          Sign In <span aria-hidden="true">→</span>
+        }
+      </button>
+    </form>
+
+    <div class="divider">
+      <span>HEALTHCARE INVENTORY MANAGEMENT</span>
+    </div>
+
+    <p class="register-text">
+      Don't have an account?
+      <a routerLink="/register">Create account</a>
+    </p>
+
+    <p class="security-note">Your inventory, organized and secure.</p>
+  </div>
+
+  <footer class="page-footer">Healthcare Inventory Management System</footer>
+</div>

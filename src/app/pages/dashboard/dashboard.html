@@ -1,0 +1,210 @@
+<div class="dashboard-layout">
+  <aside class="sidebar">
+    <a class="brand" routerLink="/dashboard">
+      <span class="brand-icon">+</span>
+      <span class="brand-name">HealthCare <strong>IMS</strong></span>
+    </a>
+
+    <div class="sidebar-label">WORKSPACE</div>
+
+    <nav class="sidebar-nav">
+      <a routerLink="/dashboard" routerLinkActive="active">
+        <span class="nav-icon">▦</span>
+        Dashboard
+      </a>
+
+      <a routerLink="/items" routerLinkActive="active">
+        <span class="nav-icon">▤</span>
+        Item Management
+      </a>
+
+      <!-- New: Stock Management menu item -->
+      <a routerLink="/stock" routerLinkActive="active">
+        <span class="nav-icon">▣</span>
+        Stock Management
+      </a>
+
+      <a routerLink="/users" routerLinkActive="active">
+        <span class="nav-icon">♙</span>
+        User Management
+      </a>
+    </nav>
+
+    <div class="sidebar-bottom">
+      <div class="profile">
+        <div class="avatar">AD</div>
+        <div class="profile-info">
+          <strong>Admin User</strong>
+          <span>Administrator</span>
+        </div>
+      </div>
+
+      <button class="logout-button" type="button" (click)="logout()"><span>↪</span> Logout</button>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <header class="topbar">
+      <div>
+        <div class="breadcrumb">Workspace / Dashboard</div>
+        <h1>Dashboard</h1>
+      </div>
+
+      <div class="topbar-right">
+        <span class="status-dot"></span>
+        <span class="system-status">System overview</span>
+        <div class="top-avatar">AD</div>
+      </div>
+    </header>
+
+    <section class="page-content">
+      <div class="welcome-banner">
+        <div>
+          <p class="eyebrow">HEALTHCARE INVENTORY MANAGEMENT</p>
+          <h2>Good day, Admin!</h2>
+          <p>Here is what's happening with your inventory today.</p>
+        </div>
+        <div class="welcome-symbol" aria-hidden="true">+</div>
+      </div>
+
+      <div class="section-heading">
+        <div>
+          <h2>Inventory overview</h2>
+          <p>A quick summary of your healthcare inventory.</p>
+        </div>
+        <span class="demo-badge">DEMO DATA</span>
+      </div>
+
+      <div class="stats-grid">
+        <article class="stat-card">
+          <div class="stat-top">
+            <span class="stat-icon teal">▤</span>
+            <span class="stat-label">All inventory</span>
+          </div>
+          <div class="stat-value">{{ totalItems }}</div>
+          <div class="stat-caption">Total inventory items</div>
+          <a routerLink="/items" class="stat-link">View items →</a>
+        </article>
+
+        <article class="stat-card">
+          <div class="stat-top">
+            <span class="stat-icon orange">⚠</span>
+            <span class="stat-label">Needs attention</span>
+          </div>
+          <div class="stat-value">{{ lowStockItems }}</div>
+          <div class="stat-caption">Items with low stock</div>
+          <a routerLink="/items" class="stat-link">Review stock →</a>
+        </article>
+
+        <article class="stat-card">
+          <div class="stat-top">
+            <span class="stat-icon blue">♙</span>
+            <span class="stat-label">Team</span>
+          </div>
+          <div class="stat-value">{{ totalUsers }}</div>
+          <div class="stat-caption">Registered users</div>
+          <a routerLink="/users" class="stat-link">View users →</a>
+        </article>
+
+        <article class="stat-card">
+          <div class="stat-top">
+            <span class="stat-icon purple">▣</span>
+            <span class="stat-label">Purchasing</span>
+          </div>
+          <div class="stat-value">{{ pendingOrders }}</div>
+          <div class="stat-caption">Pending purchase orders</div>
+          <a href="javascript:void(0)" class="stat-link">View overview →</a>
+        </article>
+      </div>
+
+      <div class="content-grid">
+        <section class="panel activity-panel">
+          <div class="panel-header">
+            <div>
+              <h3>Recent activity</h3>
+              <p>Latest updates across your workspace</p>
+            </div>
+            <span class="activity-count">{{ recentActivity.length }} updates</span>
+          </div>
+
+          <div class="activity-list">
+            @for (activity of recentActivity; track activity.title) {
+              <div class="activity-row">
+                <div
+                  class="activity-icon"
+                  [class.inventory]="activity.type === 'inventory'"
+                  [class.supplier]="activity.type === 'supplier'"
+                  [class.alert]="activity.type === 'alert'"
+                  [class.order]="activity.type === 'order'"
+                >
+                  @switch (activity.type) {
+                    @case ('inventory') {
+                      ▤
+                    }
+                    @case ('supplier') {
+                      ♙
+                    }
+                    @case ('alert') {
+                      ⚠
+                    }
+                    @case ('order') {
+                      ▣
+                    }
+                  }
+                </div>
+
+                <div class="activity-info">
+                  <strong>{{ activity.title }}</strong>
+                  <span>{{ activity.detail }}</span>
+                </div>
+
+                <time>{{ activity.time }}</time>
+              </div>
+            }
+          </div>
+        </section>
+
+        <section class="panel quick-panel">
+          <div class="panel-header">
+            <div>
+              <h3>Quick actions</h3>
+              <p>Common tasks</p>
+            </div>
+          </div>
+
+          <a routerLink="/items" class="quick-action">
+            <span class="quick-icon teal">＋</span>
+            <span>
+              <strong>Manage items</strong>
+              <small>Review your inventory</small>
+            </span>
+            <span class="arrow">→</span>
+          </a>
+
+          <a routerLink="/users" class="quick-action">
+            <span class="quick-icon blue">♙</span>
+            <span>
+              <strong>Manage users</strong>
+              <small>View team members</small>
+            </span>
+            <span class="arrow">→</span>
+          </a>
+
+          <a routerLink="/items" class="quick-action">
+            <span class="quick-icon orange">⚠</span>
+            <span>
+              <strong>Check low stock</strong>
+              <small>Review stock levels</small>
+            </span>
+            <span class="arrow">→</span>
+          </a>
+        </section>
+      </div>
+
+      <footer class="dashboard-footer">
+        <span>© 2026 HealthCare IMS</span>
+        <span>Healthcare Inventory Management System</span>
+      </footer>
+    </section>
+  </main>
+</div>
