@@ -170,16 +170,50 @@
               <small>Minimum stock quantity before a low-stock alert.</small>
             </div>
 
-            <!-- Image URL -->
+            <!-- Image Upload -->
             <div class="form-group">
-              <label for="imageUrl">Image URL</label>
+              <label for="image">Item Image</label>
+
               <input
-                id="imageUrl"
-                type="url"
-                name="imageUrl"
-                [(ngModel)]="formItem.imageUrl"
-                placeholder="https://example.com/image.png"
+                id="image"
+                type="file"
+                name="image"
+                accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+                (change)="onImageSelected($event)"
               />
+
+              <small>
+                Optional. Allowed formats: JPG, JPEG, PNG and WEBP.
+                Maximum size: 5 MB.
+              </small>
+
+              <!-- Image Preview -->
+              @if (imagePreviewUrl) {
+                <div class="image-preview-container">
+
+                  <p>
+                    {{ selectedImage ? 'Selected Image Preview' : 'Current Item Image' }}
+                  </p>
+
+                  <img
+                    [src]="imagePreviewUrl"
+                    alt="Item image preview"
+                    class="image-preview"
+                  />
+
+                  <!-- Remove newly selected image -->
+                  @if (selectedImage) {
+                    <button
+                      type="button"
+                      class="cancel-button"
+                      (click)="removeSelectedImage()"
+                    >
+                      Remove Selected Image
+                    </button>
+                  }
+
+                </div>
+              }
             </div>
 
             <!-- Description -->
