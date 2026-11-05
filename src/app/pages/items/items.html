@@ -1,6 +1,5 @@
 
 <div class="hims-layout">
-
   <!-- Sidebar -->
   <aside class="sidebar">
     <div class="brand">
@@ -11,8 +10,12 @@
     <div class="sidebar-section">MAIN MENU</div>
 
     <nav class="sidebar-nav">
-      <a routerLink="/dashboard" routerLinkActive="active"
-         [routerLinkActiveOptions]="{ exact: true }" class="nav-link">
+      <a
+        routerLink="/dashboard"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }"
+        class="nav-link"
+      >
         <span class="nav-icon">▦</span> Dashboard
       </a>
 
@@ -46,45 +49,33 @@
 
   <!-- Main Content -->
   <main class="main-content">
-
     <!-- Page Header -->
     <header class="top-header">
       <div>
         <p class="breadcrumb">Dashboard / Inventory</p>
         <h1>Inventory Items</h1>
-        <p class="page-description">
-          Manage healthcare item details and reorder settings.
-        </p>
+        <p class="page-description">Manage healthcare item details and reorder settings.</p>
       </div>
 
-      <button
-        type="button"
-        class="btn-primary"
-        (click)="openAddForm()">
+      <button type="button" class="btn-primary" (click)="openAddForm()">
         <span>＋</span> Add New Item
       </button>
     </header>
 
     <!-- Success and Error Messages -->
     @if (message) {
-      <div
-        class="message-box"
-        role="status"
-        aria-live="polite">
+      <div class="message-box" role="status" aria-live="polite">
         {{ message }}
       </div>
     }
 
     <!-- Loading Indicator -->
     @if (isLoading) {
-      <div class="message-box" role="status" aria-live="polite">
-        Loading inventory...
-      </div>
+      <div class="message-box" role="status" aria-live="polite">Loading inventory...</div>
     }
 
     <!-- Statistics -->
     <section class="stats-grid">
-
       <div class="stat-card">
         <div class="stat-icon total-icon">▤</div>
         <div>
@@ -107,7 +98,7 @@
         <div class="stat-icon units-icon">▦</div>
         <div>
           <p>Total Units</p>
-          <h2>{{ totalUnits | number:'1.0-0' }}</h2>
+          <h2>{{ totalUnits | number: '1.0-0' }}</h2>
           <small>Stock integration pending</small>
         </div>
       </div>
@@ -120,39 +111,36 @@
           <small>Purchasing data integration pending</small>
         </div>
       </div>
-
     </section>
 
     <!-- Inventory Card -->
     <section class="inventory-card">
-
       <div class="inventory-heading">
         <div>
           <h2>All Inventory Items</h2>
           <p>View, search, edit, or remove item records.</p>
         </div>
 
-        <span class="record-count">
-          {{ filteredItems.length }} records
-        </span>
+        <span class="record-count"> {{ filteredItems.length }} records </span>
       </div>
 
       <!-- Search and Filters -->
       <div class="filter-bar">
-
         <div class="search-box">
           <span class="search-icon">⌕</span>
           <input
             type="text"
             placeholder="Search by name, category, or SKU..."
             [(ngModel)]="searchText"
-            aria-label="Search inventory items">
+            aria-label="Search inventory items"
+          />
         </div>
 
         <select
           class="category-filter"
           [(ngModel)]="selectedCategory"
-          aria-label="Filter by category">
+          aria-label="Filter by category"
+        >
           <option value="All">All Categories</option>
 
           @for (category of categories; track category) {
@@ -160,19 +148,12 @@
           }
         </select>
 
-        <button
-          type="button"
-          class="btn-secondary"
-          (click)="clearFilters()">
-          Clear
-        </button>
-
+        <button type="button" class="btn-secondary" (click)="clearFilters()">Clear</button>
       </div>
 
       <!-- Inventory Table -->
       <div class="table-wrapper">
         <table class="inventory-table">
-
           <thead>
             <tr>
               <th>ITEM</th>
@@ -190,9 +171,21 @@
               <tr>
                 <td>
                   <div class="item-name-cell">
-                    <div class="item-avatar">
-                      {{ item.name.charAt(0).toUpperCase() }}
-                    </div>
+
+                    @if (item.imageUrl) {
+                      <img
+                        class="item-avatar item-image"
+                        [src]="item.imageUrl.startsWith('http')
+                          ? item.imageUrl
+                          : 'https://localhost:44347' + item.imageUrl"
+                        [alt]="item.name"
+                      />
+                    } @else {
+                      <div class="item-avatar">
+                        {{ item.name.charAt(0).toUpperCase() }}
+                      </div>
+                    }
+
                     <div>
                       <strong>{{ item.name }}</strong>
                       <small>ID: {{ item.id }}</small>
@@ -223,7 +216,8 @@
                       class="action-button edit-button"
                       title="Edit item"
                       aria-label="Edit item"
-                      (click)="editItem(item)">
+                      (click)="editItem(item)"
+                    >
                       ✎
                     </button>
 
@@ -232,8 +226,9 @@
                       class="action-button delete-button"
                       title="Delete item"
                       aria-label="Delete item"
-                      (click)="deleteItem(item.id)"
-                      [disabled]="isLoading">
+                      (click)="confirmDelete(item.id)"
+                      [disabled]="isLoading"
+                    >
                       🗑
                     </button>
                   </div>
@@ -248,10 +243,7 @@
                   <h3>No inventory items found</h3>
                   <p>Try changing your search or category filter.</p>
 
-                  <button
-                    type="button"
-                    class="btn-secondary"
-                    (click)="clearFilters()">
+                  <button type="button" class="btn-secondary" (click)="clearFilters()">
                     Clear Filters
                   </button>
                 </td>
@@ -263,17 +255,55 @@
 
       <!-- Table Footer -->
       <div class="table-footer">
-        <span>
-          Showing {{ filteredItems.length }} of {{ items.length }} items
-        </span>
+        <span> Showing {{ filteredItems.length }} of {{ items.length }} items </span>
         <span>Healthcare Inventory Management System</span>
       </div>
-
     </section>
 
     <footer class="page-footer">
       <p>© 2026 HIMS · Healthcare Inventory Management System</p>
     </footer>
-
   </main>
+
+  <!-- Delete Confirmation Dialog -->
+  @if (selectedItemId !== null) {
+    <div class="modal-overlay">
+      <div
+        class="delete-modal"
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="delete-modal-title"
+        aria-describedby="delete-modal-description"
+      >
+        <div class="delete-modal-icon">🗑</div>
+
+        <h2 id="delete-modal-title">Confirm Deletion</h2>
+
+        <p id="delete-modal-description">
+          Are you sure you want to delete this item?
+          This action cannot be undone.
+        </p>
+
+        <div class="modal-actions">
+          <button
+            type="button"
+            class="btn-secondary"
+            (click)="cancelDelete()"
+            [disabled]="isLoading"
+          >
+            Cancel
+          </button>
+
+          <button
+            type="button"
+            class="confirm-delete-button"
+            (click)="deleteItem()"
+            [disabled]="isLoading"
+          >
+            {{ isLoading ? 'Deleting...' : 'Confirm Delete' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
 </div>

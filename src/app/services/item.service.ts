@@ -19,12 +19,10 @@ export class ItemService {
 
   // Get all items, using the cache when available.
   getItems(forceRefresh = false): Observable<Item[]> {
-    // Return cached data if it exists and refresh is not requested.
     if (this.cachedItems !== null && !forceRefresh) {
       return of(this.cachedItems);
     }
 
-    // Fetch fresh inventory from the API.
     return this.http.get<Item[]>(this.apiUrl).pipe(
       tap(items => {
         this.cachedItems = items;
@@ -45,9 +43,14 @@ export class ItemService {
     );
   }
 
-  // Add a new item and update the cache.
-  createItem(request: ItemRequest): Observable<Item> {
-    return this.http.post<Item>(this.apiUrl, request).pipe(
+  // Add a new item with an optional image.
+  createItem(
+    request: ItemRequest,
+    image: File | null = null
+  ): Observable<Item> {
+    const formData = this.createFormData(request, image);
+
+    return this.http.post<Item>(this.apiUrl, formData).pipe(
       tap(newItem => {
         if (this.cachedItems !== null) {
           this.cachedItems = [...this.cachedItems, newItem];
@@ -56,9 +59,18 @@ export class ItemService {
     );
   }
 
-  // Update an existing item and update the cache.
-  updateItem(id: number, request: ItemRequest): Observable<Item> {
-    return this.http.put<Item>(`${this.apiUrl}/${id}`, request).pipe(
+  // Update an existing item with an optional replacement image.
+  updateItem(
+    id: number,
+    request: ItemRequest,
+    image: File | null = null
+  ): Observable<Item> {
+    const formData = this.createFormData(request, image);
+
+    return this.http.put<Item>(
+      `${this.apiUrl}/${id}`,
+      formData
+    ).pipe(
       tap(updatedItem => {
         if (this.cachedItems !== null) {
           this.cachedItems = this.cachedItems.map(item =>
@@ -67,6 +79,28 @@ export class ItemService {
         }
       })
     );
+  }
+
+  // Convert item details and an optional image into FormData.
+  private createFormData(
+    request: ItemRequest,
+    image: File | null
+  ): FormData {
+    const formData = new FormData();
+
+    formData.append('name', request.name);
+    formData.append('description', request.description ?? '');
+    formData.append('category', request.category);
+    formData.append('sku', request.sku);
+    formData.append('unit', request.unit);
+    formData.append('reorderLevel', String(request.reorderLevel));
+
+    // Attach the image only when the user selects one.
+    if (image) {
+      formData.append('image', image, image.name);
+    }
+
+    return formData;
   }
 
   // Delete an item and update the cache.

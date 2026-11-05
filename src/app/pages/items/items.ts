@@ -1,12 +1,13 @@
 
-import { Component, OnInit, inject } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  inject,
+  ChangeDetectorRef,
+} from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import {
-  Router,
-  RouterLink,
-  RouterLinkActive,
-} from '@angular/router';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 
 import { Item } from '../../models/item.models';
 import { ItemService } from '../../services/item.service';
@@ -22,6 +23,9 @@ export class Items implements OnInit {
   private readonly itemService = inject(ItemService);
   private readonly router = inject(Router);
 
+  // Used to notify Angular when the view needs updating.
+  private readonly cdr = inject(ChangeDetectorRef);
+
   searchText = '';
   selectedCategory = 'All';
 
@@ -29,6 +33,10 @@ export class Items implements OnInit {
   isLoading = false;
 
   items: Item[] = [];
+
+  // Stores the ID of the item selected for deletion.
+  // null means that the confirmation dialog is closed.
+  selectedItemId: number | null = null;
 
   categories: string[] = [
     'Protective Equipment',
@@ -40,8 +48,7 @@ export class Items implements OnInit {
   ngOnInit(): void {
     // Display the success message received from the Add/Edit page.
     const navigationState =
-      this.router.getCurrentNavigation()?.extras.state ??
-      window.history.state;
+      this.router.getCurrentNavigation()?.extras.state ?? window.history.state;
 
     if (navigationState?.['successMessage']) {
       this.message = navigationState['successMessage'];
@@ -59,11 +66,14 @@ export class Items implements OnInit {
   // Load items from the backend.
   loadItems(): void {
     this.isLoading = true;
+    this.cdr.markForCheck();
 
     this.itemService.getItems().subscribe({
       next: (items) => {
         this.items = items;
         this.isLoading = false;
+
+        this.cdr.markForCheck();
       },
       error: (error) => {
         console.error('Error loading items:', error);
@@ -72,6 +82,8 @@ export class Items implements OnInit {
           'Unable to load items. Please check that the backend is running.';
 
         this.isLoading = false;
+
+        this.cdr.markForCheck();
       },
     });
   }
@@ -114,27 +126,43 @@ export class Items implements OnInit {
 
   // Navigate to the separate Edit Item page.
   editItem(item: Item): void {
-    this.router.navigate(['/items/edit', item.id]);
+    this.router.navigate(['/items/edit', item.id], {
+      state: { item },
+    });
   }
 
-  // Delete an item after confirmation.
-  deleteItem(id: number): void {
-    const confirmed = window.confirm(
-      'Are you sure you want to delete this item?'
-    );
-
-    if (!confirmed) {
+  // Open the custom delete confirmation dialog.
+  confirmDelete(id: number): void {
+    if (this.isLoading) {
       return;
     }
 
+    this.selectedItemId = id;
+    this.cdr.markForCheck();
+  }
+
+  // Delete the selected item after confirmation.
+  deleteItem(): void {
+    if (this.selectedItemId === null || this.isLoading) {
+      return;
+    }
+
+    const id = this.selectedItemId;
+
     this.isLoading = true;
     this.message = '';
+    this.cdr.markForCheck();
 
     this.itemService.deleteItem(id).subscribe({
       next: () => {
         this.items = this.items.filter((item) => item.id !== id);
+
         this.message = 'Item deleted successfully!';
         this.isLoading = false;
+        this.selectedItemId = null;
+
+        // Notify Angular after successful deletion.
+        this.cdr.markForCheck();
       },
 
       error: (error) => {
@@ -145,8 +173,22 @@ export class Items implements OnInit {
           'Unable to delete item. Please try again.';
 
         this.isLoading = false;
+        this.selectedItemId = null;
+
+        // Notify Angular to display the error.
+        this.cdr.markForCheck();
       },
     });
+  }
+
+  // Close the confirmation dialog without deleting.
+  cancelDelete(): void {
+    if (this.isLoading) {
+      return;
+    }
+
+    this.selectedItemId = null;
+    this.cdr.markForCheck();
   }
 
   // Reset search and category filters.

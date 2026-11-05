@@ -1,5 +1,5 @@
 
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
@@ -13,10 +13,13 @@ import { ItemService } from '../../services/item.service';
   templateUrl: './item-form.html',
   styleUrl: './item-form.css',
 })
-export class ItemForm implements OnInit {
+export class ItemForm implements OnInit, OnDestroy {
   private readonly itemService = inject(ItemService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+
+  // API base URL used to display images saved by the backend.
+  private readonly apiBaseUrl = 'https://localhost:44347';
 
   // Determines whether the form is adding or editing an item.
   editingId: number | null = null;
@@ -25,6 +28,18 @@ export class ItemForm implements OnInit {
   isLoading = false;
   message = '';
   messageType: 'success' | 'error' = 'error';
+
+  // Stores the newly selected image file.
+  selectedImage: File | null = null;
+
+  // Stores the image URL used for the preview.
+  imagePreviewUrl: string | null = null;
+
+  // Stores the existing image when editing.
+  existingImageUrl: string | null = null;
+
+  // Stores the temporary preview URL so it can be released.
+  private temporaryImageUrl: string | null = null;
 
   categories: string[] = [
     'Protective Equipment',
@@ -47,8 +62,23 @@ export class ItemForm implements OnInit {
       }
 
       this.editingId = parsedId;
-      this.loadItem(parsedId);
+
+      // Get the selected item passed from the Items page.
+      const selectedItem = window.history.state?.item as Item | undefined;
+
+      // Use the selected item immediately if its ID matches the URL.
+      if (selectedItem && selectedItem.id === parsedId) {
+        this.populateForm(selectedItem);
+      } else {
+        // Fetch the item if the page is opened directly or refreshed.
+        this.loadItem(parsedId);
+      }
     }
+  }
+
+  // Release the temporary preview URL when leaving the component.
+  ngOnDestroy(): void {
+    this.releaseTemporaryImageUrl();
   }
 
   // Create an empty item for the Add page.
@@ -64,24 +94,107 @@ export class ItemForm implements OnInit {
     };
   }
 
-  // Retrieve the selected item for the Edit page.
+  // Fill the form using the selected item's details.
+  populateForm(item: Item): void {
+    this.formItem = {
+      name: item.name,
+      description: item.description,
+      category: item.category,
+      sku: item.sku,
+      unit: item.unit,
+      reorderLevel: item.reorderLevel,
+      imageUrl: null,
+    };
+
+    // Keep the existing image available during editing.
+    this.existingImageUrl = item.imageUrl
+      ? this.getImageUrl(item.imageUrl)
+      : null;
+
+    this.imagePreviewUrl = this.existingImageUrl;
+
+    this.selectedImage = null;
+
+    this.isLoading = false;
+  }
+
+  // Convert a backend image path into a complete browser URL.
+  private getImageUrl(imageUrl: string): string {
+    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+      return imageUrl;
+    }
+
+    return `${this.apiBaseUrl}${imageUrl.startsWith('/') ? '' : '/'}${imageUrl}`;
+  }
+
+  // Handle image selection from the computer.
+  onImageSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    const allowedTypes = [
+      'image/jpeg',
+      'image/png',
+      'image/webp',
+    ];
+
+    // Validate the selected image type.
+    if (!allowedTypes.includes(file.type)) {
+      this.message = 'Only JPG, JPEG, PNG, and WEBP images are allowed.';
+      this.messageType = 'error';
+      input.value = '';
+      return;
+    }
+
+    // Validate image size (5 MB maximum).
+    if (file.size > 5 * 1024 * 1024) {
+      this.message = 'Image size cannot exceed 5 MB.';
+      this.messageType = 'error';
+      input.value = '';
+      return;
+    }
+
+    this.message = '';
+
+    // Release the previous temporary preview URL.
+    this.releaseTemporaryImageUrl();
+
+    this.selectedImage = file;
+
+    // Generate a temporary URL for the selected image preview.
+    this.temporaryImageUrl = URL.createObjectURL(file);
+    this.imagePreviewUrl = this.temporaryImageUrl;
+  }
+
+  // Remove the newly selected image and return to the existing image.
+  removeSelectedImage(): void {
+    this.selectedImage = null;
+
+    this.releaseTemporaryImageUrl();
+
+    this.imagePreviewUrl = this.existingImageUrl;
+  }
+
+  // Release the temporary browser image URL.
+  private releaseTemporaryImageUrl(): void {
+    if (this.temporaryImageUrl) {
+      URL.revokeObjectURL(this.temporaryImageUrl);
+      this.temporaryImageUrl = null;
+    }
+  }
+
+  // Retrieve the selected item from the backend when navigation data is unavailable.
   loadItem(id: number): void {
     this.isLoading = true;
     this.message = '';
 
     this.itemService.getItemById(id).subscribe({
       next: (item: Item) => {
-        this.formItem = {
-          name: item.name,
-          description: item.description,
-          category: item.category,
-          sku: item.sku,
-          unit: item.unit,
-          reorderLevel: item.reorderLevel,
-          imageUrl: item.imageUrl,
-        };
-
-        this.isLoading = false;
+        this.populateForm(item);
       },
       error: (error) => {
         console.error('Error loading item:', error);
@@ -104,7 +217,9 @@ export class ItemForm implements OnInit {
       sku: this.formItem.sku.trim(),
       unit: this.formItem.unit.trim(),
       reorderLevel: Number(this.formItem.reorderLevel),
-      imageUrl: this.formItem.imageUrl?.trim() || null,
+
+      // Image is now uploaded as a file, not as a URL.
+      imageUrl: null,
     };
 
     if (
@@ -118,21 +233,6 @@ export class ItemForm implements OnInit {
       this.message = 'Please enter valid item details.';
       this.messageType = 'error';
       return null;
-    }
-
-    // Check the image URL only when one is provided.
-    if (request.imageUrl) {
-      try {
-        const url = new URL(request.imageUrl);
-
-        if (url.protocol !== 'http:' && url.protocol !== 'https:') {
-          throw new Error('Invalid URL protocol');
-        }
-      } catch {
-        this.message = 'Please enter a valid image URL.';
-        this.messageType = 'error';
-        return null;
-      }
     }
 
     return request;
@@ -157,8 +257,15 @@ export class ItemForm implements OnInit {
     const isEditing = this.editingId !== null;
 
     const saveRequest = isEditing
-      ? this.itemService.updateItem(this.editingId!, request)
-      : this.itemService.createItem(request);
+      ? this.itemService.updateItem(
+          this.editingId!,
+          request,
+          this.selectedImage
+        )
+      : this.itemService.createItem(
+          request,
+          this.selectedImage
+        );
 
     saveRequest.subscribe({
       next: () => {
