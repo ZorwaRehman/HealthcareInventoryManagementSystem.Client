@@ -1,4 +1,3 @@
-
 <div class="hims-layout">
   <!-- Sidebar -->
   <aside class="sidebar">
@@ -25,6 +24,12 @@
 
       <a routerLink="/stock" routerLinkActive="active" class="nav-link">
         <span class="nav-icon">▣</span> Stock Management
+      </a>
+
+      <!-- Supplier Management -->
+      <a routerLink="/suppliers" routerLinkActive="active" class="nav-link">
+        <span class="nav-icon">♧</span>
+        Supplier Management
       </a>
 
       <a routerLink="/users" routerLinkActive="active" class="nav-link">
@@ -171,13 +176,14 @@
               <tr>
                 <td>
                   <div class="item-name-cell">
-
                     @if (item.imageUrl) {
                       <img
                         class="item-avatar item-image"
-                        [src]="item.imageUrl.startsWith('http')
-                          ? item.imageUrl
-                          : 'https://localhost:44347' + item.imageUrl"
+                        [src]="
+                          item.imageUrl.startsWith('http')
+                            ? item.imageUrl
+                            : 'https://localhost:44347' + item.imageUrl
+                        "
                         [alt]="item.name"
                       />
                     } @else {
@@ -280,8 +286,7 @@
         <h2 id="delete-modal-title">Confirm Deletion</h2>
 
         <p id="delete-modal-description">
-          Are you sure you want to delete this item?
-          This action cannot be undone.
+          Are you sure you want to delete this item? This action cannot be undone.
         </p>
 
         <div class="modal-actions">

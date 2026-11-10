@@ -8,6 +8,10 @@ import { Items } from './pages/items/items';
 import { ItemForm } from './pages/item-form/item-form';
 import { Users } from './pages/users/users';
 import { Stock } from './pages/stock/stock';
+import { StockBatchForm } from './pages/stock-batch-form/stock-batch-form';
+// Supplier components
+import { Suppliers } from './pages/suppliers/suppliers';
+import { SupplierForm } from './pages/supplier-form/supplier-form';
 
 export const routes: Routes = [
   { path: 'login', component: Login },
@@ -21,7 +25,16 @@ export const routes: Routes = [
   // Inventory Items list
   { path: 'items', component: Items },
 
+  // Add and Edit Supplier pages
+  { path: 'suppliers/new', component: SupplierForm },
+  { path: 'suppliers/edit/:id', component: SupplierForm },
+
+  // Supplier list
+  { path: 'suppliers', component: Suppliers },
+
+
   { path: 'users', component: Users },
+  { path: 'stock/batches/new', component: StockBatchForm },
   { path: 'stock', component: Stock },
 
   { path: '', redirectTo: 'login', pathMatch: 'full' },

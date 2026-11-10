@@ -1,0 +1,282 @@
+<div class="hims-layout">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-icon">+</div>
+      <div>
+        <h2>HealthCare <span>IMS</span></h2>
+        <p>Inventory Management</p>
+      </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="sidebar-nav">
+      <a routerLink="/dashboard" routerLinkActive="active">
+        <span class="nav-icon">▦</span>
+        Dashboard
+      </a>
+
+      <a routerLink="/items" routerLinkActive="active">
+        <span class="nav-icon">▤</span>
+        Inventory Items
+      </a>
+
+      <a routerLink="/stock" routerLinkActive="active">
+        <span class="nav-icon">⇅</span>
+        Stock Management
+      </a>
+
+      <a routerLink="/suppliers" routerLinkActive="active">
+        <span class="nav-icon">♧</span>
+        Supplier Management
+      </a>
+
+      <a routerLink="/users" routerLinkActive="active">
+        <span class="nav-icon">♙</span>
+        User Management
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <p>HealthCare Inventory System</p>
+      <small>Version 1.0</small>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- Page Header -->
+    <header class="page-header">
+      <div>
+        <div class="breadcrumb">
+          <a routerLink="/dashboard">Dashboard</a>
+          <span>/</span>
+          <span>Supplier Management</span>
+        </div>
+
+        <h1>Supplier Management</h1>
+
+        <p>Manage supplier information and maintain your supplier records.</p>
+      </div>
+
+      <button type="button" class="add-button" (click)="openAddForm()">+ Add New Supplier</button>
+    </header>
+
+    <!-- Success and Error Messages -->
+    @if (message) {
+      <div class="message-box">
+        {{ message }}
+      </div>
+    }
+
+    <!-- Supplier Statistics -->
+    <section class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon total-icon">S</div>
+        <div>
+          <p>Total Suppliers</p>
+          <h2>{{ totalSuppliers }}</h2>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon active-icon">✓</div>
+        <div>
+          <p>Active Suppliers</p>
+          <h2>{{ activeSuppliers }}</h2>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon inactive-icon">−</div>
+        <div>
+          <p>Inactive Suppliers</p>
+          <h2>{{ inactiveSuppliers }}</h2>
+        </div>
+      </div>
+    </section>
+
+    <!-- Supplier Table -->
+    <section class="inventory-card">
+      <div class="inventory-heading">
+        <div>
+          <h2>Supplier Records</h2>
+          <p>View, search, and manage your registered suppliers.</p>
+        </div>
+      </div>
+
+      <!-- Search and Filter -->
+      <div class="filter-bar">
+        <div class="search-box">
+          <input
+            type="text"
+            [(ngModel)]="searchText"
+            placeholder="Search by name, email, phone, or city..."
+            aria-label="Search suppliers"
+          />
+        </div>
+
+        <select
+          [(ngModel)]="selectedStatus"
+          aria-label="Filter suppliers by status"
+          class="category-filter"
+        >
+          <option value="All">All Suppliers</option>
+          <option value="Active">Active Suppliers</option>
+          <option value="Inactive">Inactive Suppliers</option>
+        </select>
+
+        <button type="button" class="clear-button" (click)="clearFilters()">Clear</button>
+      </div>
+
+      <!-- Loading -->
+      @if (isLoading) {
+        <div class="empty-state">
+          <p>Loading suppliers...</p>
+        </div>
+      } @else {
+        <div class="table-wrapper">
+          <table class="inventory-table">
+            <thead>
+              <tr>
+                <th>Supplier</th>
+                <th>Contact Person</th>
+                <th>Phone</th>
+                <th>Email</th>
+                <th>City</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              @for (supplier of filteredSuppliers; track supplier.supplierId) {
+                <tr>
+                  <td>
+                    <div class="supplier-name">
+                      <div class="supplier-avatar">
+                        {{ supplier.name.charAt(0).toUpperCase() }}
+                      </div>
+
+                      <div>
+                        <strong>{{ supplier.name }}</strong>
+                        <small>{{ supplier.country || 'Country not provided' }}</small>
+                      </div>
+                    </div>
+                  </td>
+
+                  <td>{{ supplier.contactPerson || '—' }}</td>
+
+                  <td>{{ supplier.phone }}</td>
+
+                  <td>{{ supplier.email }}</td>
+
+                  <td>{{ supplier.city || '—' }}</td>
+
+                  <td>
+                    <span
+                      class="status-badge"
+                      [class.active]="supplier.isActive"
+                      [class.inactive]="!supplier.isActive"
+                    >
+                      {{ supplier.isActive ? 'Active' : 'Inactive' }}
+                    </span>
+                  </td>
+
+                  <td>
+                    <div class="action-buttons">
+                      @if (supplier.isActive) {
+                        <button
+                          type="button"
+                          class="edit-button"
+                          (click)="editSupplier(supplier)"
+                          [disabled]="isLoading"
+                        >
+                          Edit
+                        </button>
+
+                        <button
+                          type="button"
+                          class="deactivate-button"
+                          (click)="confirmDeactivate(supplier.supplierId)"
+                          [disabled]="isLoading"
+                        >
+                          Deactivate
+                        </button>
+                      } @else {
+                        <button
+                          type="button"
+                          class="reactivate-button"
+                          (click)="reactivateSupplier(supplier.supplierId)"
+                          [disabled]="isLoading"
+                        >
+                          Reactivate
+                        </button>
+                      }
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+
+          <!-- Empty State -->
+          @if (filteredSuppliers.length === 0) {
+            <div class="empty-state">
+              <h3>No suppliers found</h3>
+              <p>
+                {{
+                  suppliers.length === 0
+                    ? 'Add your first supplier to get started.'
+                    : 'Try changing your search or status filter.'
+                }}
+              </p>
+            </div>
+          }
+        </div>
+
+        <!-- Table Footer -->
+        <div class="table-footer">
+          Showing {{ filteredSuppliers.length }} of {{ suppliers.length }} suppliers
+        </div>
+      }
+    </section>
+
+    <!-- Deactivation Confirmation Modal -->
+    @if (selectedSupplierId !== null) {
+      <div class="modal-overlay">
+        <div class="delete-modal">
+          <h2>Deactivate Supplier?</h2>
+
+          <p>
+            Are you sure you want to deactivate this supplier? This supplier will remain in your
+            records but will no longer be available for new stock batches.
+          </p>
+
+          <div class="modal-actions">
+            <button
+              type="button"
+              class="cancel-button"
+              (click)="cancelDeactivate()"
+              [disabled]="isLoading"
+            >
+              Cancel
+            </button>
+
+            <button
+              type="button"
+              class="confirm-button"
+              (click)="deactivateSupplier()"
+              [disabled]="isLoading"
+            >
+              {{ isLoading ? 'Deactivating...' : 'Yes, Deactivate' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Page Footer -->
+    <footer class="page-footer">HealthCare Inventory Management System</footer>
+  </main>
+</div>

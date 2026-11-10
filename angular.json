@@ -50,20 +50,22 @@
               "sourceMap": true
             }
           },
-          "defaultConfiguration": "production"
-        },
-        "serve": {
-          "builder": "@angular/build:dev-server",
-          "configurations": {
-            "production": {
-              "buildTarget": "HealthcareInventoryManagementSystem.Client:build:production"
-            },
-            "development": {
-              "buildTarget": "HealthcareInventoryManagementSystem.Client:build:development"
-            }
-          },
-          "defaultConfiguration": "development"
-        },
+          "defaultConfiguration": "production"},
+"serve": {
+  "builder": "@angular/build:dev-server",
+  "options": {
+    "proxyConfig": "proxy.conf.json"
+  },
+  "configurations": {
+    "production": {
+      "buildTarget": "HealthcareInventoryManagementSystem.Client:build:production"
+    },
+    "development": {
+      "buildTarget": "HealthcareInventoryManagementSystem.Client:build:development"
+    }
+  },
+  "defaultConfiguration": "development"
+},
         "test": {
           "builder": "@angular/build:unit-test"
         }

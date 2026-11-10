@@ -1,6 +1,4 @@
-
 <div class="hims-layout">
-
   <!-- Sidebar -->
   <aside class="sidebar">
     <div class="sidebar-brand">
@@ -27,6 +25,12 @@
         Stock Management
       </a>
 
+      <!-- Supplier Management -->
+      <a routerLink="/suppliers" routerLinkActive="active">
+        <span class="nav-icon">♧</span>
+        Supplier Management
+      </a>
+
       <a routerLink="/users" routerLinkActive="active">
         <span class="nav-icon">♙</span>
         User Management
@@ -41,7 +45,6 @@
 
   <!-- Main Content -->
   <main class="main-content">
-
     <header class="page-header">
       <div>
         <div class="breadcrumb">
@@ -65,9 +68,7 @@
         </p>
       </div>
 
-      <button type="button" class="back-button" (click)="cancel()">
-        ← Back to Inventory
-      </button>
+      <button type="button" class="back-button" (click)="cancel()">← Back to Inventory</button>
     </header>
 
     <!-- Error Message -->
@@ -79,14 +80,10 @@
 
     <!-- Loading -->
     @if (isLoading) {
-      <div class="loading-message">
-        Loading item details...
-      </div>
+      <div class="loading-message">Loading item details...</div>
     } @else {
-
       <!-- Item Form -->
       <section class="form-panel">
-
         <div class="form-heading">
           <div>
             <h2>Item Information</h2>
@@ -95,9 +92,7 @@
         </div>
 
         <form #itemForm="ngForm" (ngSubmit)="saveItem()">
-
           <div class="form-grid">
-
             <!-- Item Name -->
             <div class="form-group">
               <label for="name">Item Name <span>*</span></label>
@@ -115,12 +110,7 @@
             <!-- Category -->
             <div class="form-group">
               <label for="category">Category <span>*</span></label>
-              <select
-                id="category"
-                name="category"
-                [(ngModel)]="formItem.category"
-                required
-              >
+              <select id="category" name="category" [(ngModel)]="formItem.category" required>
                 @for (category of categories; track category) {
                   <option [value]="category">{{ category }}</option>
                 }
@@ -183,35 +173,24 @@
               />
 
               <small>
-                Optional. Allowed formats: JPG, JPEG, PNG and WEBP.
-                Maximum size: 5 MB.
+                Optional. Allowed formats: JPG, JPEG, PNG and WEBP. Maximum size: 5 MB.
               </small>
 
               <!-- Image Preview -->
               @if (imagePreviewUrl) {
                 <div class="image-preview-container">
-
                   <p>
                     {{ selectedImage ? 'Selected Image Preview' : 'Current Item Image' }}
                   </p>
 
-                  <img
-                    [src]="imagePreviewUrl"
-                    alt="Item image preview"
-                    class="image-preview"
-                  />
+                  <img [src]="imagePreviewUrl" alt="Item image preview" class="image-preview" />
 
                   <!-- Remove newly selected image -->
                   @if (selectedImage) {
-                    <button
-                      type="button"
-                      class="cancel-button"
-                      (click)="removeSelectedImage()"
-                    >
+                    <button type="button" class="cancel-button" (click)="removeSelectedImage()">
                       Remove Selected Image
                     </button>
                   }
-
                 </div>
               }
             </div>
@@ -228,17 +207,11 @@
                 placeholder="Enter item description (optional)"
               ></textarea>
             </div>
-
           </div>
 
           <!-- Form Actions -->
           <div class="form-actions">
-            <button
-              type="button"
-              class="cancel-button"
-              (click)="cancel()"
-              [disabled]="isSaving"
-            >
+            <button type="button" class="cancel-button" (click)="cancel()" [disabled]="isSaving">
               Cancel
             </button>
 
@@ -254,10 +227,8 @@
               }
             </button>
           </div>
-
         </form>
       </section>
     }
-
   </main>
 </div>

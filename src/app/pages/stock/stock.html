@@ -1,92 +1,259 @@
-
-<div class="stock-layout">
-
+<div class="hims-layout">
   <!-- Sidebar -->
   <aside class="sidebar">
-
-    <div class="sidebar-brand">
+    <div class="brand">
       <span class="brand-icon">+</span>
       <span class="brand-name">HealthCare <strong>IMS</strong></span>
     </div>
 
-    <!-- Main navigation -->
+    <div class="sidebar-section">MAIN MENU</div>
+
     <nav class="sidebar-nav">
-      <a routerLink="/dashboard" routerLinkActive="active"
-         [routerLinkActiveOptions]="{ exact: true }" class="nav-link">
-        <span class="nav-icon">▦</span>
-        <span>Dashboard</span>
+      <a
+        routerLink="/dashboard"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }"
+        class="nav-link"
+      >
+        <span class="nav-icon">▦</span> Dashboard
       </a>
 
       <a routerLink="/items" routerLinkActive="active" class="nav-link">
-        <span class="nav-icon">▤</span>
-        <span>Inventory Items</span>
+        <span class="nav-icon">▤</span> Inventory Items
       </a>
 
       <a routerLink="/stock" routerLinkActive="active" class="nav-link">
-        <span class="nav-icon">▣</span>
-        <span>Stock Management</span>
+        <span class="nav-icon">▣</span> Stock Management
+      </a>
+
+      <a routerLink="/suppliers" routerLinkActive="active" class="nav-link">
+        <span class="nav-icon">♧</span> Supplier Management
       </a>
 
       <a routerLink="/users" routerLinkActive="active" class="nav-link">
-        <span class="nav-icon">♙</span>
-        <span>User Management</span>
+        <span class="nav-icon">♙</span> User Management
       </a>
     </nav>
 
-    <div class="sidebar-footer">
-      <p>Healthcare Inventory Management System</p>
-    </div>
-
-  </aside>
-
-  <!-- Main content -->
-  <main class="stock-main">
-
-    <header class="stock-header">
-      <div>
-        <h1>Stock Management</h1>
-        <p>Manage stock batches, quantities, and inventory transactions.</p>
-      </div>
-    </header>
-
-    <!-- Stock overview -->
-    <section class="stock-overview">
-      <div class="stock-card">
-        <h3>Total Stock Batches</h3>
-        <p>—</p>
-      </div>
-
-      <div class="stock-card">
-        <h3>Available Stock</h3>
-        <p>—</p>
-      </div>
-
-      <div class="stock-card">
-        <h3>Low Stock Items</h3>
-        <p>—</p>
-      </div>
-
-      <div class="stock-card">
-        <h3>Expiring Batches</h3>
-        <p>—</p>
-      </div>
-    </section>
-
-    <!-- Stock actions -->
-    <section class="stock-panel">
-      <div class="stock-panel-header">
+    <div class="sidebar-bottom">
+      <div class="admin-profile">
+        <div class="avatar">A</div>
         <div>
-          <h2>Stock Batches</h2>
-          <p>View batches and manage stock quantities.</p>
+          <strong>Administrator</strong>
+          <small>System Admin</small>
         </div>
       </div>
 
-      <div class="stock-empty">
-        <p>Stock data will appear here after connecting the backend API.</p>
+      <a routerLink="/login" class="nav-link logout-link">
+        <span class="nav-icon">↪</span> Logout
+      </a>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- Page Header -->
+    <header class="top-header">
+      <div>
+        <p class="breadcrumb">Dashboard / Stock</p>
+        <h1>Stock Management</h1>
+        <p class="page-description">
+          Manage stock batches, quantities, suppliers, and inventory transactions.
+        </p>
+      </div>
+
+      <button type="button" class="btn-primary" (click)="openCreateBatchForm()">
+        <span>＋</span> Create New Batch
+      </button>
+    </header>
+
+    <!-- Success and Error Messages -->
+    @if (message) {
+      <div
+        class="message-box"
+        [class.success]="messageType === 'success'"
+        [class.error]="messageType === 'error'"
+        [class.loading]="messageType === 'loading'"
+        role="status"
+        aria-live="polite"
+      >
+        {{ message }}
+      </div>
+    }
+
+    <!-- Loading Indicator -->
+    @if (isLoading) {
+      <div class="message-box loading" role="status">Loading stock information...</div>
+    }
+
+    <!-- Stock Statistics -->
+    <section class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon total-icon">▣</div>
+        <div>
+          <p>Total Stock Batches</p>
+          <h2>{{ totalBatches }}</h2>
+          <small>Registered stock batches</small>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon units-icon">▦</div>
+        <div>
+          <p>Available Stock</p>
+          <h2>{{ totalAvailableStock | number: '1.0-0' }}</h2>
+          <small>Total available units</small>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon warning-icon">⚠</div>
+        <div>
+          <p>Low Stock Items</p>
+          <h2>{{ lowStockItems }}</h2>
+          <small>Items at or below reorder level</small>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon value-icon">◷</div>
+        <div>
+          <p>Expiring Batches</p>
+          <h2>{{ expiringBatches }}</h2>
+          <small>Expiring within 30 days</small>
+        </div>
       </div>
     </section>
 
+    <!-- Stock Batches Card -->
+    <section class="inventory-card">
+      <div class="inventory-heading">
+        <div>
+          <h2>All Stock Batches</h2>
+          <p>View and search batches across all inventory items.</p>
+        </div>
+
+        <span class="record-count"> {{ filteredBatches.length }} records </span>
+      </div>
+
+      <!-- Search and Filters -->
+      <div class="filter-bar">
+        <div class="search-box">
+          <span class="search-icon">⌕</span>
+
+          <input
+            type="text"
+            placeholder="Search by batch number, item, or supplier..."
+            [(ngModel)]="searchText"
+            aria-label="Search stock batches"
+          />
+        </div>
+
+        <select
+          class="category-filter"
+          [(ngModel)]="selectedItem"
+          aria-label="Filter by inventory item"
+        >
+          <option value="All">All Items</option>
+
+          @for (item of itemNames; track item) {
+            <option [value]="item">{{ item }}</option>
+          }
+        </select>
+
+        <button type="button" class="btn-secondary" (click)="clearFilters()">Clear</button>
+      </div>
+
+      <!-- Stock Batches Table -->
+      <div class="table-wrapper">
+        <table class="inventory-table">
+          <thead>
+            <tr>
+              <th>BATCH NUMBER</th>
+              <th>INVENTORY ITEM</th>
+              <th>SUPPLIER</th>
+              <th>QUANTITY</th>
+              <th>UNIT PRICE</th>
+              <th>EXPIRY DATE</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            @for (batch of filteredBatches; track batch.stockBatchId) {
+              <tr>
+                <td>
+                  <div class="item-name-cell">
+                    <div class="item-avatar">▣</div>
+
+                    <div>
+                      <strong>{{ batch.batchNumber }}</strong>
+                      <small>Batch ID: {{ batch.stockBatchId }}</small>
+                    </div>
+                  </div>
+                </td>
+
+                <td>
+                  <span class="category-badge">
+                    {{
+                      stockItems.find((item) => item.itemId === batch.itemId)?.itemName ||
+                        'Unknown Item'
+                    }}
+                  </span>
+                </td>
+
+                <td>
+                  {{ batch.supplierName || 'N/A' }}
+                </td>
+
+                <td>
+                  <strong>{{ batch.quantityInStock }}</strong>
+                </td>
+
+                <td>
+                  {{ batch.unitPrice | currency }}
+                </td>
+
+                <td>
+                  @if (batch.expiryDate) {
+                    {{ batch.expiryDate | date: 'mediumDate' }}
+                  } @else {
+                    <span class="unit-label">N/A</span>
+                  }
+                </td>
+              </tr>
+            }
+
+            <!-- No Batches Found -->
+            @if (filteredBatches.length === 0 && !isLoading) {
+              <tr>
+                <td colspan="6" class="empty-state">
+                  <div class="empty-icon">⌕</div>
+
+                  <h3>No stock batches found</h3>
+
+                  <p>Try changing your search or inventory item filter.</p>
+
+                  <button type="button" class="btn-secondary" (click)="clearFilters()">
+                    Clear Filters
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Table Footer -->
+      <div class="table-footer">
+        <span> Showing {{ filteredBatches.length }} of {{ stockBatches.length }} batches </span>
+
+        <span>Healthcare Inventory Management System</span>
+      </div>
+    </section>
+
+    <!-- Page Footer -->
+    <footer class="page-footer">
+      <p>© 2026 HIMS · Healthcare Inventory Management System</p>
+    </footer>
   </main>
-
 </div>
-
