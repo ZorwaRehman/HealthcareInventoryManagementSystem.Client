@@ -1,0 +1,313 @@
+<div class="hims-layout">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+
+    <div class="sidebar-brand">
+      <div class="brand-icon">+</div>
+      <div>
+        <h2>HealthCare <span>IMS</span></h2>
+        <p>Inventory Management</p>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+
+      <a routerLink="/dashboard">
+        <span class="nav-icon">▦</span>
+        Dashboard
+      </a>
+
+      <a routerLink="/items">
+        <span class="nav-icon">▤</span>
+        Inventory Items
+      </a>
+
+      <a routerLink="/stock" class="active">
+        <span class="nav-icon">⇅</span>
+        Stock Management
+      </a>
+
+      <a routerLink="/suppliers">
+        <span class="nav-icon">♧</span>
+        Supplier Management
+      </a>
+
+      <a routerLink="/users">
+        <span class="nav-icon">♙</span>
+        User Management
+      </a>
+
+    </nav>
+
+    <div class="sidebar-footer">
+      <p>HealthCare Inventory System</p>
+      <small>Management Portal</small>
+    </div>
+
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+
+    <!-- Page Header -->
+    <header class="page-header">
+
+      <div>
+        <p class="breadcrumb">Stock Management / Create New Batch</p>
+
+        <h1>Create New Stock Batch</h1>
+
+        <p class="page-subtitle">
+          Add a new stock batch to your inventory.
+        </p>
+      </div>
+
+      <button
+        type="button"
+        class="btn-back"
+        (click)="cancel()">
+        ← Back to Stock
+      </button>
+
+    </header>
+
+    <!-- Message -->
+    @if (message) {
+      <div
+        class="message-box"
+        [class.error]="messageType === 'error'"
+        [class.success]="messageType === 'success'">
+        {{ message }}
+      </div>
+    }
+
+    <!-- Loading -->
+    @if (isLoading) {
+      <div class="loading-box">
+        Loading inventory items and suppliers...
+      </div>
+    }
+
+    <!-- Stock Batch Form -->
+    @if (!isLoading) {
+
+      <section class="form-card">
+
+        <div class="form-card-header">
+          <div>
+            <h2>Stock Batch Information</h2>
+            <p>Fields marked with * are required.</p>
+          </div>
+
+          <span class="form-icon">⇅</span>
+        </div>
+
+        <form
+          #batchForm="ngForm"
+          (ngSubmit)="saveBatch()">
+
+          <div class="form-grid">
+
+            <!-- Inventory Item -->
+            <div class="form-group">
+
+              <label for="itemId">Inventory Item *</label>
+
+              <select
+                id="itemId"
+                name="itemId"
+                [(ngModel)]="batch.itemId"
+                required
+                #itemId="ngModel">
+
+                <option [ngValue]="0" disabled>
+                  Select an inventory item
+                </option>
+
+                @for (item of items; track item.id) {
+                  <option [ngValue]="item.id">
+                    {{ item.name }} ({{ item.sku }})
+                  </option>
+                }
+
+              </select>
+
+              @if (itemId.invalid && itemId.touched) {
+                <small class="field-error">
+                  Please select an inventory item.
+                </small>
+              }
+
+              @if (items.length === 0) {
+                <small class="field-error">
+                  No active inventory items are available.
+                </small>
+              }
+
+            </div>
+
+            <!-- Supplier -->
+            <div class="form-group">
+
+              <label for="supplierId">Supplier *</label>
+
+              <select
+                id="supplierId"
+                name="supplierId"
+                [(ngModel)]="batch.supplierId"
+                required
+                #supplierId="ngModel">
+
+                <option [ngValue]="0" disabled>
+                  Select a supplier
+                </option>
+
+                @for (supplier of suppliers; track supplier.supplierId) {
+                  <option [ngValue]="supplier.supplierId">
+                    {{ supplier.name }}
+                  </option>
+                }
+
+              </select>
+
+              @if (supplierId.invalid && supplierId.touched) {
+                <small class="field-error">
+                  Please select a supplier.
+                </small>
+              }
+
+              @if (suppliers.length === 0) {
+                <small class="field-error">
+                  No active suppliers are available.
+                </small>
+              }
+
+            </div>
+
+            <!-- Batch Number -->
+            <div class="form-group">
+
+              <label for="batchNumber">Batch Number *</label>
+
+              <input
+                type="text"
+                id="batchNumber"
+                name="batchNumber"
+                [(ngModel)]="batch.batchNumber"
+                placeholder="Enter batch number"
+                maxlength="100"
+                required
+                #batchNumber="ngModel">
+
+              @if (batchNumber.invalid && batchNumber.touched) {
+                <small class="field-error">
+                  Batch number is required.
+                </small>
+              }
+
+            </div>
+
+            <!-- Expiry Date -->
+            <div class="form-group">
+
+              <label for="expiryDate">Expiry Date</label>
+
+              <input
+                type="date"
+                id="expiryDate"
+                name="expiryDate"
+                [(ngModel)]="batch.expiryDate">
+
+            </div>
+
+            <!-- Quantity -->
+            <div class="form-group">
+
+              <label for="quantityInStock">Initial Quantity *</label>
+
+              <input
+                type="number"
+                id="quantityInStock"
+                name="quantityInStock"
+                [(ngModel)]="batch.quantityInStock"
+                placeholder="Enter quantity"
+                min="0"
+                step="1"
+                required
+                #quantity="ngModel">
+
+              @if (quantity.invalid && quantity.touched) {
+                <small class="field-error">
+                  Enter a valid quantity (zero or greater).
+                </small>
+              }
+
+            </div>
+
+            <!-- Unit Price -->
+            <div class="form-group">
+
+              <label for="unitPrice">Unit Price *</label>
+
+              <input
+                type="number"
+                id="unitPrice"
+                name="unitPrice"
+                [(ngModel)]="batch.unitPrice"
+                placeholder="Enter unit price"
+                min="0.01"
+                step="0.01"
+                required
+                #unitPrice="ngModel">
+
+              @if (unitPrice.invalid && unitPrice.touched) {
+                <small class="field-error">
+                  Unit price must be at least 0.01.
+                </small>
+              }
+
+            </div>
+
+          </div>
+
+          <!-- Form Actions -->
+          <div class="form-actions">
+
+            <button
+              type="button"
+              class="btn-cancel"
+              (click)="cancel()"
+              [disabled]="isSaving">
+              Cancel
+            </button>
+
+            <button
+              type="submit"
+              class="btn-save"
+              [disabled]="
+                isSaving ||
+                !batchForm.valid ||
+                batch.itemId <= 0 ||
+                batch.supplierId <= 0
+              ">
+
+              {{ isSaving ? 'Saving...' : 'Create Stock Batch' }}
+
+            </button>
+
+          </div>
+
+        </form>
+
+      </section>
+
+    }
+
+    <footer class="main-footer">
+      © 2026 HealthCare Inventory Management System
+    </footer>
+
+  </main>
+
+</div>

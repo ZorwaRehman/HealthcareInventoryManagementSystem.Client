@@ -1054,3 +1054,9 @@ button:disabled {
     width: 100%;
   }
 }
+
+.sidebar-nav a:hover,
+.sidebar-nav a.active {
+  color: #087f72;
+  background: #eaf6f3;
+}

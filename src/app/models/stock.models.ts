@@ -1,5 +1,4 @@
-
- // Represents stock information for one inventory item.
+// Represents stock information for one inventory item.
 export interface Stock {
   itemId: number;
   itemName: string;
@@ -7,10 +6,12 @@ export interface Stock {
   reorderLevel: number;
 }
 
-// Represents one stock batch returned by the API.
+// Represents one stock batch returned by the backend.
 export interface StockBatch {
   stockBatchId: number;
   itemId: number;
+  supplierId: number | null;
+  supplierName: string | null;
   batchNumber: string;
   quantityInStock: number;
   unitPrice: number;
@@ -20,6 +21,7 @@ export interface StockBatch {
 // Defines the data required to create a stock batch.
 export interface CreateStockBatch {
   itemId: number;
+  supplierId: number;
   batchNumber: string;
   expiryDate: string | null;
   quantityInStock: number;

@@ -4,6 +4,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, of, tap } from 'rxjs';
 
 import { Item, ItemRequest } from '../models/item.models';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -12,8 +13,8 @@ export class ItemService {
   private readonly http = inject(HttpClient);
 
   // ASP.NET Core Items API base URL.
-  private readonly apiUrl = 'https://localhost:44347/api/Items';
-
+  //private readonly apiUrl = 'https://localhost:44347/api/Items';
+  private readonly apiUrl = `${environment.apiUrl}/Items`;
   // Stores inventory items in memory while the app is running.
   private cachedItems: Item[] | null = null;
 
@@ -49,7 +50,6 @@ export class ItemService {
     image: File | null = null
   ): Observable<Item> {
     const formData = this.createFormData(request, image);
-
     return this.http.post<Item>(this.apiUrl, formData).pipe(
       tap(newItem => {
         if (this.cachedItems !== null) {
@@ -66,7 +66,6 @@ export class ItemService {
     image: File | null = null
   ): Observable<Item> {
     const formData = this.createFormData(request, image);
-
     return this.http.put<Item>(
       `${this.apiUrl}/${id}`,
       formData
