@@ -1,0 +1,295 @@
+﻿
+<div class="page-layout">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+
+    <div class="brand">
+      <span class="brand-icon">+</span>
+      <span class="brand-name">HealthCare <strong>IMS</strong></span>
+    </div>
+
+    <div class="sidebar-section">MAIN MENU</div>
+
+    <nav class="sidebar-nav">
+
+      <a
+        routerLink="/dashboard"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }"
+        class="nav-link">
+        <span class="nav-icon">▦</span>
+        Dashboard
+      </a>
+
+      <a
+        routerLink="/items"
+        routerLinkActive="active"
+        class="nav-link">
+        <span class="nav-icon">▤</span>
+        Inventory Items
+      </a>
+
+      <a
+        routerLink="/stock"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: false }"
+        class="nav-link">
+        <span class="nav-icon">▣</span>
+        Stock Management
+      </a>
+
+      <a
+        routerLink="/suppliers"
+        routerLinkActive="active"
+        class="nav-link">
+        <span class="nav-icon">♧</span>
+        Supplier Management
+      </a>
+
+      <a
+        routerLink="/users"
+        routerLinkActive="active"
+        class="nav-link">
+        <span class="nav-icon">♙</span>
+        User Management
+      </a>
+
+    </nav>
+
+    <div class="sidebar-bottom">
+
+      <div class="admin-profile">
+        <div class="avatar">A</div>
+        <div>
+          <strong>Administrator</strong>
+          <small>System Admin</small>
+        </div>
+      </div>
+
+      <a routerLink="/login" class="nav-link logout-link">
+        <span class="nav-icon">↪</span>
+        Logout
+      </a>
+
+    </div>
+
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+
+    <!-- Page Header -->
+    <header class="page-header">
+
+      <div>
+        <p class="breadcrumb">Stock Management / Transactions</p>
+        <h1>Stock Transactions</h1>
+        <p class="page-subtitle">
+          View the stock movements and transaction history of this batch.
+        </p>
+      </div>
+
+      <div class="header-actions">
+
+        @if (stockBatch) {
+          <button
+            type="button"
+            class="btn-manage"
+            (click)="openManageStockForm()">
+            Manage Stock
+          </button>
+        }
+
+        <button
+          type="button"
+          class="btn-back"
+          (click)="goBack()">
+          Back to Stock
+        </button>
+
+      </div>
+
+    </header>
+
+    <!-- Success and Error Messages -->
+    @if (message) {
+      <div
+        class="message"
+        [class.success-message]="messageType === 'success'"
+        [class.error-message]="messageType === 'error'">
+        {{ message }}
+      </div>
+    }
+
+    <!-- Loading -->
+    @if (isLoading) {
+      <div class="loading-message">
+        Loading stock transaction information...
+      </div>
+    }
+
+    @if (!isLoading && stockBatch) {
+
+      <!-- Batch Information -->
+      <section class="batch-card">
+
+        <div class="section-heading">
+          <div>
+            <h2>Batch Information</h2>
+            <p>Details of the selected stock batch.</p>
+          </div>
+        </div>
+
+        <div class="batch-details">
+
+          <div class="detail-item">
+            <span>Batch Number</span>
+            <strong>{{ stockBatch.batchNumber }}</strong>
+          </div>
+
+          <div class="detail-item">
+            <span>Item ID</span>
+            <strong>{{ stockBatch.itemId }}</strong>
+          </div>
+
+          <div class="detail-item">
+            <span>Supplier</span>
+            <strong>{{ stockBatch.supplierName || 'N/A' }}</strong>
+          </div>
+
+          <div class="detail-item">
+            <span>Current Quantity</span>
+            <strong class="current-quantity">
+              {{ stockBatch.quantityInStock }}
+            </strong>
+          </div>
+
+          <div class="detail-item">
+            <span>Unit Price</span>
+            <strong>{{ stockBatch.unitPrice | currency }}</strong>
+          </div>
+
+          <div class="detail-item">
+            <span>Expiry Date</span>
+            <strong>
+              {{ stockBatch.expiryDate
+                ? (stockBatch.expiryDate | date:'mediumDate')
+                : 'N/A' }}
+            </strong>
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- Transaction History -->
+      <section class="transactions-card">
+
+        <div class="section-heading">
+          <div>
+            <h2>Transaction History</h2>
+            <p>All stock movements recorded for this batch.</p>
+          </div>
+
+          <span class="transaction-count">
+            {{ transactions.length }} Transactions
+          </span>
+        </div>
+
+        @if (transactions.length > 0) {
+
+          <div class="table-wrapper">
+
+            <table>
+
+              <thead>
+                <tr>
+                  <th>Transaction ID</th>
+                  <th>Type</th>
+                  <th>Quantity</th>
+                  <th>Previous Stock</th>
+                  <th>New Stock</th>
+                  <th>Reason</th>
+                  <th>Date</th>
+                </tr>
+              </thead>
+
+              <tbody>
+
+                @for (
+                  transaction of transactions;
+                  track transaction.stockTransactionId
+                ) {
+
+                  <tr>
+
+                    <td>
+                      {{ transaction.stockTransactionId }}
+                    </td>
+
+                    <td>
+                      <span
+                        class="transaction-badge"
+                        [ngClass]="{
+                          'badge-in': transaction.transactionType === 'StockIn',
+                          'badge-out': transaction.transactionType === 'StockOut',
+                          'badge-adjustment': transaction.transactionType === 'Adjustment'
+                        }">
+                        {{ transaction.transactionType }}
+                      </span>
+                    </td>
+
+                    <td>
+                      {{ transaction.quantity > 0 ? '+' : '' }}{{ transaction.quantity }}
+                    </td>
+
+                    <td>
+                      {{ transaction.previousQuantity }}
+                    </td>
+
+                    <td>
+                      {{ transaction.newQuantity }}
+                    </td>
+
+                    <td>
+                      {{ transaction.reason || 'N/A' }}
+                    </td>
+
+                    <td>
+                      {{ transaction.transactionDate | date:'medium' }}
+                    </td>
+
+                  </tr>
+
+                }
+
+              </tbody>
+
+            </table>
+
+          </div>
+
+        } @else {
+
+          <div class="empty-state">
+            <h3>No Transactions Found</h3>
+            <p>
+              No stock movements have been recorded for this batch yet.
+            </p>
+          </div>
+
+        }
+
+      </section>
+
+    }
+
+    <!-- Footer -->
+    <footer class="page-footer">
+      Healthcare Inventory Management System
+    </footer>
+
+  </main>
+
+</div>

@@ -1,3 +1,4 @@
+
 <div class="hims-layout">
   <!-- Sidebar -->
   <aside class="sidebar">
@@ -59,7 +60,9 @@
         <p>Manage supplier information and maintain your supplier records.</p>
       </div>
 
-      <button type="button" class="add-button" (click)="openAddForm()">+ Add New Supplier</button>
+      <button type="button" class="add-button" (click)="openAddForm()">
+        + Add New Supplier
+      </button>
     </header>
 
     <!-- Success and Error Messages -->
@@ -70,30 +73,41 @@
     }
 
     <!-- Supplier Statistics -->
-    <section class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-icon total-icon">S</div>
+    <section class="summary-grid">
+
+      <!-- Total Suppliers -->
+      <article class="summary-card">
+        <div class="summary-icon teal-icon">S</div>
+
         <div>
           <p>Total Suppliers</p>
           <h2>{{ totalSuppliers }}</h2>
+          <span>Registered suppliers</span>
         </div>
-      </div>
+      </article>
 
-      <div class="stat-card">
-        <div class="stat-icon active-icon">✓</div>
+      <!-- Active Suppliers -->
+      <article class="summary-card">
+        <div class="summary-icon blue-icon">✓</div>
+
         <div>
           <p>Active Suppliers</p>
           <h2>{{ activeSuppliers }}</h2>
+          <span>Currently active suppliers</span>
         </div>
-      </div>
+      </article>
 
-      <div class="stat-card">
-        <div class="stat-icon inactive-icon">−</div>
+      <!-- Inactive Suppliers -->
+      <article class="summary-card">
+        <div class="summary-icon purple-icon">−</div>
+
         <div>
           <p>Inactive Suppliers</p>
           <h2>{{ inactiveSuppliers }}</h2>
+          <span>Inactive supplier records</span>
         </div>
-      </div>
+      </article>
+
     </section>
 
     <!-- Supplier Table -->
@@ -126,7 +140,9 @@
           <option value="Inactive">Inactive Suppliers</option>
         </select>
 
-        <button type="button" class="clear-button" (click)="clearFilters()">Clear</button>
+        <button type="button" class="clear-button" (click)="clearFilters()">
+          Clear
+        </button>
       </div>
 
       <!-- Loading -->
@@ -277,6 +293,8 @@
     }
 
     <!-- Page Footer -->
-    <footer class="page-footer">HealthCare Inventory Management System</footer>
+    <footer class="page-footer">
+      HealthCare Inventory Management System
+    </footer>
   </main>
 </div>

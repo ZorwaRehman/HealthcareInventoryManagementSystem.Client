@@ -1,0 +1,374 @@
+﻿
+<div class="page-layout">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+
+    <div class="sidebar-brand">
+      <div class="brand-icon">+</div>
+      <div class="brand-name">
+        HealthCare <strong>IMS</strong>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+
+      <a
+        routerLink="/dashboard"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }"
+        class="nav-link">
+        <span class="nav-icon">▦</span>
+        <span>Dashboard</span>
+      </a>
+
+      <a
+        routerLink="/items"
+        routerLinkActive="active"
+        class="nav-link">
+        <span class="nav-icon">▤</span>
+        <span>Inventory Items</span>
+      </a>
+
+      <a
+        routerLink="/stock"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: false }"
+        class="nav-link">
+        <span class="nav-icon">▣</span>
+        <span>Stock Management</span>
+      </a>
+
+      <a
+        routerLink="/suppliers"
+        routerLinkActive="active"
+        class="nav-link">
+        <span class="nav-icon">♧</span>
+        <span>Supplier Management</span>
+      </a>
+
+      <a
+        routerLink="/users"
+        routerLinkActive="active"
+        class="nav-link">
+        <span class="nav-icon">♙</span>
+        <span>User Management</span>
+      </a>
+
+    </nav>
+
+    <div class="sidebar-footer">
+      Healthcare Inventory Management System
+    </div>
+
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+
+    <!-- Page Header -->
+    <header class="page-header">
+
+      <div>
+        <p class="breadcrumb">Stock Management / Manage Stock</p>
+
+        <h1>Manage Stock</h1>
+
+        <p class="page-subtitle">
+          Record stock received, stock issued, or physical stock adjustments.
+        </p>
+      </div>
+
+      <button
+        type="button"
+        class="btn-back"
+        (click)="cancel()">
+        Back to Transactions
+      </button>
+
+    </header>
+
+    <!-- Success and Error Messages -->
+    @if (message) {
+      <div
+        class="message"
+        [class.success-message]="messageType === 'success'"
+        [class.error-message]="messageType === 'error'">
+
+        {{ message }}
+
+      </div>
+    }
+
+    <!-- Loading -->
+    @if (isLoading) {
+      <div class="loading-message">
+        Loading stock batch information...
+      </div>
+    }
+
+    @if (!isLoading && stockBatch) {
+
+      <!-- Batch Information -->
+      <section class="batch-card">
+
+        <div class="section-heading">
+          <div>
+            <h2>Stock Batch Information</h2>
+
+            <p>
+              Review the selected batch before recording a transaction.
+            </p>
+          </div>
+        </div>
+
+        <div class="batch-details">
+
+          <div class="detail-item">
+            <span>Batch Number</span>
+            <strong>{{ stockBatch.batchNumber }}</strong>
+          </div>
+
+          <div class="detail-item">
+            <span>Item ID</span>
+            <strong>{{ stockBatch.itemId }}</strong>
+          </div>
+
+          <div class="detail-item">
+            <span>Supplier</span>
+            <strong>{{ stockBatch.supplierName || 'N/A' }}</strong>
+          </div>
+
+          <div class="detail-item">
+            <span>Current Quantity</span>
+            <strong class="current-quantity">
+              {{ stockBatch.quantityInStock }}
+            </strong>
+          </div>
+
+          <div class="detail-item">
+            <span>Unit Price</span>
+            <strong>{{ stockBatch.unitPrice | currency }}</strong>
+          </div>
+
+          <div class="detail-item">
+            <span>Expiry Date</span>
+            <strong>
+              {{ stockBatch.expiryDate
+                ? (stockBatch.expiryDate | date:'mediumDate')
+                : 'N/A' }}
+            </strong>
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- Manage Stock Form -->
+      <section class="form-card">
+
+        <div class="section-heading">
+          <div>
+            <h2>Stock Transaction</h2>
+
+            <p>
+              Select a transaction type and enter the required information.
+            </p>
+          </div>
+        </div>
+
+        <form
+          #stockForm="ngForm"
+          (ngSubmit)="submitAdjustment()">
+
+          <!-- Transaction Type -->
+          <div class="form-group">
+
+            <label for="transactionType">
+              Transaction Type
+            </label>
+
+            <select
+              id="transactionType"
+              name="transactionType"
+              [(ngModel)]="transactionType"
+              (ngModelChange)="onTransactionTypeChange()"
+              required>
+
+              <option value="StockIn">Stock In</option>
+              <option value="StockOut">Stock Out</option>
+              <option value="Adjustment">Stock Adjustment</option>
+
+            </select>
+
+            <small>
+              Select the type of stock movement you want to record.
+            </small>
+
+          </div>
+
+          <!-- Stock In / Stock Out Quantity -->
+          @if (transactionType !== 'Adjustment') {
+
+            <div class="form-group">
+
+              <label for="quantity">Quantity</label>
+
+              <input
+                type="number"
+                id="quantity"
+                name="quantity"
+                [(ngModel)]="quantity"
+                min="1"
+                step="1"
+                placeholder="Enter quantity"
+                required />
+
+              <small>
+                @if (transactionType === 'StockIn') {
+                  Enter the quantity received from the supplier.
+                } @else {
+                  Enter the quantity issued from this stock batch.
+                }
+              </small>
+
+            </div>
+
+          }
+
+          <!-- Physical Quantity for Adjustment -->
+          @if (transactionType === 'Adjustment') {
+
+            <div class="form-group">
+
+              <label for="physicalQuantity">
+                Actual Physical Quantity
+              </label>
+
+              <input
+                type="number"
+                id="physicalQuantity"
+                name="physicalQuantity"
+                [(ngModel)]="physicalQuantity"
+                min="0"
+                step="1"
+                placeholder="Enter actual counted quantity"
+                required />
+
+              <small>
+                Enter the actual quantity physically available in this batch.
+                Zero is also allowed.
+              </small>
+
+            </div>
+
+          }
+
+          <!-- Reason -->
+          <div class="form-group">
+
+            <label for="reason">
+
+              Reason
+
+              @if (transactionType === 'Adjustment') {
+                <span class="required-label">*</span>
+              } @else {
+                <span class="optional-label">(Optional)</span>
+              }
+
+            </label>
+
+            <textarea
+              id="reason"
+              name="reason"
+              [(ngModel)]="reason"
+              [required]="transactionType === 'Adjustment'"
+              maxlength="500"
+              rows="4"
+              placeholder="Enter the reason for this transaction...">
+            </textarea>
+
+            <small>
+              Maximum 500 characters.
+            </small>
+
+          </div>
+
+          <!-- Adjustment Information -->
+          @if (transactionType === 'Adjustment') {
+
+            <div class="adjustment-note">
+
+              <strong>Important:</strong>
+
+              Enter the actual physical quantity, not the difference.
+              The system will automatically calculate the difference between
+              the current quantity and the physical count.
+
+            </div>
+
+          }
+
+          <!-- Form Actions -->
+          <div class="form-actions">
+
+            <button
+              type="button"
+              class="btn-cancel"
+              (click)="cancel()"
+              [disabled]="isSaving">
+
+              Cancel
+
+            </button>
+
+            <button
+              type="submit"
+              class="btn-submit"
+              [disabled]="
+                isSaving ||
+                isLoading ||
+                !stockForm.valid ||
+                (
+                  transactionType === 'Adjustment'
+                    ? physicalQuantity === null ||
+                      physicalQuantity === undefined ||
+                      !isInteger(physicalQuantity) ||
+                      physicalQuantity < 0 ||
+                      !reason.trim()
+                    : quantity === null ||
+                      quantity === undefined ||
+                      !isInteger(quantity) ||
+                      quantity <= 0
+                )
+              ">
+
+              @if (isSaving) {
+                Saving...
+              } @else if (transactionType === 'StockIn') {
+                Add Stock
+              } @else if (transactionType === 'StockOut') {
+                Remove Stock
+              } @else {
+                Adjust Stock
+              }
+
+            </button>
+
+          </div>
+
+        </form>
+
+      </section>
+
+    }
+
+    <!-- Footer -->
+    <footer class="page-footer">
+      Healthcare Inventory Management System
+    </footer>
+
+  </main>
+
+</div>
