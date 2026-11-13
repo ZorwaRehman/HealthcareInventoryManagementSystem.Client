@@ -1,3 +1,4 @@
+
 // Represents stock information for one inventory item.
 export interface Stock {
   itemId: number;
@@ -33,6 +34,10 @@ export interface StockAdjustment {
   stockBatchId: number;
   transactionType: 'StockIn' | 'StockOut' | 'Adjustment';
   quantity: number;
+
+  // Used only for Adjustment: actual physical quantity counted.
+  physicalQuantity?: number | null;
+
   reason: string | null;
 }
 

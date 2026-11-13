@@ -1,3 +1,4 @@
+
 <div class="hims-layout">
   <!-- Sidebar -->
   <aside class="sidebar">
@@ -175,6 +176,7 @@
               <th>QUANTITY</th>
               <th>UNIT PRICE</th>
               <th>EXPIRY DATE</th>
+              <th>ACTIONS</th>
             </tr>
           </thead>
 
@@ -220,13 +222,24 @@
                     <span class="unit-label">N/A</span>
                   }
                 </td>
+
+                <!-- View Transactions Action -->
+                <td>
+                  <button
+                    type="button"
+                    class="btn-view-transactions"
+                    [routerLink]="['/stock/batches', batch.stockBatchId, 'transactions']"
+                  >
+                    View Transactions
+                  </button>
+                </td>
               </tr>
             }
 
             <!-- No Batches Found -->
             @if (filteredBatches.length === 0 && !isLoading) {
               <tr>
-                <td colspan="6" class="empty-state">
+                <td colspan="7" class="empty-state">
                   <div class="empty-icon">⌕</div>
 
                   <h3>No stock batches found</h3>

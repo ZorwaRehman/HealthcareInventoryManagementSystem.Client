@@ -1,4 +1,3 @@
-
 import { Routes } from '@angular/router';
 
 import { Login } from './pages/login/login';
@@ -12,6 +11,8 @@ import { StockBatchForm } from './pages/stock-batch-form/stock-batch-form';
 // Supplier components
 import { Suppliers } from './pages/suppliers/suppliers';
 import { SupplierForm } from './pages/supplier-form/supplier-form';
+import { StockTransactions } from './pages/stock-transactions/stock-transactions';
+import { ManageStock } from './pages/manage-stock/manage-stock';
 
 export const routes: Routes = [
   { path: 'login', component: Login },
@@ -32,11 +33,18 @@ export const routes: Routes = [
   // Supplier list
   { path: 'suppliers', component: Suppliers },
 
-
   { path: 'users', component: Users },
+  {
+    path: 'stock/batches/:id/transactions',
+    component: StockTransactions,
+  },
+  {
+    path: 'stock/batches/:id/manage',
+    component: ManageStock,
+  },
   { path: 'stock/batches/new', component: StockBatchForm },
   { path: 'stock', component: Stock },
 
   { path: '', redirectTo: 'login', pathMatch: 'full' },
-  { path: '**', redirectTo: 'login' }
+  { path: '**', redirectTo: 'login' },
 ];
