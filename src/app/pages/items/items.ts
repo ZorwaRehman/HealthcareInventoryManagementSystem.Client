@@ -8,9 +8,14 @@ import {
 import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 
 import { Item } from '../../models/item.models';
+import { Stock as StockModel, StockBatch } from '../../models/stock.models';
+
 import { ItemService } from '../../services/item.service';
+import { StockService } from '../../services/stock.service';
 
 @Component({
   selector: 'app-items',
@@ -21,9 +26,9 @@ import { ItemService } from '../../services/item.service';
 })
 export class Items implements OnInit {
   private readonly itemService = inject(ItemService);
+  private readonly stockService = inject(StockService);
   private readonly router = inject(Router);
 
-  // Used to notify Angular when the view needs updating.
   private readonly cdr = inject(ChangeDetectorRef);
 
   searchText = '';
@@ -34,8 +39,11 @@ export class Items implements OnInit {
 
   items: Item[] = [];
 
+  // Actual stock summaries and batches from Stock Management.
+  stockItems: StockModel[] = [];
+  stockBatches: StockBatch[] = [];
+
   // Stores the ID of the item selected for deletion.
-  // null means that the confirmation dialog is closed.
   selectedItemId: number | null = null;
 
   categories: string[] = [
@@ -46,14 +54,12 @@ export class Items implements OnInit {
   ];
 
   ngOnInit(): void {
-    // Display the success message received from the Add/Edit page.
     const navigationState =
       this.router.getCurrentNavigation()?.extras.state ?? window.history.state;
 
     if (navigationState?.['successMessage']) {
       this.message = navigationState['successMessage'];
 
-      // Prevent the same message from appearing again after refresh.
       window.history.replaceState(
         { ...window.history.state, successMessage: null },
         ''
@@ -63,24 +69,62 @@ export class Items implements OnInit {
     this.loadItems();
   }
 
-  // Load items from the backend.
+  // Load inventory items and refresh stock information.
   loadItems(): void {
     this.isLoading = true;
     this.cdr.markForCheck();
 
-    this.itemService.getItems().subscribe({
-      next: (items) => {
-        this.items = items;
-        this.isLoading = false;
+    let itemsFailed = false;
+    let stockFailed = false;
 
+    forkJoin({
+      // Force refresh so newly added or edited items appear.
+      items: this.itemService.getItems(true).pipe(
+        catchError((error) => {
+          console.error('Error loading items:', error);
+          itemsFailed = true;
+          return of([] as Item[]);
+        })
+      ),
+
+      // Force refresh stock summaries after stock changes.
+      stock: this.stockService.getAllStock(true).pipe(
+        catchError((error) => {
+          console.error('Error loading stock summary:', error);
+          stockFailed = true;
+          return of([] as StockModel[]);
+        })
+      ),
+
+      // Force refresh batches for inventory value calculation.
+      batches: this.stockService.getAllBatches(true).pipe(
+        catchError((error) => {
+          console.error('Error loading stock batches:', error);
+          stockFailed = true;
+          return of([] as StockBatch[]);
+        })
+      ),
+    }).subscribe({
+      next: (result) => {
+        this.items = result.items;
+        this.stockItems = result.stock;
+        this.stockBatches = result.batches;
+
+        if (itemsFailed) {
+          this.message =
+            'Unable to load items. Please check that the backend is running.';
+        } else if (stockFailed) {
+          this.message =
+            'Items loaded, but stock statistics could not be refreshed.';
+        }
+
+        this.isLoading = false;
         this.cdr.markForCheck();
       },
       error: (error) => {
-        console.error('Error loading items:', error);
+        console.error('Error loading inventory:', error);
 
-        this.message =
-          'Unable to load items. Please check that the backend is running.';
-
+        this.message = 'Unable to load inventory. Please try again.';
         this.isLoading = false;
 
         this.cdr.markForCheck();
@@ -106,17 +150,30 @@ export class Items implements OnInit {
     });
   }
 
-  // Placeholder until Stock Management is connected.
+  // Count items whose actual stock is at or below reorder level.
   get lowStockCount(): number {
-    return this.items.filter((item) => item.reorderLevel > 0).length;
+    return this.stockItems.filter(
+      (item) => item.totalQuantity <= item.reorderLevel
+    ).length;
   }
 
+  // Calculate total units across all inventory items.
   get totalUnits(): number {
-    return 0;
+    return this.stockItems.reduce(
+      (total, item) => total + (Number(item.totalQuantity) || 0),
+      0
+    );
   }
 
+  // Calculate inventory value using current batch quantities and prices.
   get totalValue(): number {
-    return 0;
+    return this.stockBatches.reduce(
+      (total, batch) =>
+        total +
+        (Number(batch.quantityInStock) || 0) *
+          (Number(batch.unitPrice) || 0),
+      0
+    );
   }
 
   // Navigate to the separate Add Item page.
@@ -161,7 +218,6 @@ export class Items implements OnInit {
         this.isLoading = false;
         this.selectedItemId = null;
 
-        // Notify Angular after successful deletion.
         this.cdr.markForCheck();
       },
 
@@ -175,7 +231,6 @@ export class Items implements OnInit {
         this.isLoading = false;
         this.selectedItemId = null;
 
-        // Notify Angular to display the error.
         this.cdr.markForCheck();
       },
     });

@@ -1,0 +1,489 @@
+
+<div class="hims-layout">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-icon">+</div>
+      <div>
+        <h2>HealthCare <span>IMS</span></h2>
+        <p>Inventory Management</p>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a routerLink="/dashboard">
+        <span class="nav-icon">▦</span>
+        <span>Dashboard</span>
+      </a>
+
+      <a routerLink="/items">
+        <span class="nav-icon">▤</span>
+        <span>Inventory Items</span>
+      </a>
+
+      <a routerLink="/stock">
+        <span class="nav-icon">▣</span>
+        <span>Stock Management</span>
+      </a>
+
+      <a routerLink="/suppliers">
+        <span class="nav-icon">♙</span>
+        <span>Supplier Management</span>
+      </a>
+
+      <a routerLink="/purchase-orders">
+        <span class="nav-icon">▧</span>
+        <span>Purchase Orders</span>
+      </a>
+
+      <a routerLink="/goods-received" class="active">
+        <span class="nav-icon">✓</span>
+        <span>Goods Received</span>
+      </a>
+
+      <a routerLink="/users">
+        <span class="nav-icon">♧</span>
+        <span>User Management</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-bottom">
+      <a routerLink="/login">
+        <span class="nav-icon">⇥</span>
+        <span>Logout</span>
+      </a>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <div class="page-content">
+      <div class="breadcrumb">
+        <span>Inventory</span>
+        <span class="breadcrumb-separator">/</span>
+        <strong>Goods Received</strong>
+      </div>
+
+      <!-- Page Header -->
+      <div class="page-header">
+        <div>
+          <h1>Goods Received</h1>
+          <p>Manage deliveries received against your purchase orders.</p>
+        </div>
+
+        <button class="primary-button" (click)="openAddForm()">
+          <span>+</span>
+          Create Goods Received
+        </button>
+      </div>
+
+      <!-- Messages -->
+      @if (message) {
+        <div
+          class="alert-message"
+          [ngClass]="messageType === 'success' ? 'alert-success' : 'alert-error'"
+        >
+          <span>{{ message }}</span>
+          <button type="button" (click)="message = ''">×</button>
+        </div>
+      }
+
+      <!-- Loading -->
+      @if (isLoading && goodsReceivedRecords.length === 0) {
+        <div class="loading-box">
+          <div class="spinner"></div>
+          <p>Loading Goods Received records...</p>
+        </div>
+      }
+
+      <!-- Statistics -->
+      <section class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon total-icon">▤</div>
+          <div>
+            <p>Total Receipts</p>
+            <h2>{{ totalReceipts }}</h2>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon draft-icon">◷</div>
+          <div>
+            <p>Draft Receipts</p>
+            <h2>{{ draftCount }}</h2>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon confirmed-icon">✓</div>
+          <div>
+            <p>Confirmed Receipts</p>
+            <h2>{{ confirmedCount }}</h2>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon cancelled-icon">×</div>
+          <div>
+            <p>Cancelled Receipts</p>
+            <h2>{{ cancelledCount }}</h2>
+          </div>
+        </div>
+      </section>
+
+      <!-- Goods Received Table -->
+      <section class="inventory-card">
+        <div class="table-card-header">
+          <div>
+            <h2>Goods Received Records</h2>
+            <p>View and manage your received deliveries</p>
+          </div>
+
+          <span class="record-count">
+            {{ filteredGoodsReceived.length }} records
+          </span>
+        </div>
+
+        <!-- Search and Filters -->
+        <div class="filter-bar">
+          <div class="search-box">
+            <span class="search-icon">⌕</span>
+            <input
+              type="text"
+              [(ngModel)]="searchText"
+              placeholder="Search by receipt, order number or supplier..."
+            />
+          </div>
+
+          <select [(ngModel)]="selectedStatus" class="status-filter">
+            <option value="All">All Statuses</option>
+            @for (status of statuses; track status.value) {
+              <option [value]="status.value">{{ status.label }}</option>
+            }
+          </select>
+
+          <button class="clear-button" (click)="clearFilters()">
+            Clear
+          </button>
+        </div>
+
+        <!-- Table -->
+        <div class="table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Receipt Number</th>
+                <th>Purchase Order</th>
+                <th>Supplier</th>
+                <th>Received Date</th>
+                <th>Items</th>
+                <th>Status</th>
+                <th class="actions-heading">Actions</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              @for (record of filteredGoodsReceived; track record.goodsReceivedId) {
+                <tr>
+                  <td>
+                    <span class="primary-text">{{ record.receiptNumber }}</span>
+                  </td>
+
+                  <td>
+                    <span class="secondary-text">{{ record.purchaseOrderNumber }}</span>
+                  </td>
+
+                  <td>{{ record.supplierName }}</td>
+
+                  <td>{{ record.receivedDate | date:'dd MMM yyyy' }}</td>
+
+                  <td>
+                    <span class="item-count">{{ record.items.length }}</span>
+                  </td>
+
+                  <td>
+                    <span class="status-badge" [ngClass]="getStatusClass(record.status)">
+                      {{ getStatusLabel(record.status) }}
+                    </span>
+                  </td>
+
+                  <td>
+                    <div class="action-buttons">
+                      <button
+                        class="action-button view-action"
+                        title="View Details"
+                        (click)="viewGoodsReceived(record)"
+                      >
+                        View
+                      </button>
+
+                      @if (record.status === 1) {
+                        <button
+                          class="action-button confirm-action"
+                          title="Confirm Receipt"
+                          [disabled]="isLoading"
+                          (click)="confirmGoodsReceived(record)"
+                        >
+                          Confirm
+                        </button>
+
+                        <button
+                          class="action-button cancel-action"
+                          title="Cancel Receipt"
+                          [disabled]="isLoading"
+                          (click)="cancelGoodsReceived(record)"
+                        >
+                          Cancel
+                        </button>
+                      }
+                    </div>
+                  </td>
+                </tr>
+              }
+
+              @if (!isLoading && filteredGoodsReceived.length === 0) {
+                <tr>
+                  <td colspan="7">
+                    <div class="empty-state">
+                      <div class="empty-icon">▤</div>
+                      <h3>No Goods Received records found</h3>
+                      <p>
+                        @if (searchText || selectedStatus !== 'All') {
+                          Try changing your search or filters.
+                        } @else {
+                          Create a Goods Received record to get started.
+                        }
+                      </p>
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <div class="table-footer">
+          Showing {{ filteredGoodsReceived.length }} of
+          {{ totalReceipts }} records
+        </div>
+      </section>
+    </div>
+
+    <footer class="page-footer">
+      <span>HealthCare Inventory Management System</span>
+      <span>Goods Received Management</span>
+    </footer>
+  </main>
+</div>
+
+<!-- Details Modal -->
+@if (selectedGoodsReceived; as record) {
+  <div class="modal-backdrop" (click)="closeDetails()">
+    <div
+      class="details-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="details-title"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="modal-header">
+        <div>
+          <span class="modal-eyebrow">GOODS RECEIVED DETAILS</span>
+          <h2 id="details-title">{{ record.receiptNumber }}</h2>
+          <p>Receipt information and delivered items</p>
+        </div>
+
+        <button
+          class="modal-close"
+          type="button"
+          aria-label="Close"
+          (click)="closeDetails()"
+        >
+          ×
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Receipt Information -->
+        <section class="detail-section">
+          <div class="section-heading">
+            <span class="section-icon">▤</span>
+            <h3>Receipt Information</h3>
+          </div>
+
+          <div class="details-grid">
+            <div class="detail-item">
+              <label>Receipt Number</label>
+              <strong>{{ record.receiptNumber }}</strong>
+            </div>
+
+            <div class="detail-item">
+              <label>Purchase Order</label>
+              <strong>{{ record.purchaseOrderNumber }}</strong>
+            </div>
+
+            <div class="detail-item">
+              <label>Supplier</label>
+              <strong>{{ record.supplierName }}</strong>
+            </div>
+
+            <div class="detail-item">
+              <label>Received Date</label>
+              <strong>{{ record.receivedDate | date:'dd MMM yyyy' }}</strong>
+            </div>
+
+            <div class="detail-item">
+              <label>Delivery Note Number</label>
+              <strong>{{ record.deliveryNoteNumber || '—' }}</strong>
+            </div>
+
+            <div class="detail-item">
+              <label>Status</label>
+              <span class="status-badge" [ngClass]="getStatusClass(record.status)">
+                {{ getStatusLabel(record.status) }}
+              </span>
+            </div>
+
+            <div class="detail-item">
+              <label>Created At</label>
+              <strong>{{ record.createdAt | date:'dd MMM yyyy, hh:mm a' }}</strong>
+            </div>
+
+            <div class="detail-item">
+              <label>Confirmed At</label>
+              <strong>
+                {{ record.confirmedAt ? (record.confirmedAt | date:'dd MMM yyyy, hh:mm a') : '—' }}
+              </strong>
+            </div>
+          </div>
+
+          @if (record.notes) {
+            <div class="notes-box">
+              <label>Notes</label>
+              <p>{{ record.notes }}</p>
+            </div>
+          }
+        </section>
+
+        <!-- Received Items -->
+        <section class="detail-section items-section">
+          <div class="section-heading">
+            <span class="section-icon">▦</span>
+            <h3>Received Items</h3>
+            <span class="section-count">{{ record.items.length }} items</span>
+          </div>
+
+          <div class="details-table-wrapper">
+            <table class="details-table">
+              <thead>
+                <tr>
+                  <th>Item</th>
+                  <th>Batch Number</th>
+                  <th>Delivered</th>
+                  <th>Accepted</th>
+                  <th>Rejected</th>
+                  <th>Quarantined</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                @for (item of record.items; track item.goodsReceivedItemId) {
+                  <tr>
+                    <td>
+                      <strong>{{ item.itemName }}</strong>
+                      <small>{{ item.sku }}</small>
+                    </td>
+                    <td>{{ item.batchNumber }}</td>
+                    <td>{{ item.deliveredQuantity }}</td>
+                    <td class="quantity-accepted">{{ item.acceptedQuantity }}</td>
+                    <td class="quantity-rejected">{{ item.rejectedQuantity }}</td>
+                    <td class="quantity-quarantined">{{ item.quarantinedQuantity }}</td>
+                  </tr>
+
+                  <tr class="item-extra-row">
+                    <td colspan="6">
+                      <div class="item-extra-details">
+                        <span>
+                          <b>Manufactured:</b>
+                          {{ item.manufactureDate ? (item.manufactureDate | date:'dd MMM yyyy') : '—' }}
+                        </span>
+                        <span>
+                          <b>Expiry:</b>
+                          {{ item.expiryDate ? (item.expiryDate | date:'dd MMM yyyy') : '—' }}
+                        </span>
+                        <span>
+                          <b>Storage:</b>
+                          {{ item.storageLocation || '—' }}
+                        </span>
+                        <span>
+                          <b>Stock Batch ID:</b>
+                          {{ item.stockBatchId ?? '—' }}
+                        </span>
+                      </div>
+
+                      @if (
+                        record.status === 2 &&
+                        item.quarantinedQuantity > 0
+                      ) {
+                        <div class="quarantine-action">
+                          <span>
+                            {{ item.quarantinedQuantity }} unit(s) still quarantined
+                          </span>
+                          <button
+                            class="release-button"
+                            type="button"
+                            [disabled]="isLoading"
+                            (click)="releaseQuarantinedQuantity(item)"
+                          >
+                            Release Quantity
+                          </button>
+                        </div>
+                      }
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+
+      <div class="modal-footer">
+        <div class="modal-footer-info">
+          {{ record.items.length }} item(s) in this receipt
+        </div>
+
+        <div class="modal-footer-actions">
+          @if (record.status === 1) {
+            <button
+              class="modal-cancel-button"
+              type="button"
+              [disabled]="isLoading"
+              (click)="cancelGoodsReceived(record)"
+            >
+              Cancel Receipt
+            </button>
+
+            <button
+              class="modal-confirm-button"
+              type="button"
+              [disabled]="isLoading"
+              (click)="confirmGoodsReceived(record)"
+            >
+              Confirm Receipt
+            </button>
+          }
+
+          <button
+            class="modal-close-button"
+            type="button"
+            (click)="closeDetails()"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+

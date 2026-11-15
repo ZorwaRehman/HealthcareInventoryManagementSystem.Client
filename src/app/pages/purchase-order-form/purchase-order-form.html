@@ -1,0 +1,323 @@
+<div class="hims-layout">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-icon">+</div>
+      <div>
+        <h2>HealthCare <span>IMS</span></h2>
+        <p>Inventory Management</p>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a routerLink="/dashboard">
+        <span class="nav-icon">▦</span>
+        Dashboard
+      </a>
+
+      <a routerLink="/items">
+        <span class="nav-icon">◈</span>
+        Inventory Items
+      </a>
+
+      <a routerLink="/stock">
+        <span class="nav-icon">⇅</span>
+        Stock Management
+      </a>
+
+      <a routerLink="/suppliers">
+        <span class="nav-icon">♧</span>
+        Supplier Management
+      </a>
+
+      <a routerLink="/purchase-orders" class="active">
+        <span class="nav-icon">▤</span>
+        Purchase Orders
+      </a>
+
+      <a routerLink="/goods-received">
+        <span class="nav-icon">▣</span>
+        Goods Received
+      </a>
+
+      <a routerLink="/users">
+        <span class="nav-icon">♙</span>
+        User Management
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <p>HealthCare Inventory System</p>
+      <small>Management Portal</small>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- Page Header -->
+    <header class="page-header">
+      <div>
+        <p class="breadcrumb">
+          Purchase Orders / {{ isEditMode ? 'Edit Purchase Order' : 'Create Purchase Order' }}
+        </p>
+
+        <h1>
+          {{ isEditMode ? 'Edit Purchase Order' : 'Create Purchase Order' }}
+        </h1>
+
+        <p class="page-subtitle">
+          {{
+            isEditMode
+              ? 'Update the details of your Draft Purchase Order.'
+              : 'Create a new order for purchasing inventory from a supplier.'
+          }}
+        </p>
+      </div>
+
+      <button type="button" class="btn-back" (click)="cancel()">← Back to Purchase Orders</button>
+    </header>
+
+    <!-- Loading -->
+    @if (isLoading) {
+      <div class="loading-box">Loading Purchase Order details...</div>
+    }
+
+    @if (!isLoading) {
+      <!-- Message -->
+      @if (message) {
+        <div
+          class="message-box"
+          [class.error]="messageType === 'error'"
+          [class.success]="messageType === 'success'"
+        >
+          {{ message }}
+        </div>
+      }
+
+      <form (ngSubmit)="savePurchaseOrder()">
+        <!-- Supplier Details -->
+        <section class="form-card">
+          <div class="form-card-header">
+            <div>
+              <h2>Supplier Details</h2>
+              <p>Select the supplier and enter the order dates.</p>
+            </div>
+
+            <div class="form-icon">♧</div>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="supplierId">Supplier <span class="required">*</span></label>
+
+              <select id="supplierId" name="supplierId" [(ngModel)]="supplierId" required>
+                <option [ngValue]="null">Select Supplier</option>
+
+                @for (supplier of suppliers; track supplier.supplierId) {
+                  <option [ngValue]="supplier.supplierId">
+                    {{ supplier.name }}
+                  </option>
+                }
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="orderDate">Order Date <span class="required">*</span></label>
+
+              <input type="date" id="orderDate" name="orderDate" [(ngModel)]="orderDate" required />
+            </div>
+
+            <div class="form-group">
+              <label for="expectedDeliveryDate">Expected Delivery Date</label>
+
+              <input
+                type="date"
+                id="expectedDeliveryDate"
+                name="expectedDeliveryDate"
+                [(ngModel)]="expectedDeliveryDate"
+              />
+            </div>
+          </div>
+        </section>
+
+        <!-- Order Items -->
+        <section class="form-card items-card">
+          <div class="form-card-header">
+            <div>
+              <h2>Purchase Order Items</h2>
+              <p>Add the inventory items and quantities you want to order.</p>
+            </div>
+
+            <div class="form-icon">▤</div>
+          </div>
+
+          <div class="items-table-wrapper">
+            <table class="items-table">
+              <thead>
+                <tr>
+                  <th>Inventory Item</th>
+                  <th>Quantity</th>
+                  <th>Unit Price</th>
+                  <th>Line Total</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                @for (orderItem of orderItems; track $index; let i = $index) {
+                  <tr>
+                    <td>
+                      <select [name]="'itemId' + i" [(ngModel)]="orderItem.itemId" required>
+                        <option [ngValue]="0">Select Item</option>
+
+                        @for (item of availableItems; track item.id) {
+                          @if (!isItemAlreadySelected(item.id, i) || orderItem.itemId === item.id) {
+                            <option [ngValue]="item.id">{{ item.name }} ({{ item.sku }})</option>
+                          }
+                        }
+                      </select>
+                    </td>
+
+                    <td>
+                      <input
+                        type="number"
+                        [name]="'quantity' + i"
+                        [(ngModel)]="orderItem.orderedQuantity"
+                        min="1"
+                        step="1"
+                        required
+                      />
+                    </td>
+
+                    <td>
+                      <input
+                        type="number"
+                        [name]="'unitPrice' + i"
+                        [(ngModel)]="orderItem.unitPrice"
+                        min="0"
+                        step="0.01"
+                        required
+                      />
+                    </td>
+
+                    <td class="line-total">
+                      {{
+                        (orderItem.orderedQuantity || 0) * (orderItem.unitPrice || 0)
+                          | number: '1.2-2'
+                      }}
+                    </td>
+
+                    <td>
+                      <button
+                        type="button"
+                        class="btn-remove"
+                        [disabled]="orderItems.length === 1"
+                        (click)="removeItem(i)"
+                      >
+                        Remove
+                      </button>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+
+          <button type="button" class="btn-add-item" (click)="addItem()">+ Add Another Item</button>
+        </section>
+
+        <!-- Order Summary -->
+        <section class="form-card">
+          <div class="form-card-header">
+            <div>
+              <h2>Order Summary</h2>
+              <p>Review the order amounts before saving.</p>
+            </div>
+
+            <div class="form-icon">₨</div>
+          </div>
+
+          <div class="summary-container">
+            <div class="form-group tax-field">
+              <label for="taxRate">Tax Rate (%)</label>
+
+              <input
+                type="number"
+                id="taxRate"
+                name="taxRate"
+                [(ngModel)]="taxRate"
+                min="0"
+                max="100"
+                step="0.01"
+              />
+            </div>
+
+            <div class="summary-details">
+              <div class="summary-row">
+                <span>Subtotal</span>
+                <strong>{{ subtotal | number: '1.2-2' }}</strong>
+              </div>
+
+              <div class="summary-row">
+                <span>Tax Amount</span>
+                <strong>{{ taxAmount | number: '1.2-2' }}</strong>
+              </div>
+
+              <div class="summary-row total-row">
+                <span>Grand Total</span>
+                <strong>{{ totalAmount | number: '1.2-2' }}</strong>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Additional Information -->
+        <section class="form-card">
+          <div class="form-card-header">
+            <div>
+              <h2>Additional Information</h2>
+              <p>Add any notes related to this Purchase Order.</p>
+            </div>
+
+            <div class="form-icon">✎</div>
+          </div>
+
+          <div class="form-group full-width">
+            <label for="notes">Notes</label>
+
+            <textarea
+              id="notes"
+              name="notes"
+              [(ngModel)]="notes"
+              maxlength="1000"
+              rows="4"
+              placeholder="Enter additional notes (optional)..."
+            >
+            </textarea>
+
+            <span class="field-hint"> Maximum 1000 characters. </span>
+          </div>
+        </section>
+
+        <!-- Form Actions -->
+        <div class="form-actions">
+          <button type="button" class="btn-cancel" [disabled]="isSaving" (click)="cancel()">
+            Cancel
+          </button>
+
+          <button
+            type="submit"
+            class="btn-save"
+            [disabled]="isSaving || suppliers.length === 0 || availableItems.length === 0"
+          >
+            {{
+              isSaving ? 'Saving...' : isEditMode ? 'Update Purchase Order' : 'Save Purchase Order'
+            }}
+          </button>
+        </div>
+      </form>
+    }
+
+    <footer class="main-footer">© 2026 HealthCare Inventory Management System</footer>
+  </main>
+</div>

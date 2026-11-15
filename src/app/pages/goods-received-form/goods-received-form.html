@@ -1,0 +1,464 @@
+
+<div class="hims-layout">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-icon">+</div>
+      <div>
+        <h2>HealthCare <span>IMS</span></h2>
+        <p>Inventory Management</p>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a routerLink="/dashboard">
+        <span class="nav-icon">▦</span>Dashboard
+      </a>
+      <a routerLink="/items">
+        <span class="nav-icon">◈</span>Inventory Items
+      </a>
+      <a routerLink="/stock">
+        <span class="nav-icon">⇅</span>Stock Management
+      </a>
+      <a routerLink="/suppliers">
+        <span class="nav-icon">♧</span>Supplier Management
+      </a>
+      <a routerLink="/purchase-orders">
+        <span class="nav-icon">▤</span>Purchase Orders
+      </a>
+      <a routerLink="/goods-received" class="active">
+        <span class="nav-icon">▣</span>Goods Received
+      </a>
+      <a routerLink="/users">
+        <span class="nav-icon">♙</span>User Management
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <p>HealthCare Inventory System</p>
+      <small>Management Portal</small>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <header class="page-header">
+      <div>
+        <p class="breadcrumb">Goods Received / Create Receipt</p>
+        <h1>Create Goods Received Note</h1>
+        <p class="page-subtitle">
+          Record delivered inventory against an existing Purchase Order.
+        </p>
+      </div>
+
+      <button type="button" class="btn-back" (click)="cancel()">
+        ← Back to Goods Received
+      </button>
+    </header>
+
+    <!-- Loading -->
+    @if (isLoading) {
+      <div class="loading-box">
+        Loading Purchase Order details...
+      </div>
+    }
+
+    @if (!isLoading) {
+
+      <!-- Error Message -->
+      @if (errorMessage) {
+        <div class="message-box error" role="alert">
+          {{ errorMessage }}
+        </div>
+      }
+
+      <!-- Success Message -->
+      @if (successMessage) {
+        <div class="message-box" role="status">
+          {{ successMessage }}
+        </div>
+      }
+
+      @if (purchaseOrder) {
+
+        <!-- Purchase Order Summary -->
+        <section class="form-card po-summary-card">
+          <div class="form-card-header">
+            <div>
+              <h2>Purchase Order Details</h2>
+              <p>Review the order before recording the delivery.</p>
+            </div>
+            <div class="form-icon">▤</div>
+          </div>
+
+          <div class="summary-grid">
+            <div class="summary-item">
+              <span>Order Number</span>
+              <strong>{{ purchaseOrder.orderNumber }}</strong>
+            </div>
+
+            <div class="summary-item">
+              <span>Supplier</span>
+              <strong>{{ purchaseOrder.supplierName }}</strong>
+            </div>
+
+            <div class="summary-item">
+              <span>Order Date</span>
+              <strong>
+                {{ purchaseOrder.orderDate | date: 'mediumDate' }}
+              </strong>
+            </div>
+
+            <div class="summary-item">
+              <span>Expected Delivery</span>
+              <strong>
+                {{
+                  purchaseOrder.expectedDeliveryDate
+                    ? (purchaseOrder.expectedDeliveryDate | date: 'mediumDate')
+                    : 'Not specified'
+                }}
+              </strong>
+            </div>
+
+            <div class="summary-item">
+              <span>Purchase Order Status</span>
+              <strong class="status-value">
+                {{ purchaseOrder.status }}
+              </strong>
+            </div>
+
+            <div class="summary-item">
+              <span>Order Total</span>
+              <strong>
+                Rs. {{ purchaseOrder.totalAmount | number: '1.2-2' }}
+              </strong>
+            </div>
+          </div>
+        </section>
+
+        <!-- Goods Received Form -->
+        <form (ngSubmit)="saveGoodsReceived()">
+
+          <!-- Receipt Information -->
+          <section class="form-card">
+            <div class="form-card-header">
+              <div>
+                <h2>Receipt Information</h2>
+                <p>
+                  Enter the delivery date and supplier delivery reference.
+                </p>
+              </div>
+              <div class="form-icon">▣</div>
+            </div>
+
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="receivedDate">
+                  Received Date <span class="required">*</span>
+                </label>
+
+                <input
+                  type="date"
+                  id="receivedDate"
+                  name="receivedDate"
+                  [(ngModel)]="receivedDate"
+                  required
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="deliveryNoteNumber">
+                  Delivery Note Number
+                </label>
+
+                <input
+                  type="text"
+                  id="deliveryNoteNumber"
+                  name="deliveryNoteNumber"
+                  [(ngModel)]="deliveryNoteNumber"
+                  maxlength="100"
+                  placeholder="Enter supplier delivery note number"
+                />
+              </div>
+            </div>
+          </section>
+
+          <!-- Received Items and Batch Details -->
+          <section class="form-card items-card">
+            <div class="form-card-header">
+              <div>
+                <h2>Received Items & Batch Details</h2>
+                <p>
+                  Record each delivered batch and divide its quantity into
+                  accepted, rejected, and quarantined units.
+                </p>
+              </div>
+              <div class="form-icon">◈</div>
+            </div>
+
+            <div class="items-table-wrapper">
+              <table class="items-table">
+                <thead>
+                  <tr>
+                    <th>Purchase Order Item</th>
+                    <th>Remaining</th>
+                    <th>Batch Number</th>
+                    <th>Delivered</th>
+                    <th>Accepted</th>
+                    <th>Rejected</th>
+                    <th>Quarantined</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  @for (item of receiptItems; track $index; let i = $index) {
+                    <tr>
+                      <td>
+                        <select
+                          [name]="'purchaseOrderItemId' + i"
+                          [(ngModel)]="item.purchaseOrderItemId"
+                          required
+                        >
+                          @for (
+                            orderItem of purchaseOrder.items;
+                            track orderItem.purchaseOrderItemId
+                          ) {
+                            <option
+                              [ngValue]="orderItem.purchaseOrderItemId"
+                            >
+                              {{ orderItem.itemName }} ({{ orderItem.sku }})
+                            </option>
+                          }
+                        </select>
+                      </td>
+
+                      <td class="remaining-value">
+                        {{
+                          getPurchaseOrderItem(item.purchaseOrderItemId)
+                            ?.remainingQuantity ?? 0
+                        }}
+                      </td>
+
+                      <td>
+                        <input
+                          type="text"
+                          [name]="'batchNumber' + i"
+                          [(ngModel)]="item.batchNumber"
+                          maxlength="50"
+                          placeholder="Batch no."
+                          required
+                        />
+                      </td>
+
+                      <td>
+                        <input
+                          type="number"
+                          [name]="'delivered' + i"
+                          [(ngModel)]="item.deliveredQuantity"
+                          min="1"
+                          step="1"
+                          required
+                        />
+                      </td>
+
+                      <td>
+                        <input
+                          type="number"
+                          [name]="'accepted' + i"
+                          [(ngModel)]="item.acceptedQuantity"
+                          min="0"
+                          step="1"
+                          required
+                        />
+                      </td>
+
+                      <td>
+                        <input
+                          type="number"
+                          [name]="'rejected' + i"
+                          [(ngModel)]="item.rejectedQuantity"
+                          min="0"
+                          step="1"
+                          required
+                        />
+                      </td>
+
+                      <td>
+                        <input
+                          type="number"
+                          [name]="'quarantined' + i"
+                          [(ngModel)]="item.quarantinedQuantity"
+                          min="0"
+                          step="1"
+                          required
+                        />
+                      </td>
+
+                      <td>
+                        <button
+                          type="button"
+                          class="btn-remove"
+                          [disabled]="receiptItems.length === 1"
+                          (click)="removeBatchRow(i)"
+                        >
+                          Remove
+                        </button>
+                      </td>
+                    </tr>
+
+                    <!-- Optional Batch Information -->
+                    <tr class="optional-row">
+                      <td colspan="8">
+                        <div class="optional-fields">
+
+                          <div class="form-group">
+                            <label [for]="'manufactureDate' + i">
+                              Manufacture Date
+                            </label>
+
+                            <input
+                              type="date"
+                              [id]="'manufactureDate' + i"
+                              [name]="'manufactureDate' + i"
+                              [(ngModel)]="item.manufactureDate"
+                            />
+                          </div>
+
+                          <div class="form-group">
+                            <label [for]="'expiryDate' + i">
+                              Expiry Date
+                            </label>
+
+                            <input
+                              type="date"
+                              [id]="'expiryDate' + i"
+                              [name]="'expiryDate' + i"
+                              [(ngModel)]="item.expiryDate"
+                            />
+                          </div>
+
+                          <div class="form-group">
+                            <label [for]="'storageLocation' + i">
+                              Storage Location
+                            </label>
+
+                            <input
+                              type="text"
+                              [id]="'storageLocation' + i"
+                              [name]="'storageLocation' + i"
+                              [(ngModel)]="item.storageLocation"
+                              maxlength="100"
+                              placeholder="e.g. Shelf A1"
+                            />
+                          </div>
+
+                        </div>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Add Another Batch -->
+            <button
+              type="button"
+              class="btn-add-item"
+              (click)="addBatchRow()"
+            >
+              + Add Another Batch
+            </button>
+
+            <!-- Quantity Summary -->
+            <div class="quantity-summary">
+              <div>
+                <span>Total Delivered</span>
+                <strong>{{ totalDelivered }}</strong>
+              </div>
+
+              <div>
+                <span>Total Accepted</span>
+                <strong class="accepted-total">
+                  {{ totalAccepted }}
+                </strong>
+              </div>
+
+              <div>
+                <span>Total Rejected</span>
+                <strong class="rejected-total">
+                  {{ totalRejected }}
+                </strong>
+              </div>
+
+              <div>
+                <span>Total Quarantined</span>
+                <strong class="quarantine-total">
+                  {{ totalQuarantined }}
+                </strong>
+              </div>
+            </div>
+          </section>
+
+          <!-- Additional Information -->
+          <section class="form-card">
+            <div class="form-card-header">
+              <div>
+                <h2>Additional Information</h2>
+                <p>Add optional notes about this delivery.</p>
+              </div>
+              <div class="form-icon">✎</div>
+            </div>
+
+            <div class="form-group full-width">
+              <label for="notes">Notes</label>
+
+              <textarea
+                id="notes"
+                name="notes"
+                [(ngModel)]="notes"
+                maxlength="1000"
+                rows="4"
+                placeholder="Enter delivery remarks or inspection notes..."
+              ></textarea>
+
+              <span class="field-hint">
+                Maximum 1000 characters.
+              </span>
+            </div>
+          </section>
+
+          <!-- Form Actions -->
+          <div class="form-actions">
+            <button
+              type="button"
+              class="btn-cancel"
+              [disabled]="isSaving"
+              (click)="cancel()"
+            >
+              Cancel
+            </button>
+
+            <button
+              type="submit"
+              class="btn-save"
+              [disabled]="isSaving || receiptItems.length === 0"
+            >
+              {{
+                isSaving
+                  ? 'Saving...'
+                  : 'Create Goods Received Note'
+              }}
+            </button>
+          </div>
+
+        </form>
+      }
+    }
+
+    <!-- Footer -->
+    <footer class="main-footer">
+      © 2026 HealthCare Inventory Management System
+    </footer>
+  </main>
+</div>

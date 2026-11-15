@@ -32,6 +32,14 @@
         Supplier Management
       </a>
 
+      <a routerLink="/purchase-orders" routerLinkActive="active" class="nav-link">
+        <span class="nav-icon">▤</span> Purchase Orders
+      </a>
+
+      <a routerLink="/goods-received" routerLinkActive="active" class="nav-link">
+        <span class="nav-icon">▣</span> Goods Received
+      </a>
+
       <a routerLink="/users" routerLinkActive="active" class="nav-link">
         <span class="nav-icon">♙</span> User Management
       </a>
@@ -112,8 +120,8 @@
         <div class="stat-icon value-icon">₨</div>
         <div>
           <p>Inventory Value</p>
-          <h2>—</h2>
-          <small>Purchasing data integration pending</small>
+          <h2>₨ {{ totalValue | number: '1.2-2' }}</h2>
+          <small>Based on current stock batches</small>
         </div>
       </div>
     </section>
