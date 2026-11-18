@@ -7,7 +7,7 @@ import {
 } from '@angular/core';
 import { DatePipe, NgClass } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 
 import {
   GoodsReceived,
@@ -25,6 +25,7 @@ import { GoodsReceivedService } from '../../services/goods-received.service';
     RouterLink,
     DatePipe,
     NgClass,
+    RouterLinkActive
   ],
   templateUrl: './goods-received.html',
   styleUrl: './goods-received.css',

@@ -88,6 +88,7 @@ button {
   display: flex;
   align-items: center;
   gap: 12px;
+  min-height: 46px;
   padding: 12px 13px;
   border-radius: 8px;
   color: #64748b;
@@ -110,70 +111,59 @@ button {
 
 .nav-icon {
   width: 20px;
+  flex-shrink: 0;
   text-align: center;
   font-size: 18px;
 }
 
+.sidebar-footer {
+  margin-top: auto;
+  padding: 20px 8px 0;
+  border-top: 1px solid #edf2f2;
+  color: #8a9c9c;
+}
 .sidebar-bottom {
   margin-top: auto;
   padding-top: 25px;
 }
 
-.profile {
+.admin-profile {
   display: flex;
   align-items: center;
-  gap: 13px;
-  padding: 0 5px 20px;
+  gap: 10px;
+  padding: 14px 7px;
+  margin-bottom: 8px;
+  border-top: 1px solid #e5eaf1;
 }
 
-.profile-avatar,
-.top-avatar {
-  display: grid;
-  place-items: center;
-  width: 48px;
-  height: 48px;
+.avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
   flex-shrink: 0;
   border-radius: 50%;
-  background: #e0f3ef;
-  color: #087f72;
+  background: #dbeafe;
+  color: #1d4ed8;
   font-weight: 700;
 }
 
-.profile strong,
-.profile span {
+.admin-profile strong,
+.admin-profile small {
   display: block;
 }
 
-.profile strong {
-  margin-bottom: 5px;
-  font-size: 14px;
+.admin-profile strong {
+  font-size: 12px;
 }
 
-.profile span {
-  color: #84999f;
-  font-size: 13px;
+.admin-profile small {
+  margin-top: 4px;
+  color: #94a3b8;
+  font-size: 11px;
 }
 
-.logout-button {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  width: 100%;
-  padding: 14px 16px;
-  border: 1px solid #e3ebed;
-  border-radius: 10px;
-  color: #607d85;
-  background: #fff;
-  text-align: left;
-}
-
-.logout-button:hover {
-  background: #f5f8f9;
-}
-
-.logout-button span {
-  font-size: 20px;
-}
 
 /* Main content and top header */
 .main-content {

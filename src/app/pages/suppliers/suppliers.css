@@ -35,93 +35,123 @@ button {
   width: 100%;
 }
 
+
 /* ==============================
-   SIDEBAR
+   SIDEBAR - SAME AS DASHBOARD
 ============================== */
 
 .sidebar {
-  width: 250px;
-  min-width: 250px;
-  min-height: 100vh;
+  position: fixed;
+  inset: 0 auto 0 0;
+  z-index: 10;
   display: flex;
   flex-direction: column;
+  width: 250px;
+  min-width: 250px;
+  height: 100vh;
+  min-height: 100vh;
+  overflow-y: auto;
+  padding: 27px 18px 18px;
   background: #ffffff;
-  border-right: 1px solid #e5eaf0;
-  padding: 24px 16px;
+  border-right: 1px solid #e7eeee;
 }
 
 .sidebar-brand {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 0 8px 30px;
-  border-bottom: 1px solid #edf1f5;
+  gap: 10px;
+  margin: 0 0 43px 5px;
+  padding: 0;
+  border: none;
 }
 
 .brand-icon {
-  width: 42px;
-  height: 42px;
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 38px;
+  height: 38px;
   flex-shrink: 0;
-  border-radius: 12px;
-  background: #0d9488;
+  border-radius: 11px;
   color: #ffffff;
+  background: #087f72;
   font-size: 30px;
-  font-weight: 600;
+  font-weight: 300;
+  line-height: 1;
 }
 
 .sidebar-brand h2 {
   margin: 0;
-  color: #1e293b;
+  color: #183b40;
   font-size: 17px;
-  font-weight: 700;
+  font-weight: 750;
+  letter-spacing: -0.5px;
 }
 
 .sidebar-brand h2 span {
-  color: #0d9488;
+  color: #087f72;
 }
 
 .sidebar-brand p {
   margin: 4px 0 0;
-  color: #94a3b8;
+  color: #87979b;
   font-size: 11px;
 }
 
 .sidebar-nav {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-top: 28px;
+  display: grid;
+  gap: 7px;
+  margin-top: 0;
 }
 
 .sidebar-nav a {
   display: flex;
   align-items: center;
+  gap: 13px;
+  min-height: 46px;
+  padding: 0 13px;
+  color: #657a7e;
+  border-radius: 9px;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 0.2s, background 0.2s;
+}
+
+.sidebar-nav a:hover,
+.sidebar-nav a.active {
+  color: #087f72;
+  background: #eaf6f3;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
   gap: 12px;
-  padding: 12px 14px;
+  min-height: 46px;
+  padding: 12px 13px;
   border-radius: 8px;
   color: #64748b;
   text-decoration: none;
-  font-size: 14px;
-  font-weight: 500;
-  transition: background 0.2s, color 0.2s;
+  font-size: 13px;
+  font-weight: 550;
+  transition: 0.2s ease;
 }
 
-.sidebar-nav a:hover {
+.nav-link:hover {
   background: #f0fdfa;
-  color: #0d9488;
+  color: #0f766e;
 }
 
-.sidebar-nav a.active {
-  background: #e6f7f5;
-  color: #0d9488;
-  font-weight: 600;
+.nav-link.active {
+  background: #ccfbf1;
+  color: #0f766e;
+  font-weight: 700;
 }
 
 .nav-icon {
   width: 20px;
+  flex-shrink: 0;
   text-align: center;
   font-size: 18px;
 }
@@ -129,19 +159,51 @@ button {
 .sidebar-footer {
   margin-top: auto;
   padding: 20px 8px 0;
-  border-top: 1px solid #edf1f5;
+  border-top: 1px solid #edf2f2;
+  color: #8a9c9c;
+}
+.sidebar-bottom {
+  margin-top: auto;
+  padding-top: 25px;
 }
 
-.sidebar-footer p {
-  margin: 0 0 5px;
-  color: #64748b;
+.admin-profile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 7px;
+  margin-bottom: 8px;
+  border-top: 1px solid #e5eaf1;
+}
+
+.avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: #dbeafe;
+  color: #1d4ed8;
+  font-weight: 700;
+}
+
+.admin-profile strong,
+.admin-profile small {
+  display: block;
+}
+
+.admin-profile strong {
   font-size: 12px;
 }
 
-.sidebar-footer small {
+.admin-profile small {
+  margin-top: 4px;
   color: #94a3b8;
   font-size: 11px;
 }
+
 
 /* ==============================
    MAIN CONTENT
@@ -150,6 +212,8 @@ button {
 .main-content {
   flex: 1;
   min-width: 0;
+  width: calc(100% - 250px);
+  margin-left: 250px;
   padding: 32px;
 }
 
@@ -406,20 +470,66 @@ button {
   width: 190px;
 }
 
+
 /* ==============================
    TABLE
 ============================== */
 
 .table-wrapper {
   width: 100%;
-  overflow-x: auto;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 .inventory-table {
   width: 100%;
+  max-width: 100%;
+  table-layout: fixed;
   border-collapse: collapse;
   text-align: left;
-  white-space: nowrap;
+  white-space: normal;
+}
+
+/* Supplier column */
+.inventory-table th:nth-child(1),
+.inventory-table td:nth-child(1) {
+  width: 20%;
+}
+
+/* Contact Person */
+.inventory-table th:nth-child(2),
+.inventory-table td:nth-child(2) {
+  width: 13%;
+}
+
+/* Phone */
+.inventory-table th:nth-child(3),
+.inventory-table td:nth-child(3) {
+  width: 12%;
+}
+
+/* Email - give enough space */
+.inventory-table th:nth-child(4),
+.inventory-table td:nth-child(4) {
+  width: 22%;
+}
+
+/* City */
+.inventory-table th:nth-child(5),
+.inventory-table td:nth-child(5) {
+  width: 12%;
+}
+
+/* Status */
+.inventory-table th:nth-child(6),
+.inventory-table td:nth-child(6) {
+  width: 9%;
+}
+
+/* Actions */
+.inventory-table th:nth-child(7),
+.inventory-table td:nth-child(7) {
+  width: 12%;
 }
 
 .inventory-table thead {
@@ -427,30 +537,36 @@ button {
 }
 
 .inventory-table th {
-  padding: 13px 17px;
+  padding: 13px 10px;
   border-top: 1px solid #edf1f5;
   border-bottom: 1px solid #edf1f5;
   color: #64748b;
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
+  vertical-align: middle;
 }
 
 .inventory-table td {
-  padding: 15px 17px;
+  padding: 15px 10px;
   border-bottom: 1px solid #f1f5f9;
   color: #475569;
   font-size: 12px;
+  vertical-align: middle;
+  overflow-wrap: normal;
+  word-break: normal;
 }
 
 .inventory-table tbody tr:hover {
   background: #fbfefd;
 }
 
+/* Supplier name */
 .supplier-name {
   display: flex;
   align-items: center;
   gap: 10px;
+  min-width: 0;
 }
 
 .supplier-avatar {
@@ -471,6 +587,10 @@ button {
   display: block;
   color: #334155;
   font-size: 12px;
+  line-height: 1.5;
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-break: normal;
 }
 
 .supplier-name small {
@@ -479,6 +599,30 @@ button {
   color: #94a3b8;
   font-size: 10px;
 }
+
+/* Email: wrap naturally without splitting into characters */
+.inventory-table td:nth-child(4) {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: normal;
+  line-height: 1.5;
+}
+
+/* City: keep normal word wrapping */
+.inventory-table td:nth-child(5) {
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-break: normal;
+}
+
+/* Actions */
+.action-buttons {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
 
 /* ==============================
    STATUS
@@ -509,6 +653,7 @@ button {
 .action-buttons {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 7px;
 }
 
@@ -654,15 +799,13 @@ button {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .inventory-table {
-    min-width: 950px;
-  }
+  /* Removed the old 950px table minimum width */
 }
 
 @media (max-width: 850px) {
   .sidebar {
-    width: 220px;
-    min-width: 220px;
+    width: 250px;
+    min-width: 250px;
   }
 
   .main-content {
@@ -680,8 +823,12 @@ button {
   }
 
   .sidebar {
+    position: relative;
+    top: auto;
+    left: auto;
     width: 100%;
     min-width: 0;
+    height: auto;
     min-height: auto;
     padding: 16px;
     border-right: none;
@@ -709,6 +856,8 @@ button {
   }
 
   .main-content {
+    width: 100%;
+    margin-left: 0;
     padding: 20px 14px;
   }
 
