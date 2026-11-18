@@ -1,4 +1,5 @@
 <div class="dashboard-layout">
+  <!-- Sidebar -->
   <aside class="sidebar">
     <a class="brand" routerLink="/dashboard">
       <span class="brand-icon">+</span>
@@ -18,19 +19,17 @@
         Item Management
       </a>
 
-      <!-- New: Stock Management menu item -->
       <a routerLink="/stock" routerLinkActive="active">
         <span class="nav-icon">▣</span>
         Stock Management
       </a>
 
-      <!-- Supplier Management -->
       <a routerLink="/suppliers" routerLinkActive="active">
         <span class="nav-icon">♧</span>
         Supplier Management
       </a>
 
-        <a
+      <a
         routerLink="/purchase-orders"
         routerLinkActive="active"
         class="nav-link"
@@ -61,10 +60,13 @@
         </div>
       </div>
 
-      <button class="logout-button" type="button" (click)="logout()"><span>↪</span> Logout</button>
+      <button class="logout-button" type="button" (click)="logout()">
+        <span>↪</span> Logout
+      </button>
     </div>
   </aside>
 
+  <!-- Main content -->
   <main class="main-content">
     <header class="topbar">
       <div>
@@ -80,153 +82,427 @@
     </header>
 
     <section class="page-content">
+
+      <!-- Welcome banner -->
       <div class="welcome-banner">
         <div>
           <p class="eyebrow">HEALTHCARE INVENTORY MANAGEMENT</p>
           <h2>Good day, Admin!</h2>
           <p>Here is what's happening with your inventory today.</p>
         </div>
+
         <div class="welcome-symbol" aria-hidden="true">+</div>
       </div>
 
-      <div class="section-heading">
-        <div>
-          <h2>Inventory overview</h2>
-          <p>A quick summary of your healthcare inventory.</p>
+      <!-- Loading -->
+      @if (loading) {
+        <div class="dashboard-message loading-message">
+          <span class="loading-spinner"></span>
+          Loading dashboard information...
         </div>
-        <span class="demo-badge">DEMO DATA</span>
-      </div>
+      }
 
-      <div class="stats-grid">
-        <article class="stat-card">
-          <div class="stat-top">
-            <span class="stat-icon teal">▤</span>
-            <span class="stat-label">All inventory</span>
+      <!-- API errors -->
+      @if (!loading && loadErrors.length > 0) {
+        <div class="dashboard-message error-message">
+          <strong>Some dashboard information could not be loaded.</strong>
+
+          @for (error of loadErrors; track error) {
+            <span>{{ error }}</span>
+          }
+
+          <button type="button" (click)="loadDashboardData()">
+            Try again
+          </button>
+        </div>
+      }
+
+      @if (!loading) {
+
+        <!-- Inventory overview -->
+        <div class="section-heading">
+          <div>
+            <h2>Inventory overview</h2>
+            <p>A live summary of your healthcare inventory.</p>
           </div>
-          <div class="stat-value">{{ totalItems }}</div>
-          <div class="stat-caption">Total inventory items</div>
-          <a routerLink="/items" class="stat-link">View items →</a>
-        </article>
 
-        <article class="stat-card">
-          <div class="stat-top">
-            <span class="stat-icon orange">⚠</span>
-            <span class="stat-label">Needs attention</span>
-          </div>
-          <div class="stat-value">{{ lowStockItems }}</div>
-          <div class="stat-caption">Items with low stock</div>
-          <a routerLink="/items" class="stat-link">Review stock →</a>
-        </article>
+          <span class="live-badge">
+            <span></span>
+            LIVE DATA
+          </span>
+        </div>
 
-        <article class="stat-card">
-          <div class="stat-top">
-            <span class="stat-icon blue">♙</span>
-            <span class="stat-label">Team</span>
-          </div>
-          <div class="stat-value">{{ totalUsers }}</div>
-          <div class="stat-caption">Registered users</div>
-          <a routerLink="/users" class="stat-link">View users →</a>
-        </article>
+        <!-- Main statistic cards -->
+        <div class="stats-grid">
 
-        <article class="stat-card">
-          <div class="stat-top">
-            <span class="stat-icon purple">▣</span>
-            <span class="stat-label">Purchasing</span>
-          </div>
-          <div class="stat-value">{{ pendingOrders }}</div>
-          <div class="stat-caption">Pending purchase orders</div>
-          <a href="javascript:void(0)" class="stat-link">View overview →</a>
-        </article>
-      </div>
-
-      <div class="content-grid">
-        <section class="panel activity-panel">
-          <div class="panel-header">
-            <div>
-              <h3>Recent activity</h3>
-              <p>Latest updates across your workspace</p>
+          <article class="stat-card">
+            <div class="stat-top">
+              <span class="stat-icon teal">▤</span>
+              <span class="stat-label">Inventory</span>
             </div>
-            <span class="activity-count">{{ recentActivity.length }} updates</span>
-          </div>
 
-          <div class="activity-list">
-            @for (activity of recentActivity; track activity.title) {
-              <div class="activity-row">
-                <div
-                  class="activity-icon"
-                  [class.inventory]="activity.type === 'inventory'"
-                  [class.supplier]="activity.type === 'supplier'"
-                  [class.alert]="activity.type === 'alert'"
-                  [class.order]="activity.type === 'order'"
-                >
-                  @switch (activity.type) {
-                    @case ('inventory') {
-                      ▤
-                    }
-                    @case ('supplier') {
-                      ♙
-                    }
-                    @case ('alert') {
-                      ⚠
-                    }
-                    @case ('order') {
-                      ▣
-                    }
+            <div class="stat-value">{{ totalItems }}</div>
+            <div class="stat-caption">Total inventory items</div>
+
+            <a routerLink="/items" class="stat-link">
+              View items →
+            </a>
+          </article>
+
+          <article class="stat-card">
+            <div class="stat-top">
+              <span class="stat-icon orange">⚠</span>
+              <span class="stat-label">Needs attention</span>
+            </div>
+
+            <div class="stat-value">{{ lowStockItems }}</div>
+            <div class="stat-caption">Items with low stock</div>
+
+            <a routerLink="/stock" class="stat-link">
+              Review stock →
+            </a>
+          </article>
+
+          <article class="stat-card">
+            <div class="stat-top">
+              <span class="stat-icon blue">♧</span>
+              <span class="stat-label">Suppliers</span>
+            </div>
+
+            <div class="stat-value">{{ activeSuppliers }}</div>
+            <div class="stat-caption">Active suppliers</div>
+
+            <a routerLink="/suppliers" class="stat-link">
+              View suppliers →
+            </a>
+          </article>
+
+          <article class="stat-card">
+            <div class="stat-top">
+              <span class="stat-icon purple">▣</span>
+              <span class="stat-label">Purchasing</span>
+            </div>
+
+            <div class="stat-value">{{ pendingOrders }}</div>
+            <div class="stat-caption">Pending purchase orders</div>
+
+            <a routerLink="/purchase-orders" class="stat-link">
+              View orders →
+            </a>
+          </article>
+
+        </div>
+
+        <!-- Stock overview -->
+        <div class="section-heading secondary-heading">
+          <div>
+            <h2>Stock overview</h2>
+            <p>Current inventory quantity and estimated value.</p>
+          </div>
+        </div>
+
+        <div class="stock-overview-grid">
+
+          <article class="overview-card">
+            <div class="overview-icon teal">▦</div>
+
+            <div class="overview-content">
+              <span>Total stock units</span>
+              <strong>{{ totalUnits | number }}</strong>
+              <small>Units currently in inventory</small>
+            </div>
+          </article>
+
+          <article class="overview-card">
+            <div class="overview-icon green">₨</div>
+
+            <div class="overview-content">
+              <span>Inventory value</span>
+              <strong>{{ formattedInventoryValue }}</strong>
+              <small>Based on current batch quantities and unit prices</small>
+            </div>
+          </article>
+
+          <article class="overview-card">
+            <div class="overview-icon orange">◷</div>
+
+            <div class="overview-content">
+              <span>Expiring batches</span>
+              <strong>{{ expiringBatches }}</strong>
+              <small>Expiring within the next 30 days</small>
+            </div>
+          </article>
+
+        </div>
+
+        <!-- Charts -->
+        <div class="section-heading secondary-heading">
+          <div>
+            <h2>Inventory analytics</h2>
+            <p>Visual summaries of stock categories and purchase orders.</p>
+          </div>
+        </div>
+
+        <div class="charts-grid">
+
+          <!-- Stock category doughnut chart -->
+          <section class="panel chart-panel">
+            <div class="panel-header">
+              <div>
+                <h3>Stock distribution by category</h3>
+                <p>Stock quantities grouped by item category</p>
+              </div>
+            </div>
+
+            @if (categoryBreakdown.length > 0) {
+              <div class="doughnut-layout">
+
+                <div class="doughnut-chart"
+                     [style.background]="categoryChartBackground">
+
+                  <div class="doughnut-center">
+                    <strong>{{ totalUnits | number }}</strong>
+                    <span>Total units</span>
+                  </div>
+
+                </div>
+
+                <div class="chart-legend">
+                  @for (category of categoryBreakdown; track category.name) {
+                    <div class="legend-row">
+                      <span class="legend-color"
+                            [style.background]="category.color">
+                      </span>
+
+                      <span class="legend-name">
+                        {{ category.name }}
+                      </span>
+
+                      <strong>{{ category.quantity | number }}</strong>
+                    </div>
                   }
                 </div>
 
-                <div class="activity-info">
-                  <strong>{{ activity.title }}</strong>
-                  <span>{{ activity.detail }}</span>
-                </div>
-
-                <time>{{ activity.time }}</time>
+              </div>
+            } @else {
+              <div class="empty-chart">
+                <span>◉</span>
+                <p>No category stock data is available.</p>
               </div>
             }
-          </div>
-        </section>
+          </section>
 
-        <section class="panel quick-panel">
-          <div class="panel-header">
-            <div>
-              <h3>Quick actions</h3>
-              <p>Common tasks</p>
+          <!-- Purchase Order status bar chart -->
+          <section class="panel chart-panel">
+            <div class="panel-header">
+              <div>
+                <h3>Purchase order status</h3>
+                <p>Number of orders in each status</p>
+              </div>
+
+              <a routerLink="/purchase-orders" class="panel-link">
+                View all →
+              </a>
             </div>
+
+            @if (purchaseOrders.length > 0) {
+              <div class="bar-chart">
+
+                @for (status of purchaseOrderStatusBreakdown; track status.name) {
+                  <div class="bar-row">
+
+                    <div class="bar-label">
+                      {{ status.name }}
+                    </div>
+
+                    <div class="bar-track">
+                      <div class="bar-fill"
+                           [style.width.%]="getStatusBarWidth(status.count)"
+                           [class.zero-bar]="status.count === 0">
+                      </div>
+                    </div>
+
+                    <strong class="bar-count">
+                      {{ status.count }}
+                    </strong>
+
+                  </div>
+                }
+
+              </div>
+            } @else {
+              <div class="empty-chart">
+                <span>▥</span>
+                <p>No purchase orders are available.</p>
+              </div>
+            }
+          </section>
+
+        </div>
+
+        <!-- Goods Received overview -->
+        <div class="section-heading secondary-heading">
+          <div>
+            <h2>Goods Received overview</h2>
+            <p>Summary of received inventory records.</p>
           </div>
 
-          <a routerLink="/items" class="quick-action">
-            <span class="quick-icon teal">＋</span>
-            <span>
-              <strong>Manage items</strong>
-              <small>Review your inventory</small>
-            </span>
-            <span class="arrow">→</span>
+          <a routerLink="/goods-received" class="heading-link">
+            View receipts →
           </a>
+        </div>
 
-          <a routerLink="/users" class="quick-action">
-            <span class="quick-icon blue">♙</span>
-            <span>
-              <strong>Manage users</strong>
-              <small>View team members</small>
-            </span>
-            <span class="arrow">→</span>
-          </a>
+        <div class="goods-stats-grid">
 
-          <a routerLink="/items" class="quick-action">
-            <span class="quick-icon orange">⚠</span>
-            <span>
-              <strong>Check low stock</strong>
-              <small>Review stock levels</small>
-            </span>
-            <span class="arrow">→</span>
-          </a>
-        </section>
-      </div>
+          <article class="goods-stat-card">
+            <div class="goods-stat-icon teal">▣</div>
+            <div>
+              <span>Total receipts</span>
+              <strong>{{ totalReceipts }}</strong>
+            </div>
+          </article>
+
+          <article class="goods-stat-card">
+            <div class="goods-stat-icon orange">◷</div>
+            <div>
+              <span>Draft receipts</span>
+              <strong>{{ draftReceipts }}</strong>
+            </div>
+          </article>
+
+          <article class="goods-stat-card">
+            <div class="goods-stat-icon green">✓</div>
+            <div>
+              <span>Confirmed receipts</span>
+              <strong>{{ confirmedReceipts }}</strong>
+            </div>
+          </article>
+
+        </div>
+
+        <!-- Alerts and quick actions -->
+        <div class="content-grid">
+
+          <!-- Genuine inventory alerts -->
+          <section class="panel alerts-panel">
+            <div class="panel-header">
+              <div>
+                <h3>Inventory alerts</h3>
+                <p>Low stock and upcoming batch expirations</p>
+              </div>
+
+              <span class="activity-count">
+                {{ dashboardAlerts.length }} alerts
+              </span>
+            </div>
+
+            @if (dashboardAlerts.length > 0) {
+              <div class="alerts-list">
+
+                @for (alert of dashboardAlerts; track $index) {
+                  <div class="alert-row">
+
+                    <div class="alert-icon"
+                         [class.low-stock-alert]="alert.type === 'low-stock'"
+                         [class.expiry-alert]="alert.type === 'expiry'">
+
+                      @if (alert.type === 'low-stock') {
+                        ⚠
+                      } @else {
+                        ◷
+                      }
+
+                    </div>
+
+                    <div class="alert-info">
+                      <strong>{{ alert.title }}</strong>
+                      <span>{{ alert.detail }}</span>
+                    </div>
+
+                    <span class="alert-tag"
+                          [class.low-stock-tag]="alert.type === 'low-stock'"
+                          [class.expiry-tag]="alert.type === 'expiry'">
+
+                      {{ alert.type === 'low-stock' ? 'Low stock' : 'Expiring' }}
+
+                    </span>
+
+                  </div>
+                }
+
+              </div>
+            } @else {
+              <div class="empty-alerts">
+                <span>✓</span>
+                <strong>No current inventory alerts</strong>
+                <p>No low-stock items or batches expiring within 30 days.</p>
+              </div>
+            }
+          </section>
+
+          <!-- Quick actions -->
+          <section class="panel quick-panel">
+            <div class="panel-header">
+              <div>
+                <h3>Quick actions</h3>
+                <p>Common tasks</p>
+              </div>
+            </div>
+
+            <a routerLink="/items" class="quick-action">
+              <span class="quick-icon teal">＋</span>
+
+              <span>
+                <strong>Manage items</strong>
+                <small>Review your inventory</small>
+              </span>
+
+              <span class="arrow">→</span>
+            </a>
+
+            <a routerLink="/users" class="quick-action">
+              <span class="quick-icon blue">♙</span>
+
+              <span>
+                <strong>Manage users</strong>
+                <small>View team members</small>
+              </span>
+
+              <span class="arrow">→</span>
+            </a>
+
+            <a routerLink="/stock" class="quick-action">
+              <span class="quick-icon orange">⚠</span>
+
+              <span>
+                <strong>Manage stock</strong>
+                <small>Review stock levels and batches</small>
+              </span>
+
+              <span class="arrow">→</span>
+            </a>
+
+            <a routerLink="/purchase-orders" class="quick-action">
+              <span class="quick-icon purple">▣</span>
+
+              <span>
+                <strong>Purchase orders</strong>
+                <small>Review pending orders</small>
+              </span>
+
+              <span class="arrow">→</span>
+            </a>
+
+          </section>
+
+        </div>
+      }
 
       <footer class="dashboard-footer">
         <span>© 2026 HealthCare IMS</span>
         <span>Healthcare Inventory Management System</span>
       </footer>
+
     </section>
   </main>
 </div>

@@ -58,21 +58,18 @@
       </a>
     </nav>
 
-    <!-- Admin Profile -->
     <div class="sidebar-bottom">
-      <div class="profile">
-        <div class="profile-avatar">AD</div>
+      <div class="admin-profile">
+        <div class="avatar">A</div>
         <div>
-          <strong>Admin User</strong>
-          <span>Administrator</span>
+          <strong>Administrator</strong>
+          <small>System Admin</small>
         </div>
       </div>
 
-      <!-- Corrected Logout method name -->
-      <button type="button" class="logout-button" (click)="logoutNotice()">
-        <span>↪</span>
-        Logout
-      </button>
+      <a routerLink="/login" class="nav-link logout-link">
+        <span class="nav-icon">↪</span> Logout
+      </a>
     </div>
   </aside>
 

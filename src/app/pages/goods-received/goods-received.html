@@ -1,4 +1,3 @@
-
 <div class="hims-layout">
   <!-- Sidebar -->
   <aside class="sidebar">
@@ -11,46 +10,56 @@
     </div>
 
     <nav class="sidebar-nav">
-      <a routerLink="/dashboard">
+      <a routerLink="/dashboard" routerLinkActive="active">
         <span class="nav-icon">▦</span>
-        <span>Dashboard</span>
+        Dashboard
       </a>
 
-      <a routerLink="/items">
+      <a routerLink="/items" routerLinkActive="active">
         <span class="nav-icon">▤</span>
-        <span>Inventory Items</span>
+        Item Management
       </a>
 
-      <a routerLink="/stock">
+      <a routerLink="/stock" routerLinkActive="active">
         <span class="nav-icon">▣</span>
-        <span>Stock Management</span>
+        Stock Management
       </a>
 
-      <a routerLink="/suppliers">
-        <span class="nav-icon">♙</span>
-        <span>Supplier Management</span>
-      </a>
-
-      <a routerLink="/purchase-orders">
-        <span class="nav-icon">▧</span>
-        <span>Purchase Orders</span>
-      </a>
-
-      <a routerLink="/goods-received" class="active">
-        <span class="nav-icon">✓</span>
-        <span>Goods Received</span>
-      </a>
-
-      <a routerLink="/users">
+      <a routerLink="/suppliers" routerLinkActive="active">
         <span class="nav-icon">♧</span>
-        <span>User Management</span>
+        Supplier Management
+      </a>
+
+      <a routerLink="/purchase-orders" routerLinkActive="active" class="nav-link">
+        <span class="nav-icon">▤</span> Purchase Orders
+      </a>
+
+      <a
+        routerLink="/goods-received"
+        routerLinkActive="active"
+        class="nav-link"
+      >
+        <span class="nav-icon">▣</span>
+        Goods Received
+      </a>
+
+      <a routerLink="/users" routerLinkActive="active">
+        <span class="nav-icon">♙</span>
+        User Management
       </a>
     </nav>
 
     <div class="sidebar-bottom">
-      <a routerLink="/login">
-        <span class="nav-icon">⇥</span>
-        <span>Logout</span>
+      <div class="admin-profile">
+        <div class="avatar">A</div>
+        <div>
+          <strong>Admin User</strong>
+          <small>System Admin</small>
+        </div>
+      </div>
+
+      <a routerLink="/login" class="nav-link logout-link">
+        <span class="nav-icon">↪</span> Logout
       </a>
     </div>
   </aside>
@@ -139,9 +148,7 @@
             <p>View and manage your received deliveries</p>
           </div>
 
-          <span class="record-count">
-            {{ filteredGoodsReceived.length }} records
-          </span>
+          <span class="record-count"> {{ filteredGoodsReceived.length }} records </span>
         </div>
 
         <!-- Search and Filters -->
@@ -162,9 +169,7 @@
             }
           </select>
 
-          <button class="clear-button" (click)="clearFilters()">
-            Clear
-          </button>
+          <button class="clear-button" (click)="clearFilters()">Clear</button>
         </div>
 
         <!-- Table -->
@@ -195,7 +200,7 @@
 
                   <td>{{ record.supplierName }}</td>
 
-                  <td>{{ record.receivedDate | date:'dd MMM yyyy' }}</td>
+                  <td>{{ record.receivedDate | date: 'dd MMM yyyy' }}</td>
 
                   <td>
                     <span class="item-count">{{ record.items.length }}</span>
@@ -263,8 +268,7 @@
         </div>
 
         <div class="table-footer">
-          Showing {{ filteredGoodsReceived.length }} of
-          {{ totalReceipts }} records
+          Showing {{ filteredGoodsReceived.length }} of {{ totalReceipts }} records
         </div>
       </section>
     </div>
@@ -293,12 +297,7 @@
           <p>Receipt information and delivered items</p>
         </div>
 
-        <button
-          class="modal-close"
-          type="button"
-          aria-label="Close"
-          (click)="closeDetails()"
-        >
+        <button class="modal-close" type="button" aria-label="Close" (click)="closeDetails()">
           ×
         </button>
       </div>
@@ -329,7 +328,7 @@
 
             <div class="detail-item">
               <label>Received Date</label>
-              <strong>{{ record.receivedDate | date:'dd MMM yyyy' }}</strong>
+              <strong>{{ record.receivedDate | date: 'dd MMM yyyy' }}</strong>
             </div>
 
             <div class="detail-item">
@@ -346,13 +345,13 @@
 
             <div class="detail-item">
               <label>Created At</label>
-              <strong>{{ record.createdAt | date:'dd MMM yyyy, hh:mm a' }}</strong>
+              <strong>{{ record.createdAt | date: 'dd MMM yyyy, hh:mm a' }}</strong>
             </div>
 
             <div class="detail-item">
               <label>Confirmed At</label>
               <strong>
-                {{ record.confirmedAt ? (record.confirmedAt | date:'dd MMM yyyy, hh:mm a') : '—' }}
+                {{ record.confirmedAt ? (record.confirmedAt | date: 'dd MMM yyyy, hh:mm a') : '—' }}
               </strong>
             </div>
           </div>
@@ -405,11 +404,15 @@
                       <div class="item-extra-details">
                         <span>
                           <b>Manufactured:</b>
-                          {{ item.manufactureDate ? (item.manufactureDate | date:'dd MMM yyyy') : '—' }}
+                          {{
+                            item.manufactureDate
+                              ? (item.manufactureDate | date: 'dd MMM yyyy')
+                              : '—'
+                          }}
                         </span>
                         <span>
                           <b>Expiry:</b>
-                          {{ item.expiryDate ? (item.expiryDate | date:'dd MMM yyyy') : '—' }}
+                          {{ item.expiryDate ? (item.expiryDate | date: 'dd MMM yyyy') : '—' }}
                         </span>
                         <span>
                           <b>Storage:</b>
@@ -421,14 +424,9 @@
                         </span>
                       </div>
 
-                      @if (
-                        record.status === 2 &&
-                        item.quarantinedQuantity > 0
-                      ) {
+                      @if (record.status === 2 && item.quarantinedQuantity > 0) {
                         <div class="quarantine-action">
-                          <span>
-                            {{ item.quarantinedQuantity }} unit(s) still quarantined
-                          </span>
+                          <span> {{ item.quarantinedQuantity }} unit(s) still quarantined </span>
                           <button
                             class="release-button"
                             type="button"
@@ -449,9 +447,7 @@
       </div>
 
       <div class="modal-footer">
-        <div class="modal-footer-info">
-          {{ record.items.length }} item(s) in this receipt
-        </div>
+        <div class="modal-footer-info">{{ record.items.length }} item(s) in this receipt</div>
 
         <div class="modal-footer-actions">
           @if (record.status === 1) {
@@ -474,16 +470,9 @@
             </button>
           }
 
-          <button
-            class="modal-close-button"
-            type="button"
-            (click)="closeDetails()"
-          >
-            Close
-          </button>
+          <button class="modal-close-button" type="button" (click)="closeDetails()">Close</button>
         </div>
       </div>
     </div>
   </div>
 }
-

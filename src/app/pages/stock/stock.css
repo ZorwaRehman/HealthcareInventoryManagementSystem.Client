@@ -40,52 +40,60 @@ button {
 ============================== */
 
 .sidebar {
-  width: 255px;
-  min-width: 255px;
+  position: fixed; /* Fixed sidebar like Dashboard */
+  inset: 0 auto 0 0;
+  z-index: 10;
+  width: 250px; /* Dashboard sidebar width */
+  min-width: 250px;
+  height: 100vh;
   display: flex;
   flex-direction: column;
   background: #fff;
   border-right: 1px solid #e5eaf1;
-  padding: 25px 17px;
+  padding: 27px 18px 18px;
 }
 
 .brand {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 0 7px 32px;
+  gap: 10px;
+  padding: 0 5px 0;
+  margin: 0 0 43px 0;
 }
 
 .brand-icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 43px;
-  height: 43px;
-  border-radius: 12px;
-  background: #0d9488;
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  border-radius: 11px;
+  background: #087f72;
   color: #fff;
-  font-size: 24px;
-  font-weight: 700;
+  font-size: 30px;
+  font-weight: 300;
+  line-height: 1;
 }
 
 .brand-name {
-  color: #0f766e;
-  font-size: 19px;
+  color: #183b40;
+  font-size: 17px;
   font-weight: 750;
+  letter-spacing: -0.5px;
   white-space: nowrap;
 }
 
 .brand-name strong {
-  color: #0d9488;
+  color: #087f72;
 }
 
 .sidebar-section {
-  margin: 0 10px 13px;
-  color: #94a3b8;
+  margin: 0 0 13px 12px;
+  color: #9aa9ad;
   font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 1.2px;
+  font-weight: 750;
+  letter-spacing: 1.3px;
 }
 
 .sidebar-nav {
@@ -97,24 +105,24 @@ button {
 .nav-link {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px 13px;
-  border-radius: 8px;
-  color: #64748b;
+  gap: 13px;
+  min-height: 46px;
+  padding: 0 13px;
+  border-radius: 9px;
+  color: #657a7e;
   text-decoration: none;
   font-size: 13px;
-  font-weight: 550;
-  transition: 0.2s ease;
+  font-weight: 600;
+  transition: color 0.2s, background 0.2s;
 }
 
-.nav-link:hover {
-  background: #f0fdfa;
-  color: #0f766e;
+.nav-link:hover,
+.nav-link.active {
+  background: #eaf6f3;
+  color: #087f72;
 }
 
 .nav-link.active {
-  background: #ccfbf1;
-  color: #0f766e;
   font-weight: 700;
 }
 
@@ -122,12 +130,12 @@ button {
   width: 20px;
   flex-shrink: 0;
   text-align: center;
-  font-size: 18px;
+  font-size: 20px;
 }
 
 .sidebar-bottom {
   margin-top: auto;
-  padding-top: 25px;
+  padding-top: 15px;
 }
 
 .admin-profile {
@@ -178,6 +186,8 @@ button {
 .main-content {
   flex: 1;
   min-width: 0;
+  width: calc(100% - 250px); /* Space for fixed sidebar */
+  margin-left: 250px; /* Start content after sidebar */
   padding: 32px;
 }
 
@@ -659,21 +669,45 @@ button:disabled {
   }
 }
 
+/* Keep sidebar fixed on medium screens */
 @media (max-width: 850px) {
+  .sidebar {
+    width: 220px;
+    min-width: 220px;
+    padding: 22px 14px 15px;
+  }
+
+  .main-content {
+    width: calc(100% - 220px);
+    margin-left: 220px;
+    padding: 22px;
+  }
+
+  .brand {
+    margin-bottom: 30px;
+  }
+}
+
+/* Stack sidebar above content on small screens */
+@media (max-width: 600px) {
   .hims-layout {
     flex-direction: column;
   }
 
   .sidebar {
+    position: relative;
+    inset: auto;
     width: 100%;
     min-width: 0;
+    height: auto;
     padding: 15px;
     border-right: none;
     border-bottom: 1px solid #e5eaf1;
   }
 
   .brand {
-    padding-bottom: 18px;
+    padding-bottom: 0;
+    margin-bottom: 18px;
   }
 
   .sidebar-section {
@@ -703,12 +737,8 @@ button:disabled {
   }
 
   .main-content {
-    padding: 22px;
-  }
-}
-
-@media (max-width: 600px) {
-  .main-content {
+    width: 100%;
+    margin-left: 0;
     padding: 16px;
   }
 
@@ -757,7 +787,6 @@ button:disabled {
   }
 }
 
-
 /* View Stock Transactions Button */
 .btn-view-transactions {
   padding: 8px 12px;
@@ -777,4 +806,3 @@ button:disabled {
   color: #ffffff;
   border-color: #0f9488;
 }
-
