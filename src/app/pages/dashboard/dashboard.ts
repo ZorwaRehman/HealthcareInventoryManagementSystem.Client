@@ -1,23 +1,19 @@
 
-import {
-  Component,
-  OnInit,
-  inject,
-  ChangeDetectorRef
-} from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
+
+import { AuthService } from '../../services/auth.service';
+import { CurrencyService, CurrencyCode } from '../../services/currency.service';
 
 import { Item } from '../../models/item.models';
 import { Stock, StockBatch } from '../../models/stock.models';
 import { Supplier } from '../../models/supplier.models';
 import { PurchaseOrder } from '../../models/purchase-order.models';
-import {
-  GoodsReceived,
-  GoodsReceivedStatus
-} from '../../models/goods-received.models';
+import { GoodsReceived, GoodsReceivedStatus } from '../../models/goods-received.models';
 
 import { ItemService } from '../../services/item.service';
 import { StockService } from '../../services/stock.service';
@@ -46,19 +42,50 @@ interface DashboardAlert {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterLink, RouterLinkActive],
+  imports: [CommonModule, FormsModule, RouterLink, RouterLinkActive],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css',
 })
 export class Dashboard implements OnInit {
   // Services
   private readonly cdr = inject(ChangeDetectorRef);
+  private readonly authService = inject(AuthService);
+  private readonly currencyService = inject(CurrencyService);
 
   private readonly itemService = inject(ItemService);
   private readonly stockService = inject(StockService);
   private readonly supplierService = inject(SupplierService);
   private readonly purchaseOrderService = inject(PurchaseOrderService);
   private readonly goodsReceivedService = inject(GoodsReceivedService);
+
+  // Check whether the currently logged-in user is an Admin.
+  get isAdmin(): boolean {
+    return this.authService.getCurrentUser()?.role?.toLowerCase() === 'admin';
+  }
+
+  // Available currencies for the Dashboard selector.
+  readonly currencies = this.currencyService.currencies;
+
+  get selectedCurrency(): CurrencyCode {
+  console.log('Dashboard getter:', this.currencyService.selectedCurrency);
+  return this.currencyService.selectedCurrency;
+}
+
+  onCurrencyChange(currency: string): void {
+  console.log('Dropdown selected:', currency);
+
+  this.currencyService.setCurrency(currency as CurrencyCode);
+
+  console.log(
+    'Currency service value:',
+    this.currencyService.selectedCurrency
+  );
+
+  console.log(
+    'Saved in localStorage:',
+    localStorage.getItem('hims_selected_currency')
+  );
+}
 
   // Dashboard data
   items: Item[] = [];
@@ -82,7 +109,7 @@ export class Dashboard implements OnInit {
     '#78949b',
     '#a2a85a',
     '#d18b50',
-    '#6478a5'
+    '#6478a5',
   ];
 
   ngOnInit(): void {
@@ -102,43 +129,43 @@ export class Dashboard implements OnInit {
         catchError(() => {
           this.loadErrors.push('Inventory items could not be loaded.');
           return of([] as Item[]);
-        })
+        }),
       ),
 
       stock: this.stockService.getAllStock(true).pipe(
         catchError(() => {
           this.loadErrors.push('Stock information could not be loaded.');
           return of([] as Stock[]);
-        })
+        }),
       ),
 
       batches: this.stockService.getAllBatches(true).pipe(
         catchError(() => {
           this.loadErrors.push('Stock batches could not be loaded.');
           return of([] as StockBatch[]);
-        })
+        }),
       ),
 
       suppliers: this.supplierService.getSuppliers(true).pipe(
         catchError(() => {
           this.loadErrors.push('Supplier information could not be loaded.');
           return of([] as Supplier[]);
-        })
+        }),
       ),
 
       purchaseOrders: this.purchaseOrderService.getAllPurchaseOrders().pipe(
         catchError(() => {
           this.loadErrors.push('Purchase orders could not be loaded.');
           return of([] as PurchaseOrder[]);
-        })
+        }),
       ),
 
       goodsReceived: this.goodsReceivedService.getAllGoodsReceived().pipe(
         catchError(() => {
           this.loadErrors.push('Goods Received records could not be loaded.');
           return of([] as GoodsReceived[]);
-        })
-      )
+        }),
+      ),
     }).subscribe({
       next: (data) => {
         this.items = data.items;
@@ -155,13 +182,11 @@ export class Dashboard implements OnInit {
       },
 
       error: () => {
-        this.loadErrors.push(
-          'The Dashboard could not load its information.'
-        );
+        this.loadErrors.push('The Dashboard could not load its information.');
 
         this.loading = false;
         this.cdr.detectChanges();
-      }
+      },
     });
   }
 
@@ -173,15 +198,13 @@ export class Dashboard implements OnInit {
   // Count items at or below their reorder level.
   get lowStockItems(): number {
     return this.stockItems.filter(
-      item => item.totalQuantity <= item.reorderLevel
+      (item) => item.totalQuantity <= item.reorderLevel,
     ).length;
   }
 
   // Count active suppliers.
   get activeSuppliers(): number {
-    return this.suppliers.filter(
-      supplier => supplier.isActive
-    ).length;
+    return this.suppliers.filter((supplier) => supplier.isActive).length;
   }
 
   // Count pending purchase orders.
@@ -191,40 +214,37 @@ export class Dashboard implements OnInit {
       'submitted',
       'approved',
       'ordered',
-      'partiallyreceived'
+      'partiallyreceived',
     ];
 
-    return this.purchaseOrders.filter(order =>
-      pendingStatuses.includes(this.normalizeStatus(order.status))
+    return this.purchaseOrders.filter((order) =>
+      pendingStatuses.includes(this.normalizeStatus(order.status)),
     ).length;
   }
 
   // Calculate total stock units.
   get totalUnits(): number {
     return this.stockItems.reduce(
-      (total, item) =>
-        total + (Number(item.totalQuantity) || 0),
-      0
+      (total, item) => total + (Number(item.totalQuantity) || 0),
+      0,
     );
   }
 
   // Calculate inventory value using batch quantities and prices.
+  // Original database prices remain in PKR.
   get totalInventoryValue(): number {
     return this.stockBatches.reduce(
       (total, batch) =>
         total +
         (Number(batch.quantityInStock) || 0) *
-        (Number(batch.unitPrice) || 0),
-      0
+          (Number(batch.unitPrice) || 0),
+      0,
     );
   }
 
-  // Format inventory value in Pakistani rupees.
+  // Format inventory value using the selected display currency.
   get formattedInventoryValue(): string {
-    return `Rs. ${this.totalInventoryValue.toLocaleString('en-PK', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    })}`;
+    return this.currencyService.formatPrice(this.totalInventoryValue);
   }
 
   // Count batches expiring within the next 30 days.
@@ -235,7 +255,7 @@ export class Dashboard implements OnInit {
     const next30Days = new Date(today);
     next30Days.setDate(today.getDate() + 30);
 
-    return this.stockBatches.filter(batch => {
+    return this.stockBatches.filter((batch) => {
       if (!batch.expiryDate) {
         return false;
       }
@@ -255,14 +275,14 @@ export class Dashboard implements OnInit {
   // Count Draft receipts.
   get draftReceipts(): number {
     return this.goodsReceivedRecords.filter(
-      receipt => receipt.status === GoodsReceivedStatus.Draft
+      (receipt) => receipt.status === GoodsReceivedStatus.Draft,
     ).length;
   }
 
   // Count Confirmed receipts.
   get confirmedReceipts(): number {
     return this.goodsReceivedRecords.filter(
-      receipt => receipt.status === GoodsReceivedStatus.Confirmed
+      (receipt) => receipt.status === GoodsReceivedStatus.Confirmed,
     ).length;
   }
 
@@ -270,32 +290,35 @@ export class Dashboard implements OnInit {
   get categoryBreakdown(): CategoryStock[] {
     const categoryTotals = new Map<string, number>();
 
-    this.items.forEach(item => {
+    this.items.forEach((item) => {
       const categoryName = item.category?.trim() || 'Uncategorized';
 
       const stockRecord = this.stockItems.find(
-        stock => stock.itemId === item.id
+        (stock) => stock.itemId === item.id,
       );
 
       const quantity = Number(stockRecord?.totalQuantity) || 0;
 
       categoryTotals.set(
         categoryName,
-        (categoryTotals.get(categoryName) || 0) + quantity
+        (categoryTotals.get(categoryName) || 0) + quantity,
       );
     });
 
-    const totalCategoryUnits = Array.from(categoryTotals.values())
-      .reduce((total, quantity) => total + quantity, 0);
+    const totalCategoryUnits = Array.from(categoryTotals.values()).reduce(
+      (total, quantity) => total + quantity,
+      0,
+    );
 
     return Array.from(categoryTotals.entries())
       .map(([name, quantity], index) => ({
         name,
         quantity,
         color: this.chartColors[index % this.chartColors.length],
-        percentage: totalCategoryUnits > 0
-          ? (quantity / totalCategoryUnits) * 100
-          : 0
+        percentage:
+          totalCategoryUnits > 0
+            ? (quantity / totalCategoryUnits) * 100
+            : 0,
       }))
       .sort((a, b) => b.quantity - a.quantity);
   }
@@ -303,7 +326,7 @@ export class Dashboard implements OnInit {
   // Generate the doughnut chart background.
   get categoryChartBackground(): string {
     const categories = this.categoryBreakdown.filter(
-      category => category.quantity > 0
+      (category) => category.quantity > 0,
     );
 
     if (categories.length === 0) {
@@ -312,7 +335,7 @@ export class Dashboard implements OnInit {
 
     let currentPercentage = 0;
 
-    const gradientParts = categories.map(category => {
+    const gradientParts = categories.map((category) => {
       const start = currentPercentage;
       currentPercentage += category.percentage;
 
@@ -331,14 +354,14 @@ export class Dashboard implements OnInit {
       { name: 'Ordered', key: 'ordered' },
       { name: 'Partially Received', key: 'partiallyreceived' },
       { name: 'Received', key: 'received' },
-      { name: 'Cancelled', key: 'cancelled' }
+      { name: 'Cancelled', key: 'cancelled' },
     ];
 
-    return statuses.map(status => ({
+    return statuses.map((status) => ({
       name: status.name,
       count: this.purchaseOrders.filter(
-        order => this.normalizeStatus(order.status) === status.key
-      ).length
+        (order) => this.normalizeStatus(order.status) === status.key,
+      ).length,
     }));
   }
 
@@ -346,7 +369,7 @@ export class Dashboard implements OnInit {
   get maximumStatusCount(): number {
     return Math.max(
       1,
-      ...this.purchaseOrderStatusBreakdown.map(status => status.count)
+      ...this.purchaseOrderStatusBreakdown.map((status) => status.count),
     );
   }
 
@@ -361,12 +384,12 @@ export class Dashboard implements OnInit {
 
     // Low-stock alerts.
     this.stockItems
-      .filter(item => item.totalQuantity <= item.reorderLevel)
-      .forEach(item => {
+      .filter((item) => item.totalQuantity <= item.reorderLevel)
+      .forEach((item) => {
         alerts.push({
           title: `Low stock: ${item.itemName}`,
           detail: `Current quantity: ${item.totalQuantity} | Reorder level: ${item.reorderLevel}`,
-          type: 'low-stock'
+          type: 'low-stock',
         });
       });
 
@@ -378,7 +401,7 @@ export class Dashboard implements OnInit {
     next30Days.setDate(today.getDate() + 30);
 
     this.stockBatches
-      .filter(batch => {
+      .filter((batch) => {
         if (!batch.expiryDate) {
           return false;
         }
@@ -388,15 +411,15 @@ export class Dashboard implements OnInit {
 
         return expiryDate >= today && expiryDate <= next30Days;
       })
-      .forEach(batch => {
-        const itemName = this.items.find(
-          item => item.id === batch.itemId
-        )?.name || `Item #${batch.itemId}`;
+      .forEach((batch) => {
+        const itemName =
+          this.items.find((item) => item.id === batch.itemId)?.name ||
+          `Item #${batch.itemId}`;
 
         alerts.push({
           title: `Expiring batch: ${itemName}`,
           detail: `${batch.batchNumber} | Expires: ${new Date(batch.expiryDate!).toLocaleDateString()}`,
-          type: 'expiry'
+          type: 'expiry',
         });
       });
 

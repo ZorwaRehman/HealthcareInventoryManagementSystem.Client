@@ -31,12 +31,14 @@
         Supplier Management
       </a>
 
-      <a routerLink="/purchase-orders" routerLinkActive="active" class="nav-link">
-        <span class="nav-icon">▤</span> Purchase Orders
+      <a routerLink="/purchase-orders" routerLinkActive="active">
+        <span class="nav-icon">▤</span>
+        Purchase Orders
       </a>
 
-      <a routerLink="/goods-received" routerLinkActive="active" class="nav-link">
-        <span class="nav-icon">▣</span> Goods Received
+      <a routerLink="/goods-received" routerLinkActive="active">
+        <span class="nav-icon">▣</span>
+        Goods Received
       </a>
 
       <a routerLink="/users" routerLinkActive="active">
@@ -45,6 +47,7 @@
       </a>
     </nav>
 
+    <!-- Sidebar Bottom -->
     <div class="sidebar-bottom">
       <div class="admin-profile">
         <div class="avatar">A</div>
@@ -55,7 +58,8 @@
       </div>
 
       <a routerLink="/login" class="nav-link logout-link">
-        <span class="nav-icon">↪</span> Logout
+        <span class="nav-icon">↪</span>
+        Logout
       </a>
     </div>
   </aside>
@@ -72,7 +76,6 @@
         </div>
 
         <h1>Supplier Management</h1>
-
         <p>Manage supplier information and maintain your supplier records.</p>
       </div>
 
@@ -88,10 +91,8 @@
 
     <!-- Supplier Statistics -->
     <section class="summary-grid">
-      <!-- Total Suppliers -->
       <article class="summary-card">
         <div class="summary-icon teal-icon">S</div>
-
         <div>
           <p>Total Suppliers</p>
           <h2>{{ totalSuppliers }}</h2>
@@ -99,10 +100,8 @@
         </div>
       </article>
 
-      <!-- Active Suppliers -->
       <article class="summary-card">
         <div class="summary-icon blue-icon">✓</div>
-
         <div>
           <p>Active Suppliers</p>
           <h2>{{ activeSuppliers }}</h2>
@@ -110,10 +109,8 @@
         </div>
       </article>
 
-      <!-- Inactive Suppliers -->
       <article class="summary-card">
         <div class="summary-icon purple-icon">−</div>
-
         <div>
           <p>Inactive Suppliers</p>
           <h2>{{ inactiveSuppliers }}</h2>
@@ -177,14 +174,14 @@
 
             <tbody>
               @for (supplier of filteredSuppliers; track supplier.supplierId) {
-                <tr>
+                <tr class="clickable-row" (click)="openSupplierDetails(supplier)">
                   <td>
                     <div class="supplier-name">
                       <div class="supplier-avatar">
                         {{ supplier.name.charAt(0).toUpperCase() }}
                       </div>
 
-                      <div>
+                      <div class="supplier-info">
                         <strong>{{ supplier.name }}</strong>
                         <small>{{ supplier.country || 'Country not provided' }}</small>
                       </div>
@@ -192,11 +189,8 @@
                   </td>
 
                   <td>{{ supplier.contactPerson || '—' }}</td>
-
                   <td>{{ supplier.phone }}</td>
-
                   <td>{{ supplier.email }}</td>
-
                   <td>{{ supplier.city || '—' }}</td>
 
                   <td>
@@ -209,35 +203,50 @@
                     </span>
                   </td>
 
-                  <td>
-                    <div class="action-buttons">
-                      @if (supplier.isActive) {
-                        <button
-                          type="button"
-                          class="edit-button"
-                          (click)="editSupplier(supplier)"
-                          [disabled]="isLoading"
-                        >
-                          Edit
-                        </button>
+                  <td class="actions-cell">
+                    <div class="action-menu-container" (click)="$event.stopPropagation()">
+                      <button
+                        type="button"
+                        class="more-button"
+                        title="More actions"
+                        aria-label="Supplier actions"
+                        [disabled]="isLoading"
+                        (click)="toggleActionMenu(supplier.supplierId, $event)"
+                      >
+                        ⋮
+                      </button>
 
-                        <button
-                          type="button"
-                          class="deactivate-button"
-                          (click)="confirmDeactivate(supplier.supplierId)"
-                          [disabled]="isLoading"
-                        >
-                          Deactivate
-                        </button>
-                      } @else {
-                        <button
-                          type="button"
-                          class="reactivate-button"
-                          (click)="reactivateSupplier(supplier.supplierId)"
-                          [disabled]="isLoading"
-                        >
-                          Reactivate
-                        </button>
+                      @if (openActionMenuId === supplier.supplierId) {
+                        <div class="action-dropdown">
+                          @if (supplier.isActive) {
+                            <button
+                              type="button"
+                              class="dropdown-item"
+                              (click)="editSupplier(supplier)"
+                            >
+                              <span class="dropdown-icon">✎</span>
+                              Edit Supplier
+                            </button>
+
+                            <button
+                              type="button"
+                              class="dropdown-item danger-item"
+                              (click)="confirmDeactivate(supplier.supplierId)"
+                            >
+                              <span class="dropdown-icon">⊗</span>
+                              Deactivate
+                            </button>
+                          } @else {
+                            <button
+                              type="button"
+                              class="dropdown-item reactivate-item"
+                              (click)="reactivateSupplier(supplier.supplierId)"
+                            >
+                              <span class="dropdown-icon">✓</span>
+                              Reactivate
+                            </button>
+                          }
+                        </div>
                       }
                     </div>
                   </td>
@@ -267,6 +276,88 @@
         </div>
       }
     </section>
+
+    <!-- Supplier Details Modal -->
+    @if (selectedSupplier) {
+      <div class="modal-overlay" (click)="closeSupplierDetails()">
+        <div class="details-modal" (click)="$event.stopPropagation()">
+          <div class="modal-header">
+            <div>
+              <h2>Supplier Details</h2>
+              <p>Complete information about this supplier.</p>
+            </div>
+
+            <button type="button" class="close-button" (click)="closeSupplierDetails()">×</button>
+          </div>
+
+          <div class="supplier-details-heading">
+            <div class="details-avatar">
+              {{ selectedSupplier.name.charAt(0).toUpperCase() }}
+            </div>
+
+            <div>
+              <h3>{{ selectedSupplier.name }}</h3>
+
+              <span
+                class="status-badge"
+                [class.active]="selectedSupplier.isActive"
+                [class.inactive]="!selectedSupplier.isActive"
+              >
+                {{ selectedSupplier.isActive ? 'Active' : 'Inactive' }}
+              </span>
+            </div>
+          </div>
+
+          <div class="details-grid">
+            <div class="detail-item">
+              <label>Contact Person</label>
+              <p>{{ selectedSupplier.contactPerson || 'Not provided' }}</p>
+            </div>
+
+            <div class="detail-item">
+              <label>Phone Number</label>
+              <p>{{ selectedSupplier.phone || 'Not provided' }}</p>
+            </div>
+
+            <div class="detail-item">
+              <label>Email Address</label>
+              <p>{{ selectedSupplier.email || 'Not provided' }}</p>
+            </div>
+
+            <div class="detail-item">
+              <label>Tax Number</label>
+              <p>{{ selectedSupplier.taxNumber || 'Not provided' }}</p>
+            </div>
+
+            <div class="detail-item">
+              <label>City</label>
+              <p>{{ selectedSupplier.city || 'Not provided' }}</p>
+            </div>
+
+            <div class="detail-item">
+              <label>Country</label>
+              <p>{{ selectedSupplier.country || 'Not provided' }}</p>
+            </div>
+
+            <div class="detail-item full-width">
+              <label>Address</label>
+              <p>{{ selectedSupplier.address || 'Not provided' }}</p>
+            </div>
+
+            <div class="detail-item full-width">
+              <label>Notes</label>
+              <p>{{ selectedSupplier.notes || 'No notes available' }}</p>
+            </div>
+          </div>
+
+          <div class="details-modal-footer">
+            <button type="button" class="cancel-button" (click)="closeSupplierDetails()">
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    }
 
     <!-- Deactivation Confirmation Modal -->
     @if (selectedSupplierId !== null) {

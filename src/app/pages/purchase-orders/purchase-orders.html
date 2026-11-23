@@ -1,4 +1,3 @@
-
 <div class="hims-layout">
   <!-- Sidebar -->
   <aside class="sidebar">
@@ -10,44 +9,46 @@
       </div>
     </div>
 
+    <!-- Navigation -->
     <nav class="sidebar-nav">
-      <a routerLink="/dashboard">
+      <a routerLink="/dashboard" routerLinkActive="active">
         <span class="nav-icon">▦</span>
         Dashboard
       </a>
 
-      <a routerLink="/items">
-        <span class="nav-icon">◈</span>
+      <a routerLink="/items" routerLinkActive="active">
+        <span class="nav-icon">▤</span>
         Inventory Items
       </a>
 
-      <a routerLink="/stock">
+      <a routerLink="/stock" routerLinkActive="active">
         <span class="nav-icon">⇅</span>
         Stock Management
       </a>
 
-      <a routerLink="/suppliers">
+      <a routerLink="/suppliers" routerLinkActive="active">
         <span class="nav-icon">♧</span>
         Supplier Management
       </a>
 
-      <a routerLink="/purchase-orders" class="active">
+      <a routerLink="/purchase-orders" routerLinkActive="active">
         <span class="nav-icon">▤</span>
         Purchase Orders
       </a>
 
-      <a routerLink="/goods-received">
+      <a routerLink="/goods-received" routerLinkActive="active">
         <span class="nav-icon">▣</span>
         Goods Received
       </a>
 
-      <a routerLink="/users">
+      <a routerLink="/users" routerLinkActive="active">
         <span class="nav-icon">♙</span>
         User Management
       </a>
     </nav>
 
-     <div class="sidebar-bottom">
+    <!-- Sidebar Bottom -->
+    <div class="sidebar-bottom">
       <div class="admin-profile">
         <div class="avatar">A</div>
         <div>
@@ -57,43 +58,30 @@
       </div>
 
       <a routerLink="/login" class="nav-link logout-link">
-        <span class="nav-icon">↪</span> Logout
+        <span class="nav-icon">↪</span>
+        Logout
       </a>
     </div>
   </aside>
 
   <!-- Main Content -->
   <main class="main-content">
-    <!-- Page Header -->
     <header class="page-header">
       <div>
-        <p class="breadcrumb">Inventory / Purchase Orders</p>
         <h1>Purchase Orders</h1>
-        <p class="page-subtitle">
-          Manage supplier purchase orders and track their progress.
-        </p>
+        <p>Manage and track your purchase orders</p>
       </div>
 
-      <button type="button" class="btn-primary" (click)="openAddForm()">
-        + Create Purchase Order
+      <button class="primary-button" type="button" (click)="openAddForm()">
+        <span>+</span> Create Purchase Order
       </button>
     </header>
 
-    <!-- Page Message -->
+    <!-- Message -->
     @if (message) {
-      <div
-        class="message-box"
-        [class.error]="messageType === 'error'"
-        [class.success]="messageType === 'success'"
-      >
+      <div class="alert-message" [ngClass]="messageType">
         {{ message }}
-      </div>
-    }
-
-    <!-- Loading -->
-    @if (isLoading) {
-      <div class="loading-box">
-        Loading Purchase Orders...
+        <button type="button" (click)="message = ''">×</button>
       </div>
     }
 
@@ -116,7 +104,7 @@
       </div>
 
       <div class="stat-card">
-        <div class="stat-icon pending-icon">⌛</div>
+        <div class="stat-icon pending-icon">◉</div>
         <div>
           <p>Pending Approval</p>
           <h2>{{ pendingApprovalCount }}</h2>
@@ -124,7 +112,7 @@
       </div>
 
       <div class="stat-card">
-        <div class="stat-icon completed-icon">✓</div>
+        <div class="stat-icon received-icon">✓</div>
         <div>
           <p>Received Orders</p>
           <h2>{{ completedCount }}</h2>
@@ -132,477 +120,527 @@
       </div>
     </section>
 
-    <!-- Purchase Orders List -->
-    <section class="inventory-card">
-      <div class="card-header">
+    <!-- Purchase Orders Table -->
+    <section class="content-card">
+      <div class="section-heading">
         <div>
           <h2>Purchase Order List</h2>
-          <p>View and manage all supplier purchase orders.</p>
+          <p>View and manage all purchase orders</p>
         </div>
       </div>
 
-      <!-- Search and Filters -->
-      <div class="filter-section">
+      <!-- Filters -->
+      <div class="filter-bar">
         <div class="search-box">
           <span class="search-icon">⌕</span>
           <input
             type="text"
-            [(ngModel)]="searchText"
             placeholder="Search by order number or supplier..."
+            [(ngModel)]="searchText"
           />
         </div>
 
-        <select [(ngModel)]="selectedStatus" class="status-filter">
+        <select class="status-filter" [(ngModel)]="selectedStatus">
           <option value="All">All Statuses</option>
+
           @for (status of statuses; track status) {
-            <option [value]="status">{{ status }}</option>
+            <option [value]="status">
+              {{ getStatusLabel(status) }}
+            </option>
           }
         </select>
 
-        <button
-          type="button"
-          class="clear-btn"
-          (click)="clearFilters()"
-        >
-          Clear
-        </button>
+        <button class="clear-button" type="button" (click)="clearFilters()">Clear</button>
       </div>
+
+      <!-- Loading -->
+      @if (isLoading && purchaseOrders.length === 0) {
+        <div class="loading-state">
+          <div class="spinner"></div>
+          <p>Loading purchase orders...</p>
+        </div>
+      }
 
       <!-- Table -->
-      <div class="table-wrapper">
-        <table class="inventory-table">
-          <thead>
-            <tr>
-              <th>ORDER NUMBER</th>
-              <th>SUPPLIER</th>
-              <th>ORDER DATE</th>
-              <th>EXPECTED DELIVERY</th>
-              <th>ITEMS</th>
-              <th>TOTAL AMOUNT</th>
-              <th>STATUS</th>
-              <th>ACTIONS</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            @for (order of filteredPurchaseOrders; track order.purchaseOrderId) {
+      @if (!isLoading || purchaseOrders.length > 0) {
+        <div class="table-container">
+          <table class="purchase-orders-table">
+            <thead>
               <tr>
-                <td class="order-number">
-                  {{ order.orderNumber }}
-                </td>
+                <th class="po-column">Purchase Order</th>
+                <th class="supplier-column">Supplier</th>
+                <th>Order Date</th>
+                <th>Expected Delivery</th>
+                <th>Items</th>
+                <th>Total Amount</th>
+                <th>Status</th>
+                <th class="actions-column">Actions</th>
+              </tr>
+            </thead>
 
-                <td>{{ order.supplierName }}</td>
+            <tbody>
+              @for (order of filteredPurchaseOrders; track order.purchaseOrderId) {
+                <tr (click)="viewPurchaseOrder(order)">
+                  <!-- Purchase Order -->
+                  <td class="po-column">
+                    <div class="po-number-cell">
+                      <div class="po-icon">PO</div>
+                      <div class="po-number-info">
+                        <strong>{{ order.orderNumber }}</strong>
+                        <small>Purchase Order</small>
+                      </div>
+                    </div>
+                  </td>
 
-                <td>{{ order.orderDate | date: 'dd MMM yyyy' }}</td>
-
-                <td>
-                  @if (order.expectedDeliveryDate) {
-                    {{ order.expectedDeliveryDate | date: 'dd MMM yyyy' }}
-                  } @else {
-                    <span class="muted-text">Not specified</span>
-                  }
-                </td>
-
-                <td>{{ order.items.length }}</td>
-
-                <td class="amount-cell">
-                  {{ order.totalAmount | number: '1.2-2' }}
-                </td>
-
-                <td>
-                  <span
-                    class="status-badge"
-                    [ngClass]="{
-                      'status-draft': order.status === 'Draft',
-                      'status-submitted': order.status === 'Submitted',
-                      'status-approved': order.status === 'Approved',
-                      'status-ordered': order.status === 'Ordered',
-                      'status-partial': order.status === 'PartiallyReceived',
-                      'status-received': order.status === 'Received',
-                      'status-cancelled': order.status === 'Cancelled'
-                    }"
-                  >
-                    {{ order.status }}
-                  </span>
-                </td>
-
-                <td>
-                  <div class="action-buttons">
-                    <!-- Available for every Purchase Order -->
+                  <!-- Complete Supplier Name -->
+                  <td class="supplier-column">
                     <button
+                      class="supplier-link"
                       type="button"
-                      class="details-action"
-                      (click)="viewPurchaseOrder(order)"
+                      (click)="openSupplierDetails(order.supplierId, $event)"
                     >
-                      View Details
+                      <span>{{ order.supplierName }}</span>
                     </button>
+                  </td>
 
-                    @if (order.status === 'Draft') {
-                      <button
-                        type="button"
-                        class="edit-action"
-                        [disabled]="isLoading"
-                        (click)="editPurchaseOrder(order)"
-                      >
-                        Edit
-                      </button>
+                  <td>
+                    {{ order.orderDate | date: 'dd MMM yyyy' }}
+                  </td>
 
-                      <button
-                        type="button"
-                        class="submit-action"
-                        [disabled]="isLoading"
-                        (click)="submitPurchaseOrder(order)"
-                      >
-                        Submit
-                      </button>
+                  <td>
+                    @if (order.expectedDeliveryDate) {
+                      {{ order.expectedDeliveryDate | date: 'dd MMM yyyy' }}
+                    } @else {
+                      <span class="muted-text">Not set</span>
                     }
+                  </td>
 
-                    @if (order.status === 'Submitted') {
+                  <td>{{ order.items.length }}</td>
+
+                  <td class="amount-cell">
+                    {{ formatPrice(order.totalAmount) }}
+                  </td>
+
+                  <td>
+                    <span class="status-badge" [ngClass]="getStatusClass(order.status)">
+                      {{ getStatusLabel(order.status) }}
+                    </span>
+                  </td>
+
+                  <!-- Actions -->
+                  <td class="actions-column" (click)="$event.stopPropagation()">
+                    <div class="action-menu-wrapper">
                       <button
+                        class="action-menu-trigger"
                         type="button"
-                        class="approve-action"
-                        [disabled]="isLoading"
-                        (click)="approvePurchaseOrder(order)"
+                        title="Actions"
+                        aria-label="Purchase Order Actions"
+                        (click)="toggleActionMenu(order.purchaseOrderId, $event)"
                       >
-                        Approve
+                        ⋮
                       </button>
-                    }
 
-                    @if (order.status === 'Approved') {
-                      <button
-                        type="button"
-                        class="order-action"
-                        [disabled]="isLoading"
-                        (click)="markAsOrdered(order)"
-                      >
-                        Mark Ordered
-                      </button>
-                    }
+                      @if (openActionMenuId === order.purchaseOrderId) {
+                        <div class="action-dropdown">
+                          <button type="button" (click)="viewPurchaseOrder(order)">
+                            <span>⌕</span>
+                            View Details
+                          </button>
 
-                    @if (
-                      order.status === 'Ordered' ||
-                      order.status === 'PartiallyReceived'
-                    ) {
-                      <button
-                        type="button"
-                        class="receive-action"
-                        [disabled]="isLoading"
-                        (click)="receivePurchaseOrder(order)"
-                      >
-                        Receive Items
-                      </button>
-                    }
+                          @if (order.status === 'Draft') {
+                            <button type="button" (click)="editPurchaseOrder(order)">
+                              <span>✎</span>
+                              Edit
+                            </button>
 
-                    @if (
-                      order.status === 'Draft' ||
-                      order.status === 'Submitted' ||
-                      order.status === 'Approved' ||
-                      order.status === 'Ordered'
-                    ) {
-                      <button
-                        type="button"
-                        class="cancel-action"
-                        [disabled]="isLoading"
-                        (click)="cancelPurchaseOrder(order)"
-                      >
-                        Cancel
-                      </button>
-                    }
-                  </div>
-                </td>
-              </tr>
-            }
+                            <button type="button" (click)="submitPurchaseOrder(order)">
+                              <span>➤</span>
+                              Submit
+                            </button>
+                          }
 
-            @if (!isLoading && filteredPurchaseOrders.length === 0) {
-              <tr>
-                <td colspan="8" class="empty-state">
-                  <div class="empty-icon">▤</div>
-                  <h3>No Purchase Orders Found</h3>
-                  <p>
-                    No Purchase Orders match your search or selected filter.
-                  </p>
-                </td>
-              </tr>
-            }
-          </tbody>
-        </table>
-      </div>
+                          @if (order.status === 'Submitted') {
+                            <button type="button" (click)="approvePurchaseOrder(order)">
+                              <span>✓</span>
+                              Approve
+                            </button>
+                          }
+
+                          @if (order.status === 'Approved') {
+                            <button type="button" (click)="markAsOrdered(order)">
+                              <span>▣</span>
+                              Mark Ordered
+                            </button>
+                          }
+
+                          @if (order.status === 'Ordered' || order.status === 'PartiallyReceived') {
+                            <button type="button" (click)="receivePurchaseOrder(order)">
+                              <span>↓</span>
+                              Receive Items
+                            </button>
+                          }
+
+                          @if (
+                            order.status === 'Draft' ||
+                            order.status === 'Submitted' ||
+                            order.status === 'Approved' ||
+                            order.status === 'Ordered'
+                          ) {
+                            <div class="dropdown-divider"></div>
+
+                            <button
+                              class="danger-action"
+                              type="button"
+                              (click)="cancelPurchaseOrder(order)"
+                            >
+                              <span>×</span>
+                              Cancel
+                            </button>
+                          }
+                        </div>
+                      }
+                    </div>
+                  </td>
+                </tr>
+              }
+
+              @if (filteredPurchaseOrders.length === 0) {
+                <tr>
+                  <td colspan="8" class="empty-state">
+                    <div class="empty-icon">▤</div>
+                    <h3>No Purchase Orders Found</h3>
+                    <p>No purchase orders match your search or selected filter.</p>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
 
       <div class="table-footer">
-        Showing {{ filteredPurchaseOrders.length }} of
-        {{ purchaseOrders.length }} Purchase Orders
+        Showing {{ filteredPurchaseOrders.length }} of {{ purchaseOrders.length }} purchase orders
       </div>
     </section>
-
-    <footer class="main-footer">
-      © 2026 HealthCare Inventory Management System
-    </footer>
   </main>
 </div>
 
-<!-- Purchase Order Details Modal -->
-@if (selectedPurchaseOrder; as order) {
-  <div class="details-modal-backdrop" (click)="closePurchaseOrderDetails()">
-    <section
-      class="details-modal"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="details-title"
-      (click)="$event.stopPropagation()"
-    >
-      <!-- Modal Header -->
-      <header class="details-modal-header">
-        <div>
-          <p class="details-breadcrumb">Purchase Orders / Details</p>
-          <h2 id="details-title">Purchase Order Details</h2>
-          <p class="details-order-number">{{ order.orderNumber }}</p>
+<!-- ONE SHARED DETAILS MODAL -->
+@if (selectedPurchaseOrder || selectedSupplier) {
+  <div class="modal-backdrop" (click)="closeDetailsModal()">
+    <div class="details-modal" (click)="$event.stopPropagation()">
+      <!-- Purchase Order Details -->
+      @if (modalView === 'purchaseOrder' && selectedPurchaseOrder) {
+        <div class="modal-header">
+          <div>
+            <h2>Purchase Order Details</h2>
+            <p>{{ selectedPurchaseOrder.orderNumber }}</p>
+          </div>
+
+          <button type="button" class="modal-close" (click)="closeDetailsModal()">×</button>
         </div>
 
-        <button
-          type="button"
-          class="details-close-btn"
-          aria-label="Close details"
-          (click)="closePurchaseOrderDetails()"
-        >
-          ×
-        </button>
-      </header>
+        <div class="modal-body">
+          <div class="detail-section">
+            <h3>Order Information</h3>
 
-      <div class="details-modal-body">
-        <!-- Order Information -->
-        <section class="details-section">
-          <div class="details-section-heading">
-            <span class="details-section-icon">▤</span>
-            <div>
-              <h3>Order Information</h3>
-              <p>Purchase Order identification and dates.</p>
-            </div>
-          </div>
+            <div class="details-grid">
+              <div class="detail-item">
+                <label>Order Number</label>
+                <strong>{{ selectedPurchaseOrder.orderNumber }}</strong>
+              </div>
 
-          <div class="details-grid">
-            <div class="detail-field">
-              <span>Purchase Order ID</span>
-              <strong>{{ order.purchaseOrderId }}</strong>
-            </div>
-
-            <div class="detail-field">
-              <span>Order Number</span>
-              <strong>{{ order.orderNumber }}</strong>
-            </div>
-
-            <div class="detail-field">
-              <span>Order Date</span>
-              <strong>{{ order.orderDate | date: 'dd MMM yyyy' }}</strong>
-            </div>
-
-            <div class="detail-field">
-              <span>Expected Delivery Date</span>
-              <strong>
-                @if (order.expectedDeliveryDate) {
-                  {{ order.expectedDeliveryDate | date: 'dd MMM yyyy' }}
-                } @else {
-                  Not specified
-                }
-              </strong>
-            </div>
-
-            <div class="detail-field">
-              <span>Order Status</span>
-              <strong>
-                <span
-                  class="status-badge"
-                  [ngClass]="{
-                    'status-draft': order.status === 'Draft',
-                    'status-submitted': order.status === 'Submitted',
-                    'status-approved': order.status === 'Approved',
-                    'status-ordered': order.status === 'Ordered',
-                    'status-partial': order.status === 'PartiallyReceived',
-                    'status-received': order.status === 'Received',
-                    'status-cancelled': order.status === 'Cancelled'
-                  }"
-                >
-                  {{ order.status }}
+              <div class="detail-item">
+                <label>Status</label>
+                <span class="status-badge" [ngClass]="getStatusClass(selectedPurchaseOrder.status)">
+                  {{ getStatusLabel(selectedPurchaseOrder.status) }}
                 </span>
-              </strong>
-            </div>
-          </div>
-        </section>
+              </div>
 
-        <!-- Supplier Information -->
-        <section class="details-section">
-          <div class="details-section-heading">
-            <span class="details-section-icon">♧</span>
-            <div>
-              <h3>Supplier Information</h3>
-              <p>Supplier associated with this order.</p>
-            </div>
-          </div>
+              <div class="detail-item">
+                <label>Order Date</label>
+                <strong>
+                  {{ selectedPurchaseOrder.orderDate | date: 'dd MMM yyyy' }}
+                </strong>
+              </div>
 
-          <div class="details-grid">
-            <div class="detail-field">
-              <span>Supplier ID</span>
-              <strong>{{ order.supplierId }}</strong>
-            </div>
-
-            <div class="detail-field">
-              <span>Supplier Name</span>
-              <strong>{{ order.supplierName }}</strong>
-            </div>
-          </div>
-        </section>
-
-        <!-- Ordered Items -->
-        <section class="details-section">
-          <div class="details-section-heading">
-            <span class="details-section-icon">◈</span>
-            <div>
-              <h3>Ordered Items</h3>
-              <p>
-                {{ order.items.length }} item(s) included in this Purchase Order.
-              </p>
+              <div class="detail-item">
+                <label>Expected Delivery Date</label>
+                <strong>
+                  {{
+                    selectedPurchaseOrder.expectedDeliveryDate
+                      ? (selectedPurchaseOrder.expectedDeliveryDate | date: 'dd MMM yyyy')
+                      : 'Not set'
+                  }}
+                </strong>
+              </div>
             </div>
           </div>
 
-          <div class="details-items-wrapper">
-            <table class="details-items-table">
-              <thead>
-                <tr>
-                  <th>ITEM</th>
-                  <th>SKU</th>
-                  <th>ORDERED</th>
-                  <th>RECEIVED</th>
-                  <th>REMAINING</th>
-                  <th>UNIT PRICE</th>
-                  <th>LINE TOTAL</th>
-                </tr>
-              </thead>
+          <!-- Supplier Information -->
+          <div class="detail-section">
+            <h3>Supplier Information</h3>
 
-              <tbody>
-                @for (item of order.items; track item.purchaseOrderItemId) {
+            <div class="supplier-detail-card">
+              <div class="supplier-detail-heading">
+                <div class="supplier-avatar">
+                  {{ selectedPurchaseOrder.supplierName.charAt(0) }}
+                </div>
+
+                <div>
+                  <strong>{{ selectedPurchaseOrder.supplierName }}</strong>
+
+                  <button
+                    type="button"
+                    class="view-supplier-button"
+                    (click)="openSupplierDetails(selectedPurchaseOrder.supplierId, $event)"
+                  >
+                    View Supplier Details
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Ordered Items -->
+          <div class="detail-section">
+            <h3>Ordered Items</h3>
+
+            <div class="modal-table-container">
+              <table class="details-table">
+                <thead>
                   <tr>
-                    <td>
-                      <strong>{{ item.itemName }}</strong>
-                      <small>Item ID: {{ item.itemId }}</small>
-                    </td>
-
-                    <td>{{ item.sku }}</td>
-                    <td>{{ item.orderedQuantity }}</td>
-                    <td>{{ item.receivedQuantity }}</td>
-                    <td>{{ item.remainingQuantity }}</td>
-                    <td>{{ item.unitPrice | number: '1.2-2' }}</td>
-                    <td class="details-line-total">
-                      {{ item.lineTotal | number: '1.2-2' }}
-                    </td>
+                    <th>Item</th>
+                    <th>SKU</th>
+                    <th>Ordered</th>
+                    <th>Received</th>
+                    <th>Remaining</th>
+                    <th>Unit Price</th>
+                    <th>Line Total</th>
                   </tr>
-                }
-              </tbody>
-            </table>
-          </div>
-        </section>
+                </thead>
 
-        <!-- Financial Summary -->
-        <section class="details-section">
-          <div class="details-section-heading">
-            <span class="details-section-icon">₨</span>
-            <div>
-              <h3>Financial Summary</h3>
-              <p>Complete Purchase Order cost breakdown.</p>
+                <tbody>
+                  @for (item of selectedPurchaseOrder.items; track item.purchaseOrderItemId) {
+                    <tr>
+                      <td>{{ item.itemName }}</td>
+                      <td>{{ item.sku }}</td>
+                      <td>{{ item.orderedQuantity }}</td>
+                      <td>{{ item.receivedQuantity }}</td>
+                      <td>{{ item.remainingQuantity }}</td>
+                      <td>{{ formatPrice(item.unitPrice) }}</td>
+                      <td>{{ formatPrice(item.lineTotal) }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
             </div>
           </div>
 
-          <div class="financial-summary">
-            <div class="financial-row">
-              <span>Subtotal</span>
-              <strong>{{ order.subtotal | number: '1.2-2' }}</strong>
-            </div>
+          <!-- Financial Summary -->
+          <div class="detail-section">
+            <h3>Financial Summary</h3>
 
-            <div class="financial-row">
-              <span>Tax Rate</span>
-              <strong>{{ order.taxRate }}%</strong>
-            </div>
+            <div class="financial-summary">
+              <div>
+                <span>Subtotal</span>
+                <strong>
+                  {{ formatPrice(selectedPurchaseOrder.subtotal) }}
+                </strong>
+              </div>
 
-            <div class="financial-row">
-              <span>Tax Amount</span>
-              <strong>{{ order.taxAmount | number: '1.2-2' }}</strong>
-            </div>
+              <div>
+                <span>Tax Rate</span>
+                <strong>{{ selectedPurchaseOrder.taxRate }}%</strong>
+              </div>
 
-            <div class="financial-row grand-total">
-              <span>Grand Total</span>
-              <strong>{{ order.totalAmount | number: '1.2-2' }}</strong>
-            </div>
-          </div>
-        </section>
+              <div>
+                <span>Tax Amount</span>
+                <strong>
+                  {{ formatPrice(selectedPurchaseOrder.taxAmount) }}
+                </strong>
+              </div>
 
-        <!-- Additional Information -->
-        <section class="details-section">
-          <div class="details-section-heading">
-            <span class="details-section-icon">✎</span>
-            <div>
-              <h3>Additional Information</h3>
-              <p>Notes and Purchase Order record timestamps.</p>
-            </div>
-          </div>
-
-          <div class="details-notes">
-            <span>Notes</span>
-            <p>
-              {{ order.notes || 'No additional notes provided.' }}
-            </p>
-          </div>
-
-          <div class="details-grid timestamps-grid">
-            <div class="detail-field">
-              <span>Created At</span>
-              <strong>
-                {{ order.createdAt | date: 'dd MMM yyyy, hh:mm a':'UTC+5' }}
-              </strong>
-            </div>
-
-            <div class="detail-field">
-              <span>Updated At</span>
-              <strong>
-                @if (order.updatedAt) {
-                  {{ order.updatedAt | date: 'dd MMM yyyy, hh:mm a':'UTC+5' }}
-                } @else {
-                  Not updated
-                }
-              </strong>
-            </div>
-
-            <div class="detail-field">
-              <span>Approved At</span>
-              <strong>
-                @if (order.approvedAt) {
-                  {{ order.approvedAt | date: 'dd MMM yyyy, hh:mm a':'UTC+5' }}
-                } @else {
-                  Not approved
-                }
-              </strong>
+              <div class="grand-total">
+                <span>Total Amount</span>
+                <strong>
+                  {{ formatPrice(selectedPurchaseOrder.totalAmount) }}
+                </strong>
+              </div>
             </div>
           </div>
-        </section>
-      </div>
 
-      <!-- Modal Footer -->
-      <footer class="details-modal-footer">
-        <button
-          type="button"
-          class="details-footer-close"
-          (click)="closePurchaseOrderDetails()"
-        >
-          Close Details
-        </button>
+          <!-- Notes -->
+          @if (selectedPurchaseOrder.notes) {
+            <div class="detail-section">
+              <h3>Notes</h3>
+              <p class="notes-content">{{ selectedPurchaseOrder.notes }}</p>
+            </div>
+          }
 
-        @if (order.status === 'Draft') {
-          <button
-            type="button"
-            class="details-footer-edit"
-            (click)="closePurchaseOrderDetails(); editPurchaseOrder(order)"
-          >
-            Edit Purchase Order
+          <!-- Additional Information -->
+          <div class="detail-section">
+            <h3>Additional Information</h3>
+
+            <div class="details-grid">
+              <div class="detail-item">
+                <label>Created At</label>
+                <strong>
+                  {{
+                    selectedPurchaseOrder.createdAt
+                      ? (selectedPurchaseOrder.createdAt | date: 'dd MMM yyyy, hh:mm a')
+                      : 'Not available'
+                  }}
+                </strong>
+              </div>
+
+              <div class="detail-item">
+                <label>Last Updated</label>
+                <strong>
+                  {{
+                    selectedPurchaseOrder.updatedAt
+                      ? (selectedPurchaseOrder.updatedAt | date: 'dd MMM yyyy, hh:mm a')
+                      : 'Not available'
+                  }}
+                </strong>
+              </div>
+
+              <div class="detail-item">
+                <label>Approved At</label>
+                <strong>
+                  {{
+                    selectedPurchaseOrder.approvedAt
+                      ? (selectedPurchaseOrder.approvedAt | date: 'dd MMM yyyy, hh:mm a')
+                      : 'Not approved'
+                  }}
+                </strong>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="secondary-button" (click)="closeDetailsModal()">
+            Close
           </button>
-        }
-      </footer>
-    </section>
+        </div>
+      }
+
+      <!-- Supplier Details -->
+      @if (modalView === 'supplier' && selectedSupplier) {
+        <div class="modal-header">
+          <div>
+            <h2>Supplier Details</h2>
+            <p>Supplier information</p>
+          </div>
+
+          <button type="button" class="modal-close" (click)="closeDetailsModal()">×</button>
+        </div>
+
+        <div class="modal-body">
+          <div class="supplier-profile">
+            <div class="supplier-profile-avatar">
+              {{ selectedSupplier.name.charAt(0) }}
+            </div>
+
+            <h3>{{ selectedSupplier.name }}</h3>
+
+            <span
+              class="status-badge"
+              [ngClass]="selectedSupplier.isActive ? 'status-received' : 'status-cancelled'"
+            >
+              {{ selectedSupplier.isActive ? 'Active' : 'Inactive' }}
+            </span>
+          </div>
+
+          <!-- Contact Information -->
+          <div class="detail-section">
+            <h3>Contact Information</h3>
+
+            <div class="details-grid">
+              <div class="detail-item">
+                <label>Contact Person</label>
+                <strong>{{ selectedSupplier.contactPerson || 'Not provided' }}</strong>
+              </div>
+
+              <div class="detail-item">
+                <label>Phone</label>
+                <strong>{{ selectedSupplier.phone || 'Not provided' }}</strong>
+              </div>
+
+              <div class="detail-item">
+                <label>Email</label>
+                <strong>{{ selectedSupplier.email || 'Not provided' }}</strong>
+              </div>
+
+              <div class="detail-item">
+                <label>Tax Number</label>
+                <strong>{{ selectedSupplier.taxNumber || 'Not provided' }}</strong>
+              </div>
+            </div>
+          </div>
+
+          <!-- Address Information -->
+          <div class="detail-section">
+            <h3>Address Information</h3>
+
+            <div class="details-grid">
+              <div class="detail-item">
+                <label>Address</label>
+                <strong>{{ selectedSupplier.address || 'Not provided' }}</strong>
+              </div>
+
+              <div class="detail-item">
+                <label>City</label>
+                <strong>{{ selectedSupplier.city || 'Not provided' }}</strong>
+              </div>
+
+              <div class="detail-item">
+                <label>Country</label>
+                <strong>{{ selectedSupplier.country || 'Not provided' }}</strong>
+              </div>
+            </div>
+          </div>
+
+          <!-- Notes -->
+          @if (selectedSupplier.notes) {
+            <div class="detail-section">
+              <h3>Notes</h3>
+              <p class="notes-content">{{ selectedSupplier.notes }}</p>
+            </div>
+          }
+
+          <!-- Additional Information -->
+          <div class="detail-section">
+            <h3>Additional Information</h3>
+
+            <div class="details-grid">
+              <div class="detail-item">
+                <label>Created At</label>
+                <strong>
+                  {{
+                    selectedSupplier.createdAt
+                      ? (selectedSupplier.createdAt | date: 'dd MMM yyyy')
+                      : 'Not available'
+                  }}
+                </strong>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          @if (selectedPurchaseOrder) {
+            <button type="button" class="secondary-button" (click)="backToPurchaseOrder()">
+              Back to Purchase Order
+            </button>
+          }
+
+          <button type="button" class="secondary-button" (click)="closeDetailsModal()">
+            Close
+          </button>
+        </div>
+      }
+    </div>
   </div>
 }

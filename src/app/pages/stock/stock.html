@@ -10,12 +10,8 @@
     <div class="sidebar-section">MAIN MENU</div>
 
     <nav class="sidebar-nav">
-      <a
-        routerLink="/dashboard"
-        routerLinkActive="active"
-        [routerLinkActiveOptions]="{ exact: true }"
-        class="nav-link"
-      >
+      <a routerLink="/dashboard" routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }" class="nav-link">
         <span class="nav-icon">▦</span> Dashboard
       </a>
 
@@ -31,19 +27,11 @@
         <span class="nav-icon">♧</span> Supplier Management
       </a>
 
-        <a
-        routerLink="/purchase-orders"
-        routerLinkActive="active"
-        class="nav-link"
-      >
+      <a routerLink="/purchase-orders" routerLinkActive="active" class="nav-link">
         <span class="nav-icon">▤</span> Purchase Orders
       </a>
 
-      <a
-        routerLink="/goods-received"
-        routerLinkActive="active"
-        class="nav-link"
-      >
+      <a routerLink="/goods-received" routerLinkActive="active" class="nav-link">
         <span class="nav-icon">▣</span> Goods Received
       </a>
 
@@ -69,7 +57,6 @@
 
   <!-- Main Content -->
   <main class="main-content">
-    <!-- Page Header -->
     <header class="top-header">
       <div>
         <p class="breadcrumb">Dashboard / Stock</p>
@@ -92,15 +79,16 @@
         [class.error]="messageType === 'error'"
         [class.loading]="messageType === 'loading'"
         role="status"
-        aria-live="polite"
-      >
+        aria-live="polite">
         {{ message }}
       </div>
     }
 
     <!-- Loading Indicator -->
     @if (isLoading) {
-      <div class="message-box loading" role="status">Loading stock information...</div>
+      <div class="message-box loading" role="status">
+        Loading stock information...
+      </div>
     }
 
     <!-- Stock Statistics -->
@@ -150,27 +138,26 @@
           <p>View and search batches across all inventory items.</p>
         </div>
 
-        <span class="record-count"> {{ filteredBatches.length }} records </span>
+        <span class="record-count">
+          {{ filteredBatches.length }} records
+        </span>
       </div>
 
       <!-- Search and Filters -->
       <div class="filter-bar">
         <div class="search-box">
           <span class="search-icon">⌕</span>
-
           <input
             type="text"
             placeholder="Search by batch number, item, or supplier..."
             [(ngModel)]="searchText"
-            aria-label="Search stock batches"
-          />
+            aria-label="Search stock batches" />
         </div>
 
         <select
           class="category-filter"
           [(ngModel)]="selectedItem"
-          aria-label="Filter by inventory item"
-        >
+          aria-label="Filter by inventory item">
           <option value="All">All Items</option>
 
           @for (item of itemNames; track item) {
@@ -178,7 +165,9 @@
           }
         </select>
 
-        <button type="button" class="btn-secondary" (click)="clearFilters()">Clear</button>
+        <button type="button" class="btn-secondary" (click)="clearFilters()">
+          Clear
+        </button>
       </div>
 
       <!-- Stock Batches Table -->
@@ -202,7 +191,6 @@
                 <td>
                   <div class="item-name-cell">
                     <div class="item-avatar">▣</div>
-
                     <div>
                       <strong>{{ batch.batchNumber }}</strong>
                       <small>Batch ID: {{ batch.stockBatchId }}</small>
@@ -213,23 +201,19 @@
                 <td>
                   <span class="category-badge">
                     {{
-                      stockItems.find((item) => item.itemId === batch.itemId)?.itemName ||
-                        'Unknown Item'
+                      stockItems.find(item => item.itemId === batch.itemId)?.itemName ||
+                      'Unknown Item'
                     }}
                   </span>
                 </td>
 
-                <td>
-                  {{ batch.supplierName || 'N/A' }}
-                </td>
+                <td>{{ batch.supplierName || 'N/A' }}</td>
 
                 <td>
                   <strong>{{ batch.quantityInStock }}</strong>
                 </td>
 
-                <td>
-                  {{ batch.unitPrice | currency }}
-                </td>
+                <td>{{ formatPrice(batch.unitPrice) }}</td>
 
                 <td>
                   @if (batch.expiryDate) {
@@ -239,30 +223,63 @@
                   }
                 </td>
 
-                <!-- View Transactions Action -->
-                <td>
-                  <button
-                    type="button"
-                    class="btn-view-transactions"
-                    [routerLink]="['/stock/batches', batch.stockBatchId, 'transactions']"
-                  >
-                    View Transactions
-                  </button>
+                <!-- Three-dot Actions Dropdown - Same as Items Module -->
+                <td class="actions-cell">
+                  <div
+                    class="action-menu-wrapper"
+                    (mouseenter)="openActionMenu(batch.stockBatchId)"
+                    (mouseleave)="closeActionMenu()"
+                    (click)="$event.stopPropagation()">
+
+                    <button
+                      type="button"
+                      class="action-menu-trigger"
+                      title="Actions"
+                      aria-label="Batch actions"
+                      [attr.aria-expanded]="openActionMenuId === batch.stockBatchId"
+                      [disabled]="isLoading || isUpdatingBatchNumber">
+                      <span>⋮</span>
+                    </button>
+
+                    @if (openActionMenuId === batch.stockBatchId) {
+                      <div class="action-dropdown">
+                        <button
+                          type="button"
+                          class="dropdown-action edit-action"
+                          (click)="openEditBatchNumber(batch)">
+                          <span class="dropdown-icon">✎</span>
+                          Edit Batch Number
+                        </button>
+
+                        <button
+                          type="button"
+                          class="dropdown-action view-action"
+                          [routerLink]="[
+                            '/stock/batches',
+                            batch.stockBatchId,
+                            'transactions'
+                          ]"
+                          (click)="closeActionMenu()">
+                          <span class="dropdown-icon">↗</span>
+                          View Transactions
+                        </button>
+                      </div>
+                    }
+                  </div>
                 </td>
               </tr>
             }
 
-            <!-- No Batches Found -->
             @if (filteredBatches.length === 0 && !isLoading) {
               <tr>
                 <td colspan="7" class="empty-state">
                   <div class="empty-icon">⌕</div>
-
                   <h3>No stock batches found</h3>
-
-                  <p>Try changing your search or inventory item filter.</p>
-
-                  <button type="button" class="btn-secondary" (click)="clearFilters()">
+                  <p>Try changing your search or item filter.</p>
+                  <button
+                    type="button"
+                    class="btn-secondary"
+                    (click)="clearFilters()">
                     Clear Filters
                   </button>
                 </td>
@@ -274,8 +291,9 @@
 
       <!-- Table Footer -->
       <div class="table-footer">
-        <span> Showing {{ filteredBatches.length }} of {{ stockBatches.length }} batches </span>
-
+        <span>
+          Showing {{ filteredBatches.length }} of {{ stockBatches.length }} batches
+        </span>
         <span>Healthcare Inventory Management System</span>
       </div>
     </section>
@@ -285,4 +303,86 @@
       <p>© 2026 HIMS · Healthcare Inventory Management System</p>
     </footer>
   </main>
+
+  <!-- Edit Batch Number Modal -->
+  @if (selectedBatch) {
+    <div class="stock-modal-overlay" (click)="closeEditBatchNumberModal()">
+      <div
+        class="stock-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="editBatchModalTitle"
+        (click)="$event.stopPropagation()">
+
+        <div class="stock-modal-header">
+          <div>
+            <h2 id="editBatchModalTitle">Edit Batch Number</h2>
+            <p>Update the identification number for this stock batch.</p>
+          </div>
+
+          <button
+            type="button"
+            class="stock-modal-close"
+            aria-label="Close modal"
+            [disabled]="isUpdatingBatchNumber"
+            (click)="closeEditBatchNumberModal()">
+            ×
+          </button>
+        </div>
+
+        <div class="stock-modal-body">
+          <div class="modal-batch-info">
+            <span>Batch ID</span>
+            <strong>{{ selectedBatch.stockBatchId }}</strong>
+          </div>
+
+          <div class="modal-batch-info">
+            <span>Inventory Item</span>
+            <strong>
+              {{
+                stockItems.find(item => item.itemId === selectedBatch!.itemId)?.itemName ||
+                'Unknown Item'
+              }}
+            </strong>
+          </div>
+
+          <div class="form-group">
+            <label for="editedBatchNumber">Batch Number</label>
+            <input
+              id="editedBatchNumber"
+              type="text"
+              class="batch-number-input"
+              [(ngModel)]="editedBatchNumber"
+              maxlength="100"
+              placeholder="Enter batch number"
+              [disabled]="isUpdatingBatchNumber"
+              required />
+            <small>Maximum 100 characters.</small>
+          </div>
+        </div>
+
+        <div class="stock-modal-footer">
+          <button
+            type="button"
+            class="btn-modal-cancel"
+            [disabled]="isUpdatingBatchNumber"
+            (click)="closeEditBatchNumberModal()">
+            Cancel
+          </button>
+
+          <button
+            type="button"
+            class="btn-modal-save"
+            [disabled]="isUpdatingBatchNumber"
+            (click)="saveBatchNumber()">
+            @if (isUpdatingBatchNumber) {
+              Saving...
+            } @else {
+              Save Changes
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
 </div>

@@ -1,3 +1,4 @@
+
 import { Component, OnInit, ChangeDetectorRef, inject } from '@angular/core';
 
 import { CommonModule } from '@angular/common';
@@ -29,6 +30,12 @@ export class Suppliers implements OnInit {
 
   selectedSupplierId: number | null = null;
 
+  // Store the supplier selected for the details modal.
+  selectedSupplier: Supplier | null = null;
+
+  // Store the supplier whose three-dot dropdown is currently open.
+  openActionMenuId: number | null = null;
+
   ngOnInit(): void {
     // Display a success message returned from the Supplier form.
     const navigationState =
@@ -37,7 +44,10 @@ export class Suppliers implements OnInit {
     if (navigationState?.['successMessage']) {
       this.message = navigationState['successMessage'];
 
-      window.history.replaceState({ ...window.history.state, successMessage: null }, '');
+      window.history.replaceState(
+        { ...window.history.state, successMessage: null },
+        '',
+      );
     }
 
     this.loadSuppliers();
@@ -105,11 +115,15 @@ export class Suppliers implements OnInit {
 
   // Navigate to the Add Supplier page.
   openAddForm(): void {
+    this.closeActionMenu();
     this.router.navigate(['/suppliers/new']);
   }
 
   // Navigate to the Edit Supplier page.
   editSupplier(supplier: Supplier): void {
+    this.closeActionMenu();
+    this.closeSupplierDetails();
+
     if (!supplier.isActive) {
       return;
     }
@@ -119,8 +133,43 @@ export class Suppliers implements OnInit {
     });
   }
 
+  // Open the details modal for the selected supplier row.
+  openSupplierDetails(supplier: Supplier): void {
+    this.closeActionMenu();
+    this.selectedSupplier = supplier;
+    this.cdr.markForCheck();
+  }
+
+  // Close the supplier details modal.
+  closeSupplierDetails(): void {
+    this.selectedSupplier = null;
+    this.cdr.markForCheck();
+  }
+
+  // Open or close the three-dot action dropdown.
+  toggleActionMenu(id: number, event: MouseEvent): void {
+    event.stopPropagation();
+
+    if (this.isLoading) {
+      return;
+    }
+
+    this.openActionMenuId =
+      this.openActionMenuId === id ? null : id;
+
+    this.cdr.markForCheck();
+  }
+
+  // Close the currently open action dropdown.
+  closeActionMenu(): void {
+    this.openActionMenuId = null;
+  }
+
   // Open the supplier deactivation confirmation.
   confirmDeactivate(id: number): void {
+    this.closeActionMenu();
+    this.closeSupplierDetails();
+
     if (this.isLoading) {
       return;
     }
@@ -145,7 +194,9 @@ export class Suppliers implements OnInit {
     this.supplierService.deactivateSupplier(id).subscribe({
       next: () => {
         this.suppliers = this.suppliers.map((supplier) =>
-          supplier.supplierId === id ? { ...supplier, isActive: false } : supplier,
+          supplier.supplierId === id
+            ? { ...supplier, isActive: false }
+            : supplier,
         );
 
         this.message = 'Supplier deactivated successfully!';
@@ -159,7 +210,9 @@ export class Suppliers implements OnInit {
       error: (error) => {
         console.error('Error deactivating supplier:', error);
 
-        this.message = error.error?.message || 'Unable to deactivate supplier. Please try again.';
+        this.message =
+          error.error?.message ||
+          'Unable to deactivate supplier. Please try again.';
 
         this.selectedSupplierId = null;
         this.isLoading = false;
@@ -181,6 +234,8 @@ export class Suppliers implements OnInit {
 
   // Reactivate an inactive supplier through the backend.
   reactivateSupplier(id: number): void {
+    this.closeActionMenu();
+
     if (this.isLoading) {
       return;
     }
@@ -193,7 +248,9 @@ export class Suppliers implements OnInit {
     this.supplierService.reactivateSupplier(id).subscribe({
       next: () => {
         this.suppliers = this.suppliers.map((supplier) =>
-          supplier.supplierId === id ? { ...supplier, isActive: true } : supplier,
+          supplier.supplierId === id
+            ? { ...supplier, isActive: true }
+            : supplier,
         );
 
         this.message = 'Supplier reactivated successfully!';
@@ -205,7 +262,9 @@ export class Suppliers implements OnInit {
       error: (error) => {
         console.error('Error reactivating supplier:', error);
 
-        this.message = error.error?.message || 'Unable to reactivate supplier. Please try again.';
+        this.message =
+          error.error?.message ||
+          'Unable to reactivate supplier. Please try again.';
 
         this.isLoading = false;
         this.cdr.markForCheck();
@@ -217,5 +276,6 @@ export class Suppliers implements OnInit {
   clearFilters(): void {
     this.searchText = '';
     this.selectedStatus = 'All';
+    this.closeActionMenu();
   }
 }

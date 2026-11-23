@@ -25,7 +25,7 @@ import { GoodsReceivedService } from '../../services/goods-received.service';
     RouterLink,
     DatePipe,
     NgClass,
-    RouterLinkActive
+    RouterLinkActive,
   ],
   templateUrl: './goods-received.html',
   styleUrl: './goods-received.css',
@@ -49,6 +49,9 @@ export class GoodsReceivedPage implements OnInit {
 
   // Currently selected record for the details view.
   selectedGoodsReceived: GoodsReceived | null = null;
+
+  // Currently open action dropdown.
+  openActionMenuId: number | null = null;
 
   // Available statuses for the filter.
   statuses = [
@@ -162,23 +165,41 @@ export class GoodsReceivedPage implements OnInit {
     }
   }
 
+  // Open or close the three-dot action dropdown.
+  toggleActionMenu(id: number, event: MouseEvent): void {
+    event.stopPropagation();
+
+    this.openActionMenuId =
+      this.openActionMenuId === id ? null : id;
+  }
+
+  // Close the action dropdown.
+  closeActionMenu(): void {
+    this.openActionMenuId = null;
+  }
+
   // Navigate to the new Goods Received form.
   openAddForm(): void {
+    this.closeActionMenu();
     this.router.navigate(['/goods-received/new']);
   }
 
   // Open the details view.
   viewGoodsReceived(record: GoodsReceived): void {
+    this.closeActionMenu();
     this.selectedGoodsReceived = record;
   }
 
   // Close the details view.
   closeDetails(): void {
     this.selectedGoodsReceived = null;
+    this.closeActionMenu();
   }
 
   // Confirm a Draft Goods Received record.
   confirmGoodsReceived(record: GoodsReceived): void {
+    this.closeActionMenu();
+
     if (
       this.isLoading ||
       record.status !== GoodsReceivedStatus.Draft
@@ -221,6 +242,8 @@ export class GoodsReceivedPage implements OnInit {
 
   // Cancel a Draft Goods Received record.
   cancelGoodsReceived(record: GoodsReceived): void {
+    this.closeActionMenu();
+
     if (
       this.isLoading ||
       record.status !== GoodsReceivedStatus.Draft
@@ -386,5 +409,6 @@ export class GoodsReceivedPage implements OnInit {
   clearFilters(): void {
     this.searchText = '';
     this.selectedStatus = 'All';
+    this.closeActionMenu();
   }
 }

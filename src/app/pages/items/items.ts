@@ -16,6 +16,7 @@ import { Stock as StockModel, StockBatch } from '../../models/stock.models';
 
 import { ItemService } from '../../services/item.service';
 import { StockService } from '../../services/stock.service';
+import { CurrencyService } from '../../services/currency.service'; // Added
 
 @Component({
   selector: 'app-items',
@@ -28,8 +29,10 @@ export class Items implements OnInit {
   private readonly itemService = inject(ItemService);
   private readonly stockService = inject(StockService);
   private readonly router = inject(Router);
-
   private readonly cdr = inject(ChangeDetectorRef);
+
+  // Added: Existing shared currency service.
+  private readonly currencyService = inject(CurrencyService);
 
   searchText = '';
   selectedCategory = 'All';
@@ -45,6 +48,12 @@ export class Items implements OnInit {
 
   // Stores the ID of the item selected for deletion.
   selectedItemId: number | null = null;
+
+  // Stores the ID of the row whose actions dropdown is open.
+  openActionMenuId: number | null = null;
+
+  // Stores the item selected for the details modal.
+  selectedItem: Item | null = null;
 
   categories: string[] = [
     'Protective Equipment',
@@ -67,6 +76,12 @@ export class Items implements OnInit {
     }
 
     this.loadItems();
+  }
+
+  // Added: Format inventory values using the currency selected on Dashboard.
+  // Original stock prices remain stored in PKR.
+  formatPrice(amount: number): string {
+    return this.currencyService.formatPrice(amount);
   }
 
   // Load inventory items and refresh stock information.
@@ -166,6 +181,7 @@ export class Items implements OnInit {
   }
 
   // Calculate inventory value using current batch quantities and prices.
+  // This calculation remains in PKR.
   get totalValue(): number {
     return this.stockBatches.reduce(
       (total, batch) =>
@@ -183,9 +199,32 @@ export class Items implements OnInit {
 
   // Navigate to the separate Edit Item page.
   editItem(item: Item): void {
+    this.openActionMenuId = null;
+
     this.router.navigate(['/items/edit', item.id], {
       state: { item },
     });
+  }
+
+  // Open the actions dropdown when hovering over a row's three-dot button.
+  showActionMenu(id: number): void {
+    this.openActionMenuId = id;
+  }
+
+  // Close the actions dropdown when the cursor leaves the menu.
+  hideActionMenu(): void {
+    this.openActionMenuId = null;
+  }
+
+  // Open the details modal when an item row is clicked.
+  viewItemDetails(item: Item): void {
+    this.openActionMenuId = null;
+    this.selectedItem = item;
+  }
+
+  // Close the item details modal.
+  closeItemDetails(): void {
+    this.selectedItem = null;
   }
 
   // Open the custom delete confirmation dialog.
@@ -194,6 +233,7 @@ export class Items implements OnInit {
       return;
     }
 
+    this.openActionMenuId = null;
     this.selectedItemId = id;
     this.cdr.markForCheck();
   }
@@ -213,6 +253,11 @@ export class Items implements OnInit {
     this.itemService.deleteItem(id).subscribe({
       next: () => {
         this.items = this.items.filter((item) => item.id !== id);
+
+        // Close the details modal too if the deleted item was selected.
+        if (this.selectedItem?.id === id) {
+          this.selectedItem = null;
+        }
 
         this.message = 'Item deleted successfully!';
         this.isLoading = false;
