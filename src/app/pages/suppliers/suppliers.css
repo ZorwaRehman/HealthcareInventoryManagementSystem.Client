@@ -9,6 +9,7 @@
   color: #1e293b;
   background: #f5f8fc;
   font-family: "Segoe UI", Arial, sans-serif;
+  font-size: 14px;
 }
 
 * {
@@ -35,9 +36,8 @@ button {
   width: 100%;
 }
 
-
 /* ==============================
-   SIDEBAR - SAME AS DASHBOARD
+   SIDEBAR
 ============================== */
 
 .sidebar {
@@ -49,7 +49,6 @@ button {
   width: 250px;
   min-width: 250px;
   height: 100vh;
-  min-height: 100vh;
   overflow-y: auto;
   padding: 27px 18px 18px;
   background: #ffffff;
@@ -61,8 +60,6 @@ button {
   align-items: center;
   gap: 10px;
   margin: 0 0 43px 5px;
-  padding: 0;
-  border: none;
 }
 
 .brand-icon {
@@ -101,17 +98,17 @@ button {
 .sidebar-nav {
   display: grid;
   gap: 7px;
-  margin-top: 0;
 }
 
-.sidebar-nav a {
+.sidebar-nav a,
+.nav-link {
   display: flex;
   align-items: center;
   gap: 13px;
   min-height: 46px;
   padding: 0 13px;
-  color: #657a7e;
   border-radius: 9px;
+  color: #657a7e;
   font-size: 13px;
   font-weight: 600;
   text-decoration: none;
@@ -119,34 +116,11 @@ button {
 }
 
 .sidebar-nav a:hover,
-.sidebar-nav a.active {
+.sidebar-nav a.active,
+.nav-link:hover,
+.nav-link.active {
   color: #087f72;
   background: #eaf6f3;
-}
-
-.nav-link {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  min-height: 46px;
-  padding: 12px 13px;
-  border-radius: 8px;
-  color: #64748b;
-  text-decoration: none;
-  font-size: 13px;
-  font-weight: 550;
-  transition: 0.2s ease;
-}
-
-.nav-link:hover {
-  background: #f0fdfa;
-  color: #0f766e;
-}
-
-.nav-link.active {
-  background: #ccfbf1;
-  color: #0f766e;
-  font-weight: 700;
 }
 
 .nav-icon {
@@ -156,12 +130,6 @@ button {
   font-size: 18px;
 }
 
-.sidebar-footer {
-  margin-top: auto;
-  padding: 20px 8px 0;
-  border-top: 1px solid #edf2f2;
-  color: #8a9c9c;
-}
 .sidebar-bottom {
   margin-top: auto;
   padding-top: 25px;
@@ -204,6 +172,9 @@ button {
   font-size: 11px;
 }
 
+.logout-link {
+  min-height: 42px;
+}
 
 /* ==============================
    MAIN CONTENT
@@ -296,44 +267,8 @@ button {
   color: #0d9488;
 }
 
-.edit-button,
-.deactivate-button,
-.reactivate-button {
-  padding: 7px 11px;
-  border-radius: 6px;
-  font-size: 11px;
-  font-weight: 600;
-}
-
-.edit-button {
-  border: 1px solid #99f6e4;
-  background: #f0fdfa;
-  color: #0f766e;
-}
-
-.edit-button:hover:not(:disabled) {
-  background: #ccfbf1;
-}
-
-.deactivate-button {
-  border: 1px solid #fecaca;
-  background: #fef2f2;
-  color: #dc2626;
-}
-
-.deactivate-button:hover:not(:disabled) {
-  background: #fee2e2;
-}
-
-.edit-button:disabled,
-.deactivate-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
 /* ==============================
-   SUPPLIER SUMMARY CARDS
-   Same styling as Users cards
+   SUMMARY CARDS
 ============================== */
 
 .summary-grid {
@@ -403,7 +338,7 @@ button {
 ============================== */
 
 .inventory-card {
-  overflow: hidden;
+  overflow: visible;
   border: 1px solid #e5eaf0;
   border-radius: 12px;
   background: #ffffff;
@@ -470,15 +405,15 @@ button {
   width: 190px;
 }
 
-
 /* ==============================
-   TABLE
+   SUPPLIER TABLE
 ============================== */
 
 .table-wrapper {
+  position: relative;
   width: 100%;
   max-width: 100%;
-  overflow-x: hidden;
+  overflow: visible;
 }
 
 .inventory-table {
@@ -486,82 +421,131 @@ button {
   max-width: 100%;
   table-layout: fixed;
   border-collapse: collapse;
-  text-align: left;
+  border-spacing: 0;
   white-space: normal;
 }
 
-/* Supplier column */
-.inventory-table th:nth-child(1),
-.inventory-table td:nth-child(1) {
-  width: 20%;
-}
-
-/* Contact Person */
-.inventory-table th:nth-child(2),
-.inventory-table td:nth-child(2) {
-  width: 13%;
-}
-
-/* Phone */
-.inventory-table th:nth-child(3),
-.inventory-table td:nth-child(3) {
-  width: 12%;
-}
-
-/* Email - give enough space */
-.inventory-table th:nth-child(4),
-.inventory-table td:nth-child(4) {
-  width: 22%;
-}
-
-/* City */
-.inventory-table th:nth-child(5),
-.inventory-table td:nth-child(5) {
-  width: 12%;
-}
-
-/* Status */
-.inventory-table th:nth-child(6),
-.inventory-table td:nth-child(6) {
-  width: 9%;
-}
-
-/* Actions */
-.inventory-table th:nth-child(7),
-.inventory-table td:nth-child(7) {
-  width: 12%;
-}
+/* Table heading background */
 
 .inventory-table thead {
   background: #f8fafc;
 }
 
+/* Center headings only */
+
 .inventory-table th {
-  padding: 13px 10px;
+  padding: 12px 12px;
   border-top: 1px solid #edf1f5;
   border-bottom: 1px solid #edf1f5;
   color: #64748b;
-  font-size: 11px;
-  font-weight: 700;
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 0.5px;
   text-transform: uppercase;
+  text-align: center;
   vertical-align: middle;
 }
 
+/* Compact table rows */
+
 .inventory-table td {
-  padding: 15px 10px;
-  border-bottom: 1px solid #f1f5f9;
+  padding: 10px 12px;
+  border-bottom: 1px solid #edf1f5;
   color: #475569;
   font-size: 12px;
+  text-align: left;
   vertical-align: middle;
-  overflow-wrap: normal;
-  word-break: normal;
+  background: transparent;
+}
+
+/* Keep row backgrounds continuous */
+
+.inventory-table tbody tr {
+  background: #ffffff;
+  transition: background-color 0.2s ease;
 }
 
 .inventory-table tbody tr:hover {
-  background: #fbfefd;
+  background: #f0fdfa;
 }
 
-/* Supplier name */
+.inventory-table tbody tr:hover td {
+  background: transparent;
+}
+
+.inventory-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Column widths and original data alignment */
+
+/* Supplier column - kept unchanged */
+
+.inventory-table th:nth-child(1),
+.inventory-table td:nth-child(1) {
+  width: 20%;
+  text-align: left;
+}
+
+/* Contact Person */
+
+.inventory-table th:nth-child(2),
+.inventory-table td:nth-child(2) {
+  width: 13%;
+  text-align: left;
+}
+
+/* Phone */
+
+.inventory-table th:nth-child(3),
+.inventory-table td:nth-child(3) {
+  width: 12%;
+  text-align: left;
+}
+
+/* Email */
+
+.inventory-table th:nth-child(4),
+.inventory-table td:nth-child(4) {
+  width: 22%;
+  text-align: left;
+}
+
+/* City */
+
+.inventory-table th:nth-child(5),
+.inventory-table td:nth-child(5) {
+  width: 12%;
+  text-align: left;
+}
+
+/* Status */
+
+.inventory-table th:nth-child(6),
+.inventory-table td:nth-child(6) {
+  width: 9%;
+}
+
+.inventory-table td:nth-child(6) {
+  text-align: center;
+}
+
+/* Actions */
+
+.inventory-table th:nth-child(7),
+.inventory-table td:nth-child(7) {
+  width: 12%;
+}
+
+.inventory-table td:nth-child(7) {
+  text-align: center;
+}
+
+/* ==============================
+   SUPPLIER NAME
+   Original styling preserved
+============================== */
+
 .supplier-name {
   display: flex;
   align-items: center;
@@ -570,37 +554,40 @@ button {
 }
 
 .supplier-avatar {
-  width: 36px;
-  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 37px;
+  height: 37px;
   flex-shrink: 0;
   border-radius: 9px;
   background: #ccfbf1;
   color: #0f766e;
   font-size: 15px;
-  font-weight: 700;
+  font-weight: 750;
+}
+
+.supplier-info {
+  min-width: 0;
 }
 
 .supplier-name strong {
   display: block;
-  color: #334155;
+  color: #1e293b;
   font-size: 12px;
-  line-height: 1.5;
-  white-space: normal;
+  font-weight: 700;
   overflow-wrap: break-word;
-  word-break: normal;
 }
 
 .supplier-name small {
   display: block;
-  margin-top: 4px;
+  margin-top: 5px;
   color: #94a3b8;
   font-size: 10px;
 }
 
-/* Email: wrap naturally without splitting into characters */
+/* Email wrapping */
+
 .inventory-table td:nth-child(4) {
   white-space: normal;
   overflow-wrap: anywhere;
@@ -608,32 +595,34 @@ button {
   line-height: 1.5;
 }
 
-/* City: keep normal word wrapping */
-.inventory-table td:nth-child(5) {
-  white-space: normal;
-  overflow-wrap: break-word;
-  word-break: normal;
+/* ==============================
+   CLICKABLE ROWS
+============================== */
+
+.clickable-row {
+  cursor: pointer;
+  transition: background-color 0.2s ease;
 }
 
-/* Actions */
-.action-buttons {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 7px;
+.clickable-row:hover {
+  background: #f0fdfa !important;
 }
 
+.clickable-row:hover td {
+  background: transparent !important;
+}
 
 /* ==============================
-   STATUS
+   STATUS BADGES
 ============================== */
 
 .status-badge {
   display: inline-block;
-  padding: 5px 10px;
+  padding: 6px 9px;
   border-radius: 20px;
   font-size: 10px;
-  font-weight: 700;
+  font-weight: 650;
+  white-space: nowrap;
 }
 
 .status-badge.active {
@@ -647,14 +636,102 @@ button {
 }
 
 /* ==============================
-   ACTIONS
+   THREE-DOT ACTION MENU
 ============================== */
 
-.action-buttons {
+.actions-cell {
+  position: relative;
+  text-align: center;
+}
+
+.action-menu-container {
+  position: relative;
+  display: inline-flex;
+  justify-content: center;
+}
+
+.more-button {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 7px;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid #e2e8f0;
+  border-radius: 7px;
+  background: #ffffff;
+  color: #64748b;
+  font-size: 23px;
+  font-weight: 700;
+  line-height: 1;
+  transition: 0.2s ease;
+}
+
+.more-button:hover:not(:disabled) {
+  border-color: #99f6e4;
+  background: #f0fdfa;
+  color: #0f766e;
+}
+
+.more-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.action-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 30;
+  width: 175px;
+  padding: 6px;
+  border: 1px solid #e5eaf0;
+  border-radius: 9px;
+  background: #ffffff;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+  text-align: left;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 9px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #475569;
+  font-size: 12px;
+  text-align: left;
+  transition: 0.2s ease;
+}
+
+.dropdown-item:hover {
+  background: #f0fdfa;
+  color: #0f766e;
+}
+
+.dropdown-icon {
+  width: 17px;
+  text-align: center;
+  font-size: 15px;
+}
+
+.dropdown-item.danger-item {
+  color: #dc2626;
+}
+
+.dropdown-item.danger-item:hover {
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+.dropdown-item.reactivate-item {
+  color: #15803d;
+}
+
+.dropdown-item.reactivate-item:hover {
+  background: #f0fdf4;
 }
 
 /* ==============================
@@ -704,7 +781,7 @@ button {
 }
 
 /* ==============================
-   DEACTIVATION MODAL
+   MODAL OVERLAY
 ============================== */
 
 .modal-overlay {
@@ -717,6 +794,132 @@ button {
   padding: 20px;
   background: rgba(15, 23, 42, 0.45);
 }
+
+/* ==============================
+   SUPPLIER DETAILS MODAL
+============================== */
+
+.details-modal {
+  width: 100%;
+  max-width: 650px;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 25px;
+  border: 1px solid #e5eaf0;
+  border-radius: 13px;
+  background: #ffffff;
+  box-shadow: 0 15px 40px rgba(15, 23, 42, 0.15);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 15px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid #edf1f5;
+}
+
+.modal-header h2 {
+  margin: 0;
+  color: #1e293b;
+  font-size: 19px;
+}
+
+.modal-header p {
+  margin: 6px 0 0;
+  color: #94a3b8;
+  font-size: 12px;
+}
+
+.close-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid #e2e8f0;
+  border-radius: 7px;
+  background: #ffffff;
+  color: #64748b;
+  font-size: 22px;
+}
+
+.close-button:hover {
+  background: #f1f5f9;
+  color: #1e293b;
+}
+
+.supplier-details-heading {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 22px 0;
+  border-bottom: 1px solid #edf1f5;
+}
+
+.details-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  background: #ccfbf1;
+  color: #0f766e;
+  font-size: 21px;
+  font-weight: 750;
+}
+
+.supplier-details-heading h3 {
+  margin: 0 0 8px;
+  color: #1e293b;
+  font-size: 16px;
+}
+
+.details-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  padding: 23px 0;
+}
+
+.detail-item {
+  min-width: 0;
+}
+
+.detail-item.full-width {
+  grid-column: 1 / -1;
+}
+
+.detail-item label {
+  display: block;
+  margin-bottom: 7px;
+  color: #94a3b8;
+  font-size: 11px;
+  font-weight: 650;
+  text-transform: uppercase;
+}
+
+.detail-item p {
+  margin: 0;
+  color: #334155;
+  font-size: 13px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.details-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 17px;
+  border-top: 1px solid #edf1f5;
+}
+
+/* ==============================
+   DEACTIVATION MODAL
+============================== */
 
 .delete-modal {
   width: 100%;
@@ -761,6 +964,10 @@ button {
   color: #64748b;
 }
 
+.cancel-button:hover:not(:disabled) {
+  background: #f8fafc;
+}
+
 .confirm-button {
   border: 1px solid #dc2626;
   background: #dc2626;
@@ -798,16 +1005,9 @@ button {
   .summary-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-
-  /* Removed the old 950px table minimum width */
 }
 
 @media (max-width: 850px) {
-  .sidebar {
-    width: 250px;
-    min-width: 250px;
-  }
-
   .main-content {
     padding: 24px;
   }
@@ -824,22 +1024,20 @@ button {
 
   .sidebar {
     position: relative;
-    top: auto;
-    left: auto;
     width: 100%;
     min-width: 0;
     height: auto;
-    min-height: auto;
     padding: 16px;
     border-right: none;
     border-bottom: 1px solid #e5eaf0;
   }
 
   .sidebar-brand {
-    padding-bottom: 15px;
+    margin-bottom: 15px;
   }
 
   .sidebar-nav {
+    display: flex;
     flex-direction: row;
     flex-wrap: wrap;
     gap: 6px;
@@ -851,7 +1049,7 @@ button {
     font-size: 12px;
   }
 
-  .sidebar-footer {
+  .sidebar-bottom {
     display: none;
   }
 
@@ -891,6 +1089,27 @@ button {
 
   .inventory-heading {
     padding: 20px 15px 15px;
+  }
+
+  .table-wrapper {
+    overflow-x: auto;
+  }
+
+  .inventory-table {
+    min-width: 850px;
+  }
+
+  .details-modal {
+    padding: 19px;
+  }
+
+  .details-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .detail-item.full-width {
+    grid-column: auto;
   }
 
   .modal-actions {

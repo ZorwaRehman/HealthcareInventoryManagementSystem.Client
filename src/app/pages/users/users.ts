@@ -1,17 +1,17 @@
 
-import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { CommonModule, DOCUMENT } from '@angular/common';
+import {
+  ChangeDetectorRef,
+  Component,
+  OnDestroy,
+  OnInit,
+  inject
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 
-interface User {
-  id: number;
-  name: string;
-  email: string;
-  role: string;
-  status: 'Active' | 'Inactive';
-  lastLogin: string;
-}
+import { User, UserRole } from '../../models/user.models';
+import { UserService } from '../../services/user.service';
 
 @Component({
   selector: 'app-users',
@@ -20,222 +20,123 @@ interface User {
   templateUrl: './users.html',
   styleUrl: './users.css'
 })
-export class Users {
+export class Users implements OnInit, OnDestroy {
+  private userService = inject(UserService);
+  private cdr = inject(ChangeDetectorRef);
+  private document = inject(DOCUMENT);
+
+  // Users and roles loaded from the backend.
+  users: User[] = [];
+  availableRoles: UserRole[] = [];
+
+  // Search and filter.
   searchText = '';
   selectedRole = 'All Roles';
 
-  showForm = false;
-  isEditing = false;
-  selectedUserId: number | null = null;
+  // Page state.
+  isLoading = false;
+  errorMessage = '';
+  updatingUserId: number | null = null;
 
-  userForm: User = this.createEmptyUser();
+  // User details modal.
+  selectedUser: User | null = null;
+  showDetailsModal = false;
+  private previousBodyOverflow = '';
 
-  users: User[] = [
-    {
-      id: 1,
-      name: 'Admin User',
-      email: 'admin@healthcareims.com',
-      role: 'Administrator',
-      status: 'Active',
-      lastLogin: 'Apr 28, 2025 10:24 AM'
-    },
-    {
-      id: 2,
-      name: 'Dr. Sarah Johnson',
-      email: 'dr.sarah@healthcareims.com',
-      role: 'Doctor',
-      status: 'Active',
-      lastLogin: 'Apr 27, 2025 03:12 PM'
-    },
-    {
-      id: 3,
-      name: 'Nurse Emily Davis',
-      email: 'nurse.emily@healthcareims.com',
-      role: 'Nurse',
-      status: 'Active',
-      lastLogin: 'Apr 26, 2025 11:45 AM'
-    },
-    {
-      id: 4,
-      name: 'Pharmacist Michael Brown',
-      email: 'pharmacist.michael@healthcareims.com',
-      role: 'Pharmacist',
-      status: 'Active',
-      lastLogin: 'Apr 25, 2025 04:20 PM'
-    },
-    {
-      id: 5,
-      name: 'Store Manager Lisa Wilson',
-      email: 'store.lisa@healthcareims.com',
-      role: 'Store Manager',
-      status: 'Active',
-      lastLogin: 'Apr 24, 2025 09:18 AM'
-    },
-    {
-      id: 6,
-      name: 'Accountant James Taylor',
-      email: 'accountant.james@healthcareims.com',
-      role: 'Accountant',
-      status: 'Active',
-      lastLogin: 'Apr 23, 2025 02:37 PM'
-    }
-  ];
+  // Three-dot action menu.
+  openActionMenuId: number | null = null;
 
-  roles: string[] = [
-    'All Roles',
-    'Administrator',
-    'Doctor',
-    'Nurse',
-    'Pharmacist',
-    'Store Manager',
-    'Accountant'
-  ];
+  ngOnInit(): void {
+    this.loadUsers();
+    this.loadRoles();
+  }
 
-  // Search users and filter by role
+  // Load registered users from the backend.
+  loadUsers(): void {
+    this.isLoading = true;
+    this.errorMessage = '';
+
+    this.userService.getUsers().subscribe({
+      next: (response) => {
+        this.users = response;
+        this.isLoading = false;
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        console.error('Error loading users:', error);
+
+        this.errorMessage =
+          error.status === 401 || error.status === 403
+            ? 'You are not authorized to view user management.'
+            : 'Unable to load users. Please try again.';
+
+        this.isLoading = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  // Load available roles from the backend.
+  loadRoles(): void {
+    this.userService.getRoles().subscribe({
+      next: (response) => {
+        this.availableRoles = response;
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        console.error('Error loading roles:', error);
+      }
+    });
+  }
+
+  // Search users and filter by role.
   get filteredUsers(): User[] {
     const search = this.searchText.trim().toLowerCase();
 
     return this.users.filter(user => {
+      const fullName =
+        `${user.firstName} ${user.lastName}`.toLowerCase();
+
       const matchesSearch =
-        user.name.toLowerCase().includes(search) ||
+        fullName.includes(search) ||
         user.email.toLowerCase().includes(search) ||
-        user.role.toLowerCase().includes(search);
+        user.roleName.toLowerCase().includes(search);
 
       const matchesRole =
         this.selectedRole === 'All Roles' ||
-        user.role === this.selectedRole;
+        user.roleName === this.selectedRole;
 
       return matchesSearch && matchesRole;
     });
   }
 
-  // Summary card counts
+  // Summary card counts.
   get totalUsers(): number {
     return this.users.length;
   }
 
   get administrators(): number {
     return this.users.filter(
-      user => user.role === 'Administrator'
+      user => user.roleName === 'Admin'
     ).length;
   }
 
-  get doctors(): number {
+  get storeManagers(): number {
     return this.users.filter(
-      user => user.role === 'Doctor'
+      user => user.roleName === 'Store Manager'
     ).length;
   }
 
-  get otherRoles(): number {
+  get activeUsers(): number {
     return this.users.filter(
-      user => user.role !== 'Administrator'
+      user => user.isActive
     ).length;
   }
 
-  // Create an empty user
-  createEmptyUser(): User {
-    return {
-      id: 0,
-      name: '',
-      email: '',
-      role: 'Doctor',
-      status: 'Active',
-      lastLogin: 'Never'
-    };
-  }
-
-  // Open Add User form
-  openAddForm(): void {
-    this.isEditing = false;
-    this.selectedUserId = null;
-    this.userForm = this.createEmptyUser();
-    this.showForm = true;
-  }
-
-  // Open Edit User form
-  editUser(user: User): void {
-    this.isEditing = true;
-    this.selectedUserId = user.id;
-    this.userForm = { ...user };
-    this.showForm = true;
-  }
-
-  // Save a new user or update an existing user
-  saveUser(): void {
-    const name = this.userForm.name.trim();
-    const email = this.userForm.email.trim().toLowerCase();
-
-    if (!name || !email || !email.includes('@')) {
-      alert('Please enter a valid name and email address.');
-      return;
-    }
-
-    const duplicateEmail = this.users.some(user =>
-      user.email.toLowerCase() === email &&
-      user.id !== this.selectedUserId
-    );
-
-    if (duplicateEmail) {
-      alert('A user with this email address already exists.');
-      return;
-    }
-
-    if (this.isEditing && this.selectedUserId !== null) {
-      this.users = this.users.map(user =>
-        user.id === this.selectedUserId
-          ? { ...this.userForm, name, email }
-          : user
-      );
-    } else {
-      const newId =
-        Math.max(0, ...this.users.map(user => user.id)) + 1;
-
-      this.users = [
-        ...this.users,
-        {
-          ...this.userForm,
-          id: newId,
-          name,
-          email
-        }
-      ];
-    }
-
-    this.closeForm();
-  }
-
-  // Delete a user
-  deleteUser(user: User): void {
-    const confirmed = confirm(`Delete ${user.name}?`);
-
-    if (confirmed) {
-      this.users = this.users.filter(
-        item => item.id !== user.id
-      );
-    }
-  }
-
-  // View user details
-  viewUser(user: User): void {
-    alert(
-      `Name: ${user.name}\n` +
-      `Email: ${user.email}\n` +
-      `Role: ${user.role}\n` +
-      `Status: ${user.status}`
-    );
-  }
-
-  // Close the Add/Edit form
-  closeForm(): void {
-    this.showForm = false;
-    this.userForm = this.createEmptyUser();
-    this.selectedUserId = null;
-    this.isEditing = false;
-  }
-
-  // Generate initials for the user avatar
-  getInitials(name: string): string {
-    return name
+  // Generate initials for the user avatar.
+  getInitials(user: User): string {
+    return `${user.firstName} ${user.lastName}`
+      .trim()
       .split(' ')
       .filter(part => part.length > 0)
       .slice(0, 2)
@@ -243,13 +144,137 @@ export class Users {
       .join('');
   }
 
-  // Track rows by user ID
-  trackByUserId(index: number, user: User): number {
-    return user.id;
+  // Clear search and role filters.
+  clearFilters(): void {
+    this.searchText = '';
+    this.selectedRole = 'All Roles';
   }
 
-  // Demo logout button
-  logoutNotice(): void {
-    alert('Logout is a demo feature for now.');
+  // Open or close a user's three-dot action menu.
+  toggleActionMenu(userId: number, event: MouseEvent): void {
+    event.stopPropagation();
+
+    this.openActionMenuId =
+      this.openActionMenuId === userId ? null : userId;
+  }
+
+  // Close the action menu.
+  closeActionMenu(): void {
+    this.openActionMenuId = null;
+  }
+
+  // Open the user details modal and hide background scrolling.
+  viewUser(user: User): void {
+    this.closeActionMenu();
+
+    this.previousBodyOverflow = this.document.body.style.overflow;
+    this.document.body.style.overflow = 'hidden';
+
+    this.selectedUser = user;
+    this.showDetailsModal = true;
+  }
+
+  // Close the modal and restore background scrolling.
+  closeDetails(): void {
+    this.showDetailsModal = false;
+    this.selectedUser = null;
+
+    this.document.body.style.overflow = this.previousBodyOverflow;
+  }
+
+  // Restore scrolling if the component is destroyed.
+  ngOnDestroy(): void {
+    this.document.body.style.overflow = this.previousBodyOverflow;
+  }
+
+  // Assign or change a user's role.
+  assignRole(user: User, roleId: number): void {
+    if (user.roleId === Number(roleId)) {
+      return;
+    }
+
+    const selectedRole = this.availableRoles.find(
+      role => role.id === Number(roleId)
+    );
+
+    if (!selectedRole) {
+      alert('Please select a valid role.');
+      return;
+    }
+
+    const previousRoleId = user.roleId;
+    const previousRoleName = user.roleName;
+
+    const confirmed = confirm(
+      `Change ${user.firstName} ${user.lastName}'s role to ${selectedRole.name}?`
+    );
+
+    if (!confirmed) {
+      this.cdr.detectChanges();
+      return;
+    }
+
+    this.updatingUserId = user.id;
+
+    this.userService.assignRole(user.id, Number(roleId)).subscribe({
+      next: () => {
+        user.roleId = Number(roleId);
+        user.roleName = selectedRole.name;
+
+        this.updatingUserId = null;
+        this.closeActionMenu();
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        console.error('Error assigning role:', error);
+
+        user.roleId = previousRoleId;
+        user.roleName = previousRoleName;
+
+        this.updatingUserId = null;
+
+        alert('Unable to update the user role. Please try again.');
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  // Activate or deactivate a user account.
+  toggleUserStatus(user: User): void {
+    const newStatus = !user.isActive;
+    const action = newStatus ? 'activate' : 'deactivate';
+
+    const confirmed = confirm(
+      `Are you sure you want to ${action} ${user.firstName} ${user.lastName}'s account?`
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    this.updatingUserId = user.id;
+
+    this.userService.updateStatus(user.id, newStatus).subscribe({
+      next: () => {
+        user.isActive = newStatus;
+
+        this.updatingUserId = null;
+        this.closeActionMenu();
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        console.error('Error updating user status:', error);
+
+        this.updatingUserId = null;
+
+        alert('Unable to update account status. Please try again.');
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  // Track table rows by user ID.
+  trackByUserId(index: number, user: User): number {
+    return user.id;
   }
 }

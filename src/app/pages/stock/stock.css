@@ -1,14 +1,10 @@
 
-/* ==============================
-   GLOBAL LAYOUT
-============================== */
-
 :host {
   display: block;
   min-height: 100vh;
   color: #1e293b;
   background: #f5f8fc;
-  font-family: "Segoe UI", Arial, sans-serif;
+  font-family: 'Segoe UI', Arial, sans-serif;
   font-size: 14px;
 }
 
@@ -27,7 +23,7 @@ button {
 }
 
 /* ==============================
-   MAIN LAYOUT
+   GLOBAL LAYOUT
 ============================== */
 
 .hims-layout {
@@ -40,10 +36,10 @@ button {
 ============================== */
 
 .sidebar {
-  position: fixed; /* Fixed sidebar like Dashboard */
+  position: fixed;
   inset: 0 auto 0 0;
   z-index: 10;
-  width: 250px; /* Dashboard sidebar width */
+  width: 250px;
   min-width: 250px;
   height: 100vh;
   display: flex;
@@ -180,14 +176,14 @@ button {
 }
 
 /* ==============================
-   MAIN CONTENT AND HEADER
+   MAIN CONTENT
 ============================== */
 
 .main-content {
   flex: 1;
   min-width: 0;
-  width: calc(100% - 250px); /* Space for fixed sidebar */
-  margin-left: 250px; /* Start content after sidebar */
+  width: calc(100% - 250px);
+  margin-left: 250px;
   padding: 32px;
 }
 
@@ -268,7 +264,7 @@ button:disabled {
 }
 
 /* ==============================
-   SUCCESS, ERROR AND LOADING
+   MESSAGES
 ============================== */
 
 .message-box {
@@ -302,7 +298,7 @@ button:disabled {
 }
 
 /* ==============================
-   STATISTICS CARDS
+   STATISTICS
 ============================== */
 
 .stats-grid {
@@ -378,11 +374,11 @@ button:disabled {
 }
 
 /* ==============================
-   STOCK BATCHES CARD
+   INVENTORY CARD
 ============================== */
 
 .inventory-card {
-  overflow: hidden;
+  overflow: visible;
   border: 1px solid #e7edf4;
   border-radius: 12px;
   background: #fff;
@@ -491,15 +487,15 @@ button:disabled {
 
 .table-wrapper {
   width: 100%;
-  overflow-x: hidden; /* Removed horizontal scrollbar */
+  overflow: visible;
 }
 
 .inventory-table {
   width: 100%;
-  table-layout: fixed; /* Distributes columns within available width */
+  table-layout: fixed;
   border-collapse: collapse;
   text-align: left;
-  white-space: normal; /* Allows text to wrap */
+  white-space: normal;
 }
 
 .inventory-table thead {
@@ -534,11 +530,72 @@ button:disabled {
   border-bottom: none;
 }
 
-.item-name-cell {
+/* Batch Number - original layout */
+.inventory-table th:nth-child(1),
+.inventory-table td:nth-child(1) {
+  width: 18%;
+  text-align: left;
+  white-space: nowrap;
+  padding: 14px 18px;
+}
+
+/* Inventory Item - original layout */
+.inventory-table th:nth-child(2),
+.inventory-table td:nth-child(2) {
+  width: 18%;
+  text-align: left;
+  padding: 14px 18px;
+}
+
+/* Supplier - original layout */
+.inventory-table th:nth-child(3),
+.inventory-table td:nth-child(3) {
+  width: 15%;
+  text-align: left;
+  padding: 14px 18px;
+}
+
+/* Remaining four columns share the remaining 49% */
+.inventory-table th:nth-child(4),
+.inventory-table td:nth-child(4),
+.inventory-table th:nth-child(5),
+.inventory-table td:nth-child(5),
+.inventory-table th:nth-child(6),
+.inventory-table td:nth-child(6),
+.inventory-table th:nth-child(7),
+.inventory-table td:nth-child(7) {
+  width: 12.25%;
+  padding: 14px 8px;
+  text-align: center;
+  vertical-align: middle;
+}
+
+/* Preserve original Inventory Item content layout */
+.inventory-table .item-name-cell {
   display: flex;
   align-items: center;
   gap: 8px;
   min-width: 0;
+  white-space: nowrap;
+}
+
+.inventory-table .item-name-cell strong {
+  display: block;
+  max-width: 100%;
+  color: #1e293b;
+  font-size: 11px;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.inventory-table .item-name-cell small {
+  display: block;
+  margin-top: 5px;
+  color: #94a3b8;
+  font-size: 9px;
+  white-space: nowrap;
 }
 
 .item-avatar {
@@ -553,21 +610,6 @@ button:disabled {
   color: #0f766e;
   font-size: 15px;
   font-weight: 750;
-}
-
-.item-name-cell strong {
-  display: block;
-  color: #1e293b;
-  font-size: 11px;
-  font-weight: 700;
-  overflow-wrap: anywhere;
-}
-
-.item-name-cell small {
-  display: block;
-  margin-top: 5px;
-  color: #94a3b8;
-  font-size: 9px;
 }
 
 .category-badge {
@@ -587,30 +629,112 @@ button:disabled {
   font-size: 10px;
 }
 
-/* View Stock Transactions Button */
-.btn-view-transactions {
-  width: 100%;
-  max-width: 125px;
-  padding: 8px 6px;
-  background: #e8f7f5;
-  color: #0f766e;
-  border: 1px solid #b7e4df;
-  border-radius: 6px;
-  font-size: 10px;
-  font-weight: 600;
+/* ==============================
+   ACTIONS DROPDOWN
+============================== */
+
+.actions-cell {
+  position: relative;
+  text-align: center;
+  overflow: visible !important;
+}
+
+.action-menu-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+}
+
+.action-menu-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 1px solid #e2e8f0;
+  border-radius: 7px;
+  background: #fff;
+  color: #475569;
   cursor: pointer;
-  white-space: normal;
   transition: 0.2s ease;
 }
 
-.btn-view-transactions:hover {
-  background: #0f9488;
-  color: #ffffff;
-  border-color: #0f9488;
+.action-menu-trigger span {
+  font-size: 23px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.action-menu-trigger:hover:not(:disabled) {
+  border-color: #99f6e4;
+  background: #ccfbf1;
+  color: #0f766e;
+}
+
+.action-menu-trigger:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.action-dropdown {
+  position: absolute;
+  top: calc(100% + 2px);
+  right: 0;
+  z-index: 100;
+  width: 190px;
+  padding: 5px;
+  border: 1px solid #e2e8f0;
+  border-radius: 9px;
+  background: #fff;
+  box-shadow: 0 8px 22px rgb(15 23 42 / 12%);
+}
+
+.dropdown-action {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 11px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #475569;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.dropdown-action:hover:not(:disabled) {
+  background: #f1f5f9;
+}
+
+.dropdown-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  flex-shrink: 0;
+  font-size: 15px;
+}
+
+.edit-action:hover:not(:disabled),
+.view-action:hover:not(:disabled) {
+  background: #ccfbf1;
+  color: #0f766e;
+}
+
+.dropdown-action:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
 }
 
 /* ==============================
-   EMPTY STATE AND FOOTER
+   EMPTY STATE
 ============================== */
 
 .empty-state {
@@ -637,6 +761,10 @@ button:disabled {
   font-size: 12px;
 }
 
+/* ==============================
+   FOOTER
+============================== */
+
 .table-footer {
   display: flex;
   align-items: center;
@@ -656,6 +784,208 @@ button:disabled {
 }
 
 /* ==============================
+   EDIT BATCH NUMBER MODAL
+============================== */
+
+.stock-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgb(15 23 42 / 50%);
+  backdrop-filter: blur(3px);
+}
+
+.stock-modal {
+  width: 100%;
+  max-width: 480px;
+  max-height: 90vh;
+  overflow-y: auto;
+  border: 1px solid #e7edf4;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 20px 50px rgb(15 23 42 / 20%);
+  animation: stock-modal-appear 0.2s ease;
+}
+
+@keyframes stock-modal-appear {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.97);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.stock-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 15px;
+  padding: 24px;
+  border-bottom: 1px solid #edf1f5;
+}
+
+.stock-modal-header h2 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 20px;
+  font-weight: 750;
+}
+
+.stock-modal-header p {
+  margin: 7px 0 0;
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.stock-modal-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border: 1px solid #dbe3ec;
+  border-radius: 7px;
+  background: #fff;
+  color: #64748b;
+  font-size: 22px;
+  line-height: 1;
+  transition: 0.2s ease;
+}
+
+.stock-modal-close:hover:not(:disabled) {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.stock-modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 17px;
+  padding: 24px;
+}
+
+.modal-batch-info {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 12px;
+  border: 1px solid #edf1f5;
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.modal-batch-info span {
+  color: #94a3b8;
+  font-size: 11px;
+}
+
+.modal-batch-info strong {
+  color: #334155;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.stock-modal .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.stock-modal .form-group label {
+  color: #334155;
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.batch-number-input {
+  width: 100%;
+  height: 43px;
+  padding: 0 12px;
+  border: 1px solid #dbe3ec;
+  border-radius: 7px;
+  outline: none;
+  background: #fff;
+  color: #334155;
+  font-size: 13px;
+  transition: 0.2s ease;
+}
+
+.batch-number-input:focus {
+  border-color: #0f9488;
+  box-shadow: 0 0 0 3px rgb(15 148 136 / 10%);
+}
+
+.batch-number-input:disabled {
+  background: #f1f5f9;
+  cursor: not-allowed;
+}
+
+.stock-modal .form-group small {
+  color: #94a3b8;
+  font-size: 10px;
+}
+
+.stock-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 18px 24px 24px;
+  border-top: 1px solid #edf1f5;
+}
+
+.btn-modal-cancel,
+.btn-modal-save {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 115px;
+  min-height: 40px;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 650;
+  transition: 0.2s ease;
+}
+
+.btn-modal-cancel {
+  border: 1px solid #dbe3ec;
+  background: #fff;
+  color: #475569;
+}
+
+.btn-modal-cancel:hover:not(:disabled) {
+  border-color: #0f9488;
+  color: #0f766e;
+}
+
+.btn-modal-save {
+  border: 1px solid #0f9488;
+  background: #0f9488;
+  color: #fff;
+}
+
+.btn-modal-save:hover:not(:disabled) {
+  border-color: #0f766e;
+  background: #0f766e;
+}
+
+.btn-modal-cancel:disabled,
+.btn-modal-save:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+/* ==============================
    RESPONSIVE DESIGN
 ============================== */
 
@@ -669,7 +999,6 @@ button:disabled {
   }
 }
 
-/* Keep sidebar fixed on medium screens */
 @media (max-width: 850px) {
   .sidebar {
     width: 220px;
@@ -688,7 +1017,6 @@ button:disabled {
   }
 }
 
-/* Stack sidebar above content on small screens */
 @media (max-width: 600px) {
   .hims-layout {
     flex-direction: column;
@@ -780,29 +1108,31 @@ button:disabled {
     width: 100%;
   }
 
+  .table-wrapper {
+    overflow-x: auto;
+  }
+
+  .inventory-table {
+    min-width: 850px;
+  }
+
   .table-footer {
     align-items: flex-start;
     flex-direction: column;
     padding: 15px 18px;
   }
-}
 
-/* View Stock Transactions Button */
-.btn-view-transactions {
-  padding: 8px 12px;
-  background: #e8f7f5;
-  color: #0f766e;
-  border: 1px solid #b7e4df;
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: 0.2s ease;
-}
+  .stock-modal-header,
+  .stock-modal-body {
+    padding: 18px;
+  }
 
-.btn-view-transactions:hover {
-  background: #0f9488;
-  color: #ffffff;
-  border-color: #0f9488;
+  .stock-modal-footer {
+    flex-direction: column-reverse;
+    padding: 16px 18px 18px;
+  }
+
+  .stock-modal-footer button {
+    width: 100%;
+  }
 }

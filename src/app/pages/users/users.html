@@ -1,20 +1,21 @@
+
 <div class="users-layout">
+
   <!-- Sidebar -->
   <aside class="sidebar">
+
     <div class="brand">
-      <span class="brand-icon">+</span>
-      <span class="brand-name">HealthCare <strong>IMS</strong></span>
+      <div class="brand-icon">
+        <span>+</span>
+      </div>
+      <span class="brand-name">HealthCare IMS</span>
     </div>
 
-    <!-- <p class="nav-heading">MAIN MENU</p> -->
     <div class="sidebar-section">MAIN MENU</div>
+
     <nav class="sidebar-nav">
-      <a
-        routerLink="/dashboard"
-        routerLinkActive="active"
-        [routerLinkActiveOptions]="{ exact: true }"
-        class="nav-link"
-      >
+
+      <a routerLink="/dashboard" routerLinkActive="active" class="nav-link">
         <span class="nav-icon">▦</span>
         <span>Dashboard</span>
       </a>
@@ -24,347 +25,495 @@
         <span>Inventory Items</span>
       </a>
 
-      <!-- New Stock Management menu -->
       <a routerLink="/stock" routerLinkActive="active" class="nav-link">
         <span class="nav-icon">▣</span>
         <span>Stock Management</span>
       </a>
 
-      <!-- Supplier Management -->
       <a routerLink="/suppliers" routerLinkActive="active" class="nav-link">
         <span class="nav-icon">♧</span>
-        Supplier Management
+        <span>Supplier Management</span>
       </a>
 
-        <a
-        routerLink="/purchase-orders"
-        routerLinkActive="active"
-        class="nav-link"
-      >
-        <span class="nav-icon">▤</span> Purchase Orders
+      <!-- Purchase Orders -->
+      <a routerLink="/purchase-orders" routerLinkActive="active" class="nav-link">
+        <span class="nav-icon">▤</span>
+        <span>Purchase Orders</span>
       </a>
 
-      <a
-        routerLink="/goods-received"
-        routerLinkActive="active"
-        class="nav-link"
-      >
-        <span class="nav-icon">▣</span> Goods Received
+      <!-- Goods Received -->
+      <a routerLink="/goods-received" routerLinkActive="active" class="nav-link">
+        <span class="nav-icon">▣</span>
+        <span>Goods Received</span>
       </a>
 
       <a routerLink="/users" routerLinkActive="active" class="nav-link">
         <span class="nav-icon">♙</span>
         <span>User Management</span>
       </a>
+
     </nav>
 
     <div class="sidebar-bottom">
+
       <div class="admin-profile">
-        <div class="avatar">A</div>
-        <div>
-          <strong>Administrator</strong>
-          <small>System Admin</small>
+        <div class="admin-avatar">A</div>
+
+        <div class="admin-info">
+          <strong>Admin User</strong>
+          <span>System Admin</span>
         </div>
       </div>
 
+      <!-- Logout -->
       <a routerLink="/login" class="nav-link logout-link">
-        <span class="nav-icon">↪</span> Logout
+        <span class="nav-icon">↪</span>
+        <span>Logout</span>
       </a>
+
     </div>
   </aside>
 
   <!-- Main Content -->
   <main class="main-content">
-    <!-- Header -->
+
+    <!-- Top Header -->
     <header class="topbar">
-      <div>
-        <div class="breadcrumb">Workspace / User Management</div>
+
+      <div class="header-left">
+        <div class="breadcrumb">
+          Home / <span>User Management</span>
+        </div>
         <h1>User Management</h1>
       </div>
 
-      <div class="system-status">
-        <span class="status-dot"></span>
-        <span>System overview</span>
-        <div class="top-avatar">AD</div>
+      <div class="header-right">
+        <div class="system-status">
+          <span class="status-dot"></span>
+          System Online
+        </div>
+
+        <div class="top-avatar">A</div>
       </div>
+
     </header>
 
+    <!-- Page Content -->
     <section class="page-content">
-      <!-- Summary Cards -->
-      <div class="summary-grid">
-        <article class="summary-card">
-          <div class="summary-icon teal-icon">♙</div>
-          <div>
-            <p>Total Users</p>
-            <h2>{{ totalUsers }}</h2>
-            <span>Registered users</span>
-          </div>
-        </article>
 
-        <article class="summary-card">
-          <div class="summary-icon blue-icon">♙</div>
-          <div>
-            <p>Administrators</p>
-            <h2>{{ administrators }}</h2>
-            <span>System administrators</span>
-          </div>
-        </article>
-
-        <article class="summary-card">
-          <div class="summary-icon purple-icon">⚕</div>
-          <div>
-            <p>Doctors</p>
-            <h2>{{ doctors }}</h2>
-            <span>Medical staff</span>
-          </div>
-        </article>
-
-        <article class="summary-card">
-          <div class="summary-icon orange-icon">♙</div>
-          <div>
-            <p>Other Roles</p>
-            <h2>{{ otherRoles }}</h2>
-            <span>Team members excluding administrators</span>
-          </div>
-        </article>
+      <div class="page-intro">
+        <div>
+          <h2>Manage Users</h2>
+          <p>View registered users and manage their roles and account status.</p>
+        </div>
       </div>
 
-      <!-- Search, Role Filter and Add User -->
+      <!-- Summary Cards -->
+      <div class="summary-grid">
+
+        <div class="summary-card">
+          <div class="summary-icon total-icon">
+            <span>♙</span>
+          </div>
+          <div class="summary-info">
+            <span>Total Users</span>
+            <strong>{{ totalUsers }}</strong>
+          </div>
+        </div>
+
+        <div class="summary-card">
+          <div class="summary-icon admin-icon">
+            <span>♛</span>
+          </div>
+          <div class="summary-info">
+            <span>Administrators</span>
+            <strong>{{ administrators }}</strong>
+          </div>
+        </div>
+
+        <div class="summary-card">
+          <div class="summary-icon manager-icon">
+            <span>♧</span>
+          </div>
+          <div class="summary-info">
+            <span>Store Managers</span>
+            <strong>{{ storeManagers }}</strong>
+          </div>
+        </div>
+
+        <div class="summary-card">
+          <div class="summary-icon active-icon">
+            <span>✓</span>
+          </div>
+          <div class="summary-info">
+            <span>Active Users</span>
+            <strong>{{ activeUsers }}</strong>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Search and Filter -->
       <div class="toolbar">
+
         <div class="search-filter-panel">
+
           <div class="search-box">
             <span class="search-icon">⌕</span>
 
             <input
               type="text"
-              [(ngModel)]="searchText"
-              placeholder="Search users by name, email or role..."
-              aria-label="Search users"
-            />
+              placeholder="Search by name, email or role..."
+              [(ngModel)]="searchText">
           </div>
 
           <div class="filter-box">
-            <span>▽</span>
+            <select [(ngModel)]="selectedRole">
+              <option value="All Roles">All Roles</option>
 
-            <select [(ngModel)]="selectedRole" aria-label="Filter users by role">
-              <option *ngFor="let role of roles" [value]="role">
-                {{ role }}
+              <option
+                *ngFor="let role of availableRoles"
+                [value]="role.name">
+                {{ role.name }}
               </option>
             </select>
           </div>
-        </div>
 
-        <button type="button" class="add-button" (click)="openAddForm()">
-          <span>＋</span>
-          Add User
-        </button>
+          <button
+            type="button"
+            class="clear-button"
+            (click)="clearFilters()">
+            Clear
+          </button>
+
+        </div>
       </div>
 
-      <!-- Add / Edit User Form -->
-      <section class="form-panel" *ngIf="showForm">
-        <div class="form-heading">
+      <!-- Users Table -->
+      <div class="table-panel">
+
+        <div class="table-heading">
           <div>
-            <h2>{{ isEditing ? 'Edit User' : 'Add New User' }}</h2>
-            <p>Enter the user details below.</p>
+            <h3>Registered Users</h3>
+            <p>Users registered in the healthcare inventory system</p>
           </div>
 
-          <button type="button" class="close-button" (click)="closeForm()" aria-label="Close form">
-            ×
-          </button>
+          <span class="record-count">
+            {{ filteredUsers.length }} users
+          </span>
         </div>
 
-        <form #userFormElement="ngForm" (ngSubmit)="saveUser()">
-          <div class="form-grid">
-            <div class="form-field">
-              <label for="userName">Full Name</label>
+        <!-- Loading -->
+        <div class="state-message" *ngIf="isLoading">
+          <div class="loading-spinner"></div>
+          <span>Loading users...</span>
+        </div>
 
-              <input
-                id="userName"
-                name="name"
-                type="text"
-                [(ngModel)]="userForm.name"
-                placeholder="Enter full name"
-                required
-              />
-            </div>
+        <!-- Error -->
+        <div
+          class="state-message error-message"
+          *ngIf="!isLoading && errorMessage">
 
-            <div class="form-field">
-              <label for="userEmail">Email Address</label>
+          <span>{{ errorMessage }}</span>
+          <button type="button" (click)="loadUsers()">Retry</button>
+        </div>
 
-              <input
-                id="userEmail"
-                name="email"
-                type="email"
-                [(ngModel)]="userForm.email"
-                placeholder="name@example.com"
-                required
-                email
-              />
-            </div>
+        <!-- Table -->
+        <div
+          class="table-responsive"
+          *ngIf="!isLoading && !errorMessage">
 
-            <div class="form-field">
-              <label for="userRole">Role</label>
-
-              <select id="userRole" name="role" [(ngModel)]="userForm.role" required>
-                <option *ngFor="let role of roles.slice(1)" [value]="role">
-                  {{ role }}
-                </option>
-              </select>
-            </div>
-
-            <div class="form-field">
-              <label for="userStatus">Status</label>
-
-              <select id="userStatus" name="status" [(ngModel)]="userForm.status" required>
-                <option value="Active">Active</option>
-                <option value="Inactive">Inactive</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="form-actions">
-            <button type="button" class="cancel-button" (click)="closeForm()">Cancel</button>
-
-            <button type="submit" class="add-button" [disabled]="userFormElement.invalid">
-              {{ isEditing ? 'Save Changes' : 'Add User' }}
-            </button>
-          </div>
-        </form>
-      </section>
-
-      <!-- Users Table -->
-      <section class="table-panel">
-        <div class="table-responsive">
           <table>
+
             <thead>
               <tr>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Role</th>
-                <th>Status</th>
-                <th>Last Login</th>
-                <th class="actions-heading">Actions</th>
+                <th class="name-column">NAME</th>
+                <th class="email-column">EMAIL ADDRESS</th>
+                <th class="role-column">ROLE</th>
+                <th class="status-column">STATUS</th>
+                <th class="date-column">REGISTERED DATE</th>
+                <th class="actions-column">ACTIONS</th>
               </tr>
             </thead>
 
             <tbody>
-              <tr *ngFor="let user of filteredUsers; trackBy: trackByUserId">
-                <!-- User Name -->
-                <td>
-                  <div class="user-name-cell">
-                    <div class="user-avatar" [ngClass]="'avatar-' + ((user.id - 1) % 6)">
-                      {{ getInitials(user.name) }}
+
+              <tr
+                *ngFor="let user of filteredUsers; trackBy: trackByUserId"
+                class="user-row"
+                [class.menu-open]="openActionMenuId === user.id"
+                tabindex="0"
+                (click)="viewUser(user)"
+                (keydown.enter)="viewUser(user)">
+
+                <td class="name-cell">
+                  <div class="user-name-wrapper">
+
+                    <div class="user-avatar">
+                      {{ getInitials(user) }}
                     </div>
 
-                    <div class="user-details">
-                      <strong>{{ user.name }}</strong>
-                      <span>{{ user.email }}</span>
+                    <div class="user-name-info">
+                      <strong>
+                        {{ user.firstName }} {{ user.lastName }}
+                      </strong>
+                      <span>User ID: {{ user.id }}</span>
                     </div>
+
                   </div>
                 </td>
 
-                <!-- Email -->
                 <td class="email-cell">
                   {{ user.email }}
                 </td>
 
-                <!-- Role -->
                 <td>
                   <span
                     class="role-badge"
-                    [ngClass]="'role-' + user.role.toLowerCase().replace(' ', '-')"
-                  >
-                    {{ user.role }}
+                    [ngClass]="{
+                      'admin-role': user.roleName === 'Admin',
+                      'manager-role': user.roleName === 'Store Manager',
+                      'user-role': user.roleName === 'User'
+                    }">
+                    {{ user.roleName }}
                   </span>
                 </td>
 
-                <!-- Status -->
                 <td>
                   <span
                     class="status-badge"
-                    [ngClass]="user.status === 'Active' ? 'active-status' : 'inactive-status'"
-                  >
-                    <span class="status-dot"></span>
-                    {{ user.status }}
+                    [ngClass]="user.isActive ? 'active-status' : 'inactive-status'">
+
+                    <span class="status-indicator"></span>
+                    {{ user.isActive ? 'Active' : 'Inactive' }}
+
                   </span>
                 </td>
 
-                <!-- Last Login -->
-                <td class="last-login">
-                  {{ user.lastLogin }}
+                <td class="date-cell">
+                  {{ user.createdAt | date:'dd MMM yyyy' }}
                 </td>
 
                 <!-- Actions -->
-                <td>
-                  <div class="action-buttons">
-                    <button
-                      type="button"
-                      class="action-button view-button"
-                      title="View user"
-                      aria-label="View user"
-                      (click)="viewUser(user)"
-                    >
-                      ◎
-                    </button>
+                <td class="actions-cell">
+
+                  <div
+                    class="action-menu-wrapper"
+                    (click)="$event.stopPropagation()">
 
                     <button
                       type="button"
-                      class="action-button edit-button"
-                      title="Edit user"
-                      aria-label="Edit user"
-                      (click)="editUser(user)"
-                    >
-                      ✎
+                      class="action-menu-trigger"
+                      aria-label="Open user actions"
+                      title="More actions"
+                      [disabled]="updatingUserId === user.id"
+                      [attr.aria-expanded]="openActionMenuId === user.id"
+                      (click)="toggleActionMenu(user.id, $event)">
+                      ⋮
                     </button>
 
-                    <button
-                      type="button"
-                      class="action-button delete-button"
-                      title="Delete user"
-                      aria-label="Delete user"
-                      (click)="deleteUser(user)"
-                    >
-                      ♲
-                    </button>
+                    @if (openActionMenuId === user.id) {
+                      <div class="action-dropdown">
+
+                        <button
+                          type="button"
+                          class="dropdown-item"
+                          (click)="viewUser(user)">
+                          <span class="dropdown-icon">◎</span>
+                          View Details
+                        </button>
+
+                        <div class="dropdown-role-section">
+
+                          <label [for]="'role-' + user.id">
+                            Change Role
+                          </label>
+
+                          <select
+                            [id]="'role-' + user.id"
+                            class="dropdown-role-select"
+                            [ngModel]="user.roleId"
+                            (ngModelChange)="assignRole(user, $event)"
+                            (click)="$event.stopPropagation()"
+                            [disabled]="updatingUserId === user.id">
+
+                            <option
+                              *ngFor="let role of availableRoles"
+                              [ngValue]="role.id">
+                              {{ role.name }}
+                            </option>
+
+                          </select>
+
+                        </div>
+
+                        <div class="dropdown-divider"></div>
+
+                        <button
+                          type="button"
+                          class="dropdown-item"
+                          [ngClass]="user.isActive ? 'danger-item' : 'activate-item'"
+                          [disabled]="updatingUserId === user.id"
+                          (click)="toggleUserStatus(user)">
+
+                          <span class="dropdown-icon">
+                            {{ user.isActive ? '⊘' : '✓' }}
+                          </span>
+
+                          {{ user.isActive ? 'Deactivate User' : 'Activate User' }}
+
+                        </button>
+
+                      </div>
+                    }
+
                   </div>
                 </td>
+
               </tr>
 
-              <!-- Empty Search Results -->
+              <!-- Empty State -->
               <tr *ngIf="filteredUsers.length === 0">
                 <td colspan="6" class="empty-state">
-                  <div class="empty-icon">⌕</div>
-                  <strong>No users found</strong>
 
-                  <p>Try another search or role filter.</p>
+                  <div class="empty-icon">♙</div>
+                  <strong>No users found</strong>
+                  <span>Try changing your search or filter criteria.</span>
+
                 </td>
               </tr>
+
             </tbody>
           </table>
         </div>
 
-        <!-- Table Footer -->
-        <div class="table-footer">
-          <span>
-            Showing {{ filteredUsers.length ? 1 : 0 }} to {{ filteredUsers.length }} of
-            {{ filteredUsers.length }} users
-          </span>
+        <div
+          class="table-footer"
+          *ngIf="!isLoading && !errorMessage">
 
-          <div class="pagination">
-            <button type="button" disabled aria-label="Previous page">‹</button>
+          Showing {{ filteredUsers.length }} of
+          {{ totalUsers }} registered users
 
-            <button type="button" class="current-page" aria-current="page">1</button>
-
-            <button type="button" disabled aria-label="Next page">›</button>
-          </div>
         </div>
-      </section>
 
-      <!-- Footer -->
-      <footer class="page-footer">
-        <span>© 2026 HealthCare IMS</span>
-        <span>Healthcare Inventory Management System</span>
-      </footer>
+      </div>
     </section>
   </main>
+</div>
+
+<!-- User Details Modal -->
+<div
+  class="modal-overlay"
+  *ngIf="showDetailsModal && selectedUser as user"
+  (click)="closeDetails()">
+
+  <div
+    class="details-modal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="user-details-title"
+    (click)="$event.stopPropagation()">
+
+    <div class="modal-header">
+
+      <div>
+        <span class="modal-eyebrow">USER INFORMATION</span>
+        <h2 id="user-details-title">User Details</h2>
+      </div>
+
+      <button
+        type="button"
+        class="modal-close"
+        aria-label="Close modal"
+        (click)="closeDetails()">
+        ×
+      </button>
+
+    </div>
+
+    <div class="modal-user-profile">
+
+      <div class="modal-avatar">
+        {{ getInitials(user) }}
+      </div>
+
+      <div>
+        <h3>{{ user.firstName }} {{ user.lastName }}</h3>
+        <p>{{ user.email }}</p>
+      </div>
+
+    </div>
+
+    <div class="details-grid">
+
+      <div class="detail-item">
+        <span>User ID</span>
+        <strong>{{ user.id }}</strong>
+      </div>
+
+      <div class="detail-item">
+        <span>Account Status</span>
+        <strong>
+          <span
+            class="status-badge"
+            [ngClass]="user.isActive ? 'active-status' : 'inactive-status'">
+
+            <span class="status-indicator"></span>
+            {{ user.isActive ? 'Active' : 'Inactive' }}
+
+          </span>
+        </strong>
+      </div>
+
+      <div class="detail-item">
+        <span>First Name</span>
+        <strong>{{ user.firstName }}</strong>
+      </div>
+
+      <div class="detail-item">
+        <span>Last Name</span>
+        <strong>{{ user.lastName }}</strong>
+      </div>
+
+      <div class="detail-item full-width">
+        <span>Email Address</span>
+        <strong>{{ user.email }}</strong>
+      </div>
+
+      <div class="detail-item">
+        <span>Assigned Role</span>
+        <strong>{{ user.roleName }}</strong>
+      </div>
+
+      <div class="detail-item">
+        <span>Role ID</span>
+        <strong>{{ user.roleId }}</strong>
+      </div>
+
+      <div class="detail-item">
+        <span>Registered Date</span>
+        <strong>
+          {{ user.createdAt | date:'dd MMM yyyy, hh:mm a' }}
+        </strong>
+      </div>
+
+      <div class="detail-item">
+        <span>Last Updated</span>
+        <strong>
+          {{ user.updatedAt ? (user.updatedAt | date:'dd MMM yyyy, hh:mm a') : 'Not updated' }}
+        </strong>
+      </div>
+
+    </div>
+
+    <div class="modal-footer">
+      <button
+        type="button"
+        class="modal-done-button"
+        (click)="closeDetails()">
+        Close
+      </button>
+    </div>
+
+  </div>
 </div>

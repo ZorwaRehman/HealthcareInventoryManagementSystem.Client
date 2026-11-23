@@ -1,3 +1,4 @@
+
 <div class="hims-layout">
   <!-- Sidebar -->
   <aside class="sidebar">
@@ -26,7 +27,6 @@
         <span class="nav-icon">▣</span> Stock Management
       </a>
 
-      <!-- Supplier Management -->
       <a routerLink="/suppliers" routerLinkActive="active" class="nav-link">
         <span class="nav-icon">♧</span>
         Supplier Management
@@ -67,7 +67,9 @@
       <div>
         <p class="breadcrumb">Dashboard / Inventory</p>
         <h1>Inventory Items</h1>
-        <p class="page-description">Manage healthcare item details and reorder settings.</p>
+        <p class="page-description">
+          Manage healthcare item details and reorder settings.
+        </p>
       </div>
 
       <button type="button" class="btn-primary" (click)="openAddForm()">
@@ -84,7 +86,9 @@
 
     <!-- Loading Indicator -->
     @if (isLoading) {
-      <div class="message-box" role="status" aria-live="polite">Loading inventory...</div>
+      <div class="message-box" role="status" aria-live="polite">
+        Loading inventory...
+      </div>
     }
 
     <!-- Statistics -->
@@ -120,7 +124,7 @@
         <div class="stat-icon value-icon">₨</div>
         <div>
           <p>Inventory Value</p>
-          <h2>₨ {{ totalValue | number: '1.2-2' }}</h2>
+          <h2>{{ formatPrice(totalValue) }}</h2>
           <small>Based on current stock batches</small>
         </div>
       </div>
@@ -131,10 +135,12 @@
       <div class="inventory-heading">
         <div>
           <h2>All Inventory Items</h2>
-          <p>View, search, edit, or remove item records.</p>
+          <p>Click an item row to view its details.</p>
         </div>
 
-        <span class="record-count"> {{ filteredItems.length }} records </span>
+        <span class="record-count">
+          {{ filteredItems.length }} records
+        </span>
       </div>
 
       <!-- Search and Filters -->
@@ -161,7 +167,9 @@
           }
         </select>
 
-        <button type="button" class="btn-secondary" (click)="clearFilters()">Clear</button>
+        <button type="button" class="btn-secondary" (click)="clearFilters()">
+          Clear
+        </button>
       </div>
 
       <!-- Inventory Table -->
@@ -169,7 +177,7 @@
         <table class="inventory-table">
           <thead>
             <tr>
-              <th>ITEM</th>
+              <th>INVENTORY ITEMS</th>
               <th>CATEGORY</th>
               <th>SKU</th>
               <th>UNIT</th>
@@ -181,7 +189,11 @@
 
           <tbody>
             @for (item of filteredItems; track item.id) {
-              <tr>
+              <tr
+                class="clickable-row"
+                (click)="viewItemDetails(item)"
+                title="Click to view item details"
+              >
                 <td>
                   <div class="item-name-cell">
                     @if (item.imageUrl) {
@@ -223,28 +235,47 @@
                   }
                 </td>
 
-                <td>
-                  <div class="action-buttons">
+                <!-- Three-dot Actions Dropdown -->
+                <td class="actions-cell">
+                  <div
+                    class="action-menu-wrapper"
+                    (mouseenter)="showActionMenu(item.id)"
+                    (mouseleave)="hideActionMenu()"
+                    (click)="$event.stopPropagation()"
+                  >
                     <button
                       type="button"
-                      class="action-button edit-button"
-                      title="Edit item"
-                      aria-label="Edit item"
-                      (click)="editItem(item)"
-                    >
-                      ✎
-                    </button>
-
-                    <button
-                      type="button"
-                      class="action-button delete-button"
-                      title="Delete item"
-                      aria-label="Delete item"
-                      (click)="confirmDelete(item.id)"
+                      class="action-menu-trigger"
+                      title="Actions"
+                      aria-label="Item actions"
+                      [attr.aria-expanded]="openActionMenuId === item.id"
                       [disabled]="isLoading"
                     >
-                      🗑
+                      <span>⋮</span>
                     </button>
+
+                    @if (openActionMenuId === item.id) {
+                      <div class="action-dropdown">
+                        <button
+                          type="button"
+                          class="dropdown-action edit-action"
+                          (click)="editItem(item)"
+                        >
+                          <span class="dropdown-icon">✎</span>
+                          Edit
+                        </button>
+
+                        <button
+                          type="button"
+                          class="dropdown-action delete-action"
+                          (click)="confirmDelete(item.id)"
+                          [disabled]="isLoading"
+                        >
+                          <span class="dropdown-icon">🗑</span>
+                          Delete
+                        </button>
+                      </div>
+                    }
                   </div>
                 </td>
               </tr>
@@ -257,7 +288,11 @@
                   <h3>No inventory items found</h3>
                   <p>Try changing your search or category filter.</p>
 
-                  <button type="button" class="btn-secondary" (click)="clearFilters()">
+                  <button
+                    type="button"
+                    class="btn-secondary"
+                    (click)="clearFilters()"
+                  >
                     Clear Filters
                   </button>
                 </td>
@@ -269,7 +304,9 @@
 
       <!-- Table Footer -->
       <div class="table-footer">
-        <span> Showing {{ filteredItems.length }} of {{ items.length }} items </span>
+        <span>
+          Showing {{ filteredItems.length }} of {{ items.length }} items
+        </span>
         <span>Healthcare Inventory Management System</span>
       </div>
     </section>
@@ -278,6 +315,109 @@
       <p>© 2026 HIMS · Healthcare Inventory Management System</p>
     </footer>
   </main>
+
+  <!-- Item Details Modal -->
+  @if (selectedItem) {
+    <div class="modal-overlay" (click)="closeItemDetails()">
+      <div
+        class="details-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="details-modal-title"
+        (click)="$event.stopPropagation()"
+      >
+        <div class="details-modal-header">
+          <div>
+            <p class="details-subtitle">INVENTORY ITEM</p>
+            <h2 id="details-modal-title">Item Details</h2>
+          </div>
+
+          <button
+            type="button"
+            class="close-button"
+            aria-label="Close item details"
+            (click)="closeItemDetails()"
+          >
+            ×
+          </button>
+        </div>
+
+        <!-- Item Image and Name -->
+        <div class="details-item-heading">
+          @if (selectedItem.imageUrl) {
+            <img
+              class="details-item-image"
+              [src]="
+                selectedItem.imageUrl.startsWith('http')
+                  ? selectedItem.imageUrl
+                  : 'https://localhost:44347' + selectedItem.imageUrl
+              "
+              [alt]="selectedItem.name"
+            />
+          } @else {
+            <div class="details-item-placeholder">
+              {{ selectedItem.name.charAt(0).toUpperCase() }}
+            </div>
+          }
+
+          <div>
+            <h3>{{ selectedItem.name }}</h3>
+            <small>Item ID: {{ selectedItem.id }}</small>
+          </div>
+        </div>
+
+        <!-- Item Information -->
+        <div class="details-grid">
+          <div class="details-field">
+            <span>Category</span>
+            <strong>{{ selectedItem.category }}</strong>
+          </div>
+
+          <div class="details-field">
+            <span>SKU</span>
+            <strong>{{ selectedItem.sku }}</strong>
+          </div>
+
+          <div class="details-field">
+            <span>Unit</span>
+            <strong>{{ selectedItem.unit }}</strong>
+          </div>
+
+          <div class="details-field">
+            <span>Reorder Level</span>
+            <strong>{{ selectedItem.reorderLevel }}</strong>
+          </div>
+
+          <div class="details-field">
+            <span>Status</span>
+            @if (selectedItem.isActive) {
+              <strong class="details-status active-status">Active</strong>
+            } @else {
+              <strong class="details-status inactive-status">Inactive</strong>
+            }
+          </div>
+        </div>
+
+        <div class="details-modal-footer">
+          <button
+            type="button"
+            class="btn-secondary"
+            (click)="closeItemDetails()"
+          >
+            Close
+          </button>
+
+          <button
+            type="button"
+            class="btn-primary"
+            (click)="editItem(selectedItem)"
+          >
+            Edit Item
+          </button>
+        </div>
+      </div>
+    </div>
+  }
 
   <!-- Delete Confirmation Dialog -->
   @if (selectedItemId !== null) {

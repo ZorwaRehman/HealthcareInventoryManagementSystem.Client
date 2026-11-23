@@ -1,51 +1,52 @@
-
-import {
-  Component,
-  OnInit,
-  inject,
-  ChangeDetectorRef,
-} from '@angular/core';
-import { DecimalPipe, DatePipe, NgClass } from '@angular/common';
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
+import { DatePipe, NgClass } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
-
+import { CurrencyService } from '../../services/currency.service';
 import { PurchaseOrder } from '../../models/purchase-order.models';
+import { Supplier } from '../../models/supplier.models';
 import { PurchaseOrderService } from '../../services/purchase-order.service';
+import { SupplierService } from '../../services/supplier.service';
 
 @Component({
   selector: 'app-purchase-orders',
   standalone: true,
-  imports: [
-  FormsModule,
-  RouterLink,
-  DecimalPipe,
-  DatePipe,
-  NgClass
-],
+  imports: [FormsModule, DatePipe, NgClass, RouterLink, RouterLinkActive],
   templateUrl: './purchase-orders.html',
   styleUrl: './purchase-orders.css',
 })
 export class PurchaseOrders implements OnInit {
   private readonly purchaseOrderService = inject(PurchaseOrderService);
+  private readonly supplierService = inject(SupplierService);
   private readonly router = inject(Router);
   private readonly cdr = inject(ChangeDetectorRef);
 
-  // Search and filter values.
+  // Shared currency service for displaying converted amounts.
+  private readonly currencyService = inject(CurrencyService);
+
+  // Format PKR amounts using the currency selected on Dashboard.
+  formatPrice(amount: number): string {
+    return this.currencyService.formatPrice(amount);
+  }
+
   searchText = '';
   selectedStatus = 'All';
 
-  // Page messages and loading state.
   message = '';
   messageType: 'success' | 'error' = 'success';
   isLoading = false;
 
-  // Purchase Orders returned by the backend.
   purchaseOrders: PurchaseOrder[] = [];
+  suppliers: Supplier[] = [];
 
-  // Purchase Order currently selected for the details view.
   selectedPurchaseOrder: PurchaseOrder | null = null;
+  selectedSupplier: Supplier | null = null;
 
-  // Available statuses for the filter.
+  // Both detail views use the same modal.
+  modalView: 'purchaseOrder' | 'supplier' = 'purchaseOrder';
+
+  openActionMenuId: number | null = null;
+
   statuses: string[] = [
     'Draft',
     'Submitted',
@@ -58,9 +59,9 @@ export class PurchaseOrders implements OnInit {
 
   ngOnInit(): void {
     this.loadPurchaseOrders();
+    this.loadSuppliers();
   }
 
-  // Load Purchase Orders from the backend.
   loadPurchaseOrders(): void {
     this.isLoading = true;
     this.cdr.markForCheck();
@@ -76,8 +77,8 @@ export class PurchaseOrders implements OnInit {
 
         this.showMessage(
           error.error?.message ||
-          'Unable to load Purchase Orders. Please check that the backend is running.',
-          'error'
+            'Unable to load Purchase Orders. Please check that the backend is running.',
+          'error',
         );
 
         this.isLoading = false;
@@ -86,7 +87,18 @@ export class PurchaseOrders implements OnInit {
     });
   }
 
-  // Filter Purchase Orders by search text and status.
+  loadSuppliers(): void {
+    this.supplierService.getSuppliers(true).subscribe({
+      next: (suppliers) => {
+        this.suppliers = suppliers;
+        this.cdr.markForCheck();
+      },
+      error: (error) => {
+        console.error('Error loading suppliers:', error);
+      },
+    });
+  }
+
   get filteredPurchaseOrders(): PurchaseOrder[] {
     const search = this.searchText.trim().toLowerCase();
 
@@ -95,15 +107,12 @@ export class PurchaseOrders implements OnInit {
         order.orderNumber.toLowerCase().includes(search) ||
         order.supplierName.toLowerCase().includes(search);
 
-      const matchesStatus =
-        this.selectedStatus === 'All' ||
-        order.status === this.selectedStatus;
+      const matchesStatus = this.selectedStatus === 'All' || order.status === this.selectedStatus;
 
       return matchesSearch && matchesStatus;
     });
   }
 
-  // Purchase Order statistics.
   get totalOrders(): number {
     return this.purchaseOrders.length;
   }
@@ -121,36 +130,90 @@ export class PurchaseOrders implements OnInit {
   }
 
   private countByStatus(status: string): number {
-    return this.purchaseOrders.filter(
-      (order) => order.status === status
-    ).length;
+    return this.purchaseOrders.filter((order) => order.status === status).length;
   }
 
-  // Navigate to the Add Purchase Order page.
+  getStatusLabel(status: string): string {
+    return status === 'PartiallyReceived' ? 'Partially Received' : status;
+  }
+
+  getStatusClass(status: string): string {
+    const classes: Record<string, string> = {
+      Draft: 'status-draft',
+      Submitted: 'status-submitted',
+      Approved: 'status-approved',
+      Ordered: 'status-ordered',
+      PartiallyReceived: 'status-partial',
+      Received: 'status-received',
+      Cancelled: 'status-cancelled',
+    };
+
+    return classes[status] || '';
+  }
+
   openAddForm(): void {
     this.router.navigate(['/purchase-orders/new']);
   }
 
-  // Navigate to the Edit Purchase Order page.
   editPurchaseOrder(order: PurchaseOrder): void {
-    this.router.navigate(
-      ['/purchase-orders/edit', order.purchaseOrderId],
-      { state: { purchaseOrder: order } }
-    );
+    this.closeActionMenu();
+
+    this.router.navigate(['/purchase-orders/edit', order.purchaseOrderId], {
+      state: { purchaseOrder: order },
+    });
   }
 
-  // Open the details view for the selected Purchase Order.
+  // Open the shared modal in Purchase Order details mode.
   viewPurchaseOrder(order: PurchaseOrder): void {
+    this.closeActionMenu();
+
     this.selectedPurchaseOrder = order;
+    this.selectedSupplier = null;
+    this.modalView = 'purchaseOrder';
   }
 
-  // Close the Purchase Order details view.
-  closePurchaseOrderDetails(): void {
+  // Switch the same modal to Supplier details.
+  openSupplierDetails(supplierId: number, event: MouseEvent): void {
+    event.stopPropagation();
+
+    const supplier = this.suppliers.find((item) => item.supplierId === supplierId);
+
+    if (!supplier) {
+      this.showMessage('Supplier details could not be found.', 'error');
+      return;
+    }
+
+    this.selectedSupplier = supplier;
+    this.modalView = 'supplier';
+  }
+
+  // Return to the Purchase Order details without opening another modal.
+  backToPurchaseOrder(): void {
+    if (this.selectedPurchaseOrder) {
+      this.selectedSupplier = null;
+      this.modalView = 'purchaseOrder';
+    }
+  }
+
+  closeDetailsModal(): void {
     this.selectedPurchaseOrder = null;
+    this.selectedSupplier = null;
+    this.modalView = 'purchaseOrder';
   }
 
-  // Submit a Draft Purchase Order.
+  toggleActionMenu(purchaseOrderId: number, event: MouseEvent): void {
+    event.stopPropagation();
+
+    this.openActionMenuId = this.openActionMenuId === purchaseOrderId ? null : purchaseOrderId;
+  }
+
+  closeActionMenu(): void {
+    this.openActionMenuId = null;
+  }
+
   submitPurchaseOrder(order: PurchaseOrder): void {
+    this.closeActionMenu();
+
     if (this.isLoading || order.status !== 'Draft') {
       return;
     }
@@ -163,24 +226,20 @@ export class PurchaseOrders implements OnInit {
     this.message = '';
     this.cdr.markForCheck();
 
-    this.purchaseOrderService
-      .submitPurchaseOrder(order.purchaseOrderId)
-      .subscribe({
-        next: (response) => {
-          this.showMessage(
-            response.message || 'Purchase Order submitted successfully!',
-            'success'
-          );
-          this.loadPurchaseOrders();
-        },
-        error: (error) => {
-          this.handleActionError(error, 'Unable to submit Purchase Order.');
-        },
-      });
+    this.purchaseOrderService.submitPurchaseOrder(order.purchaseOrderId).subscribe({
+      next: (response) => {
+        this.showMessage(response.message || 'Purchase Order submitted successfully!', 'success');
+        this.loadPurchaseOrders();
+      },
+      error: (error) => {
+        this.handleActionError(error, 'Unable to submit Purchase Order.');
+      },
+    });
   }
 
-  // Approve a Submitted Purchase Order.
   approvePurchaseOrder(order: PurchaseOrder): void {
+    this.closeActionMenu();
+
     if (this.isLoading || order.status !== 'Submitted') {
       return;
     }
@@ -193,24 +252,20 @@ export class PurchaseOrders implements OnInit {
     this.message = '';
     this.cdr.markForCheck();
 
-    this.purchaseOrderService
-      .approvePurchaseOrder(order.purchaseOrderId)
-      .subscribe({
-        next: (response) => {
-          this.showMessage(
-            response.message || 'Purchase Order approved successfully!',
-            'success'
-          );
-          this.loadPurchaseOrders();
-        },
-        error: (error) => {
-          this.handleActionError(error, 'Unable to approve Purchase Order.');
-        },
-      });
+    this.purchaseOrderService.approvePurchaseOrder(order.purchaseOrderId).subscribe({
+      next: (response) => {
+        this.showMessage(response.message || 'Purchase Order approved successfully!', 'success');
+        this.loadPurchaseOrders();
+      },
+      error: (error) => {
+        this.handleActionError(error, 'Unable to approve Purchase Order.');
+      },
+    });
   }
 
-  // Mark an Approved Purchase Order as Ordered.
   markAsOrdered(order: PurchaseOrder): void {
+    this.closeActionMenu();
+
     if (this.isLoading || order.status !== 'Approved') {
       return;
     }
@@ -223,53 +278,27 @@ export class PurchaseOrders implements OnInit {
     this.message = '';
     this.cdr.markForCheck();
 
-    this.purchaseOrderService
-      .markPurchaseOrderAsOrdered(order.purchaseOrderId)
-      .subscribe({
-        next: (response) => {
-          this.showMessage(
-            response.message || 'Purchase Order marked as ordered!',
-            'success'
-          );
-          this.loadPurchaseOrders();
-        },
-        error: (error) => {
-          this.handleActionError(error, 'Unable to update Purchase Order.');
-        },
-      });
+    this.purchaseOrderService.markPurchaseOrderAsOrdered(order.purchaseOrderId).subscribe({
+      next: (response) => {
+        this.showMessage(response.message || 'Purchase Order marked as ordered!', 'success');
+        this.loadPurchaseOrders();
+      },
+      error: (error) => {
+        this.handleActionError(error, 'Unable to update Purchase Order.');
+      },
+    });
   }
 
-  // Display a success or error message.
-  private showMessage(
-    message: string,
-    type: 'success' | 'error'
-  ): void {
-    this.message = message;
-    this.messageType = type;
-    this.cdr.markForCheck();
-  }
-
-  // Cancel a Purchase Order through the backend.
   cancelPurchaseOrder(order: PurchaseOrder): void {
-    const cancellableStatuses = [
-      'Draft',
-      'Submitted',
-      'Approved',
-      'Ordered',
-    ];
+    this.closeActionMenu();
 
-    if (
-      this.isLoading ||
-      !cancellableStatuses.includes(order.status)
-    ) {
+    const cancellableStatuses = ['Draft', 'Submitted', 'Approved', 'Ordered'];
+
+    if (this.isLoading || !cancellableStatuses.includes(order.status)) {
       return;
     }
 
-    if (
-      !window.confirm(
-        `Are you sure you want to cancel Purchase Order ${order.orderNumber}?`
-      )
-    ) {
+    if (!window.confirm(`Are you sure you want to cancel Purchase Order ${order.orderNumber}?`)) {
       return;
     }
 
@@ -277,33 +306,22 @@ export class PurchaseOrders implements OnInit {
     this.message = '';
     this.cdr.markForCheck();
 
-    this.purchaseOrderService
-      .cancelPurchaseOrder(order.purchaseOrderId)
-      .subscribe({
-        next: (response) => {
-          this.showMessage(
-            response.message || 'Purchase Order cancelled successfully!',
-            'success'
-          );
+    this.purchaseOrderService.cancelPurchaseOrder(order.purchaseOrderId).subscribe({
+      next: (response) => {
+        this.showMessage(response.message || 'Purchase Order cancelled successfully!', 'success');
 
-          this.loadPurchaseOrders();
-        },
-        error: (error) => {
-          this.handleActionError(
-            error,
-            'Unable to cancel Purchase Order.'
-          );
-        },
-      });
+        this.loadPurchaseOrders();
+      },
+      error: (error) => {
+        this.handleActionError(error, 'Unable to cancel Purchase Order.');
+      },
+    });
   }
 
-  // Navigate to Goods Received with the selected Purchase Order ID.
   receivePurchaseOrder(order: PurchaseOrder): void {
-    if (
-      this.isLoading ||
-      (order.status !== 'Ordered' &&
-        order.status !== 'PartiallyReceived')
-    ) {
+    this.closeActionMenu();
+
+    if (this.isLoading || (order.status !== 'Ordered' && order.status !== 'PartiallyReceived')) {
       return;
     }
 
@@ -314,20 +332,21 @@ export class PurchaseOrders implements OnInit {
     });
   }
 
-  // Handle errors from Purchase Order actions.
+  private showMessage(message: string, type: 'success' | 'error'): void {
+    this.message = message;
+    this.messageType = type;
+    this.cdr.markForCheck();
+  }
+
   private handleActionError(error: any, fallbackMessage: string): void {
     console.error('Purchase Order action failed:', error);
 
-    this.showMessage(
-      error.error?.message || fallbackMessage,
-      'error'
-    );
+    this.showMessage(error.error?.message || fallbackMessage, 'error');
 
     this.isLoading = false;
     this.cdr.markForCheck();
   }
 
-  // Reset search and status filters.
   clearFilters(): void {
     this.searchText = '';
     this.selectedStatus = 'All';
