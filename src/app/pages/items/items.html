@@ -2,49 +2,57 @@
 <div class="hims-layout">
   <!-- Sidebar -->
   <aside class="sidebar">
-    <div class="brand">
-      <span class="brand-icon">+</span>
-      <span class="brand-name">HealthCare <strong>IMS</strong></span>
+    <div class="sidebar-brand">
+      <div class="brand-icon">+</div>
+      <div>
+        <h2>HealthCare <span>IMS</span></h2>
+        <p>Inventory Management</p>
+      </div>
     </div>
 
-    <div class="sidebar-section">MAIN MENU</div>
-
+    <!-- Navigation -->
     <nav class="sidebar-nav">
-      <a
-        routerLink="/dashboard"
-        routerLinkActive="active"
-        [routerLinkActiveOptions]="{ exact: true }"
-        class="nav-link"
-      >
-        <span class="nav-icon">▦</span> Dashboard
+      <a routerLink="/dashboard" routerLinkActive="active">
+        <span class="nav-icon">▦</span>
+        Dashboard
       </a>
 
-      <a routerLink="/items" routerLinkActive="active" class="nav-link">
-        <span class="nav-icon">▤</span> Inventory Items
+      <a routerLink="/items" routerLinkActive="active">
+        <span class="nav-icon">▤</span>
+        Inventory Items
       </a>
 
-      <a routerLink="/stock" routerLinkActive="active" class="nav-link">
-        <span class="nav-icon">▣</span> Stock Management
+      <a routerLink="/stock" routerLinkActive="active">
+        <span class="nav-icon">⇅</span>
+        Stock Management
       </a>
 
-      <a routerLink="/suppliers" routerLinkActive="active" class="nav-link">
+      <a routerLink="/suppliers" routerLinkActive="active">
         <span class="nav-icon">♧</span>
         Supplier Management
       </a>
 
-      <a routerLink="/purchase-orders" routerLinkActive="active" class="nav-link">
-        <span class="nav-icon">▤</span> Purchase Orders
+      <a routerLink="/purchase-orders" routerLinkActive="active">
+        <span class="nav-icon">▤</span>
+        Purchase Orders
       </a>
 
-      <a routerLink="/goods-received" routerLinkActive="active" class="nav-link">
-        <span class="nav-icon">▣</span> Goods Received
+      <a routerLink="/goods-received" routerLinkActive="active">
+        <span class="nav-icon">▣</span>
+        Goods Received
       </a>
 
-      <a routerLink="/users" routerLinkActive="active" class="nav-link">
-        <span class="nav-icon">♙</span> User Management
+      <a routerLink="/reports" routerLinkActive="active" class="nav-link">
+        <span class="nav-icon">▥</span> Report Management
+      </a>
+
+      <a routerLink="/users" routerLinkActive="active">
+        <span class="nav-icon">♙</span>
+        User Management
       </a>
     </nav>
 
+    <!-- Sidebar Bottom -->
     <div class="sidebar-bottom">
       <div class="admin-profile">
         <div class="avatar">A</div>
@@ -55,7 +63,8 @@
       </div>
 
       <a routerLink="/login" class="nav-link logout-link">
-        <span class="nav-icon">↪</span> Logout
+        <span class="nav-icon">↪</span>
+        Logout
       </a>
     </div>
   </aside>
@@ -105,9 +114,9 @@
       <div class="stat-card">
         <div class="stat-icon warning-icon">⚠</div>
         <div>
-          <p>Items With Reorder Level</p>
+          <p>Reorder Level</p>
           <h2>{{ lowStockCount }}</h2>
-          <small>Stock checks depend on actual quantities</small>
+          <small>Stock checks </small>
         </div>
       </div>
 
@@ -125,7 +134,7 @@
         <div>
           <p>Inventory Value</p>
           <h2>{{ formatPrice(totalValue) }}</h2>
-          <small>Based on current stock batches</small>
+          <small>Current stock batches</small>
         </div>
       </div>
     </section>

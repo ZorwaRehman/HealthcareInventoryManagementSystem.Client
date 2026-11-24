@@ -9,46 +9,62 @@
       </div>
     </div>
 
+    <!-- Navigation -->
     <nav class="sidebar-nav">
-      <a routerLink="/dashboard">
+      <a routerLink="/dashboard" routerLinkActive="active">
         <span class="nav-icon">▦</span>
         Dashboard
       </a>
 
-      <a routerLink="/items">
-        <span class="nav-icon">◈</span>
+      <a routerLink="/items" routerLinkActive="active">
+        <span class="nav-icon">▤</span>
         Inventory Items
       </a>
 
-      <a routerLink="/stock">
+      <a routerLink="/stock" routerLinkActive="active">
         <span class="nav-icon">⇅</span>
         Stock Management
       </a>
 
-      <a routerLink="/suppliers">
+      <a routerLink="/suppliers" routerLinkActive="active">
         <span class="nav-icon">♧</span>
         Supplier Management
       </a>
 
-      <a routerLink="/purchase-orders" class="active">
+      <a routerLink="/purchase-orders" routerLinkActive="active">
         <span class="nav-icon">▤</span>
         Purchase Orders
       </a>
 
-      <a routerLink="/goods-received">
+      <a routerLink="/goods-received" routerLinkActive="active">
         <span class="nav-icon">▣</span>
         Goods Received
       </a>
 
-      <a routerLink="/users">
+      <a routerLink="/reports" routerLinkActive="active" class="nav-link">
+        <span class="nav-icon">▥</span> Report Management
+      </a>
+
+      <a routerLink="/users" routerLinkActive="active">
         <span class="nav-icon">♙</span>
         User Management
       </a>
     </nav>
 
-    <div class="sidebar-footer">
-      <p>HealthCare Inventory System</p>
-      <small>Management Portal</small>
+    <!-- Sidebar Bottom -->
+    <div class="sidebar-bottom">
+      <div class="admin-profile">
+        <div class="avatar">A</div>
+        <div>
+          <strong>Admin User</strong>
+          <small>System Admin</small>
+        </div>
+      </div>
+
+      <a routerLink="/login" class="nav-link logout-link">
+        <span class="nav-icon">↪</span>
+        Logout
+      </a>
     </div>
   </aside>
 
