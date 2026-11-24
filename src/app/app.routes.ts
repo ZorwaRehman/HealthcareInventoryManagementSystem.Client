@@ -24,6 +24,7 @@ import { PurchaseOrderForm } from './pages/purchase-order-form/purchase-order-fo
 // Goods Received components
 import { GoodsReceivedPage } from './pages/goods-received/goods-received';
 import { GoodsReceivedForm } from './pages/goods-received-form/goods-received-form';
+import { Reports } from './pages/reports/reports';
 
 export const routes: Routes = [
   { path: 'login', component: Login },
@@ -56,6 +57,8 @@ export const routes: Routes = [
 
   // Goods Received list
   { path: 'goods-received', component: GoodsReceivedPage },
+  // Reports page
+  { path: 'reports', component: Reports },
 
   // Stock pages
   { path: 'stock/batches/:id/transactions', component: StockTransactions },

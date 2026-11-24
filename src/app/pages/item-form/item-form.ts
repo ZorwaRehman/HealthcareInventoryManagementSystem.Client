@@ -1,7 +1,7 @@
 
 import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink, RouterLinkActive } from '@angular/router';
 
 import { Item, ItemRequest } from '../../models/item.models';
 import { ItemService } from '../../services/item.service';
@@ -9,7 +9,7 @@ import { ItemService } from '../../services/item.service';
 @Component({
   selector: 'app-item-form',
   standalone: true,
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, RouterLinkActive],
   templateUrl: './item-form.html',
   styleUrl: './item-form.css',
 })

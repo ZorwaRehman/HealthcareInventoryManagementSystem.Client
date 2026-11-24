@@ -43,7 +43,7 @@ button {
   width: 250px;
   min-width: 250px;
   height: 100vh;
-  overflow-y: auto;
+  overflow-y: hidden;
   padding: 27px 18px 18px;
   background: #ffffff;
   border-right: 1px solid #e7eeee;

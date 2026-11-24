@@ -3,80 +3,71 @@
 
   <!-- Sidebar -->
   <aside class="sidebar">
-
     <div class="sidebar-brand">
       <div class="brand-icon">+</div>
-      <div class="brand-name">
-        HealthCare <strong>IMS</strong>
+      <div>
+        <h2>HealthCare <span>IMS</span></h2>
+        <p>Inventory Management</p>
       </div>
     </div>
 
+    <!-- Navigation -->
     <nav class="sidebar-nav">
-
-      <a
-        routerLink="/dashboard"
-        routerLinkActive="active"
-        [routerLinkActiveOptions]="{ exact: true }"
-        class="nav-link">
+      <a routerLink="/dashboard" routerLinkActive="active">
         <span class="nav-icon">▦</span>
-        <span>Dashboard</span>
+        Dashboard
       </a>
 
-      <a
-        routerLink="/items"
-        routerLinkActive="active"
-        class="nav-link">
+      <a routerLink="/items" routerLinkActive="active">
         <span class="nav-icon">▤</span>
-        <span>Inventory Items</span>
+        Inventory Items
       </a>
 
-      <a
-        routerLink="/stock"
-        routerLinkActive="active"
-        [routerLinkActiveOptions]="{ exact: false }"
-        class="nav-link">
-        <span class="nav-icon">▣</span>
-        <span>Stock Management</span>
+      <a routerLink="/stock" routerLinkActive="active">
+        <span class="nav-icon">⇅</span>
+        Stock Management
       </a>
 
-      <a
-        routerLink="/suppliers"
-        routerLinkActive="active"
-        class="nav-link">
+      <a routerLink="/suppliers" routerLinkActive="active">
         <span class="nav-icon">♧</span>
-        <span>Supplier Management</span>
+        Supplier Management
       </a>
 
-        <a
-        routerLink="/purchase-orders"
-        routerLinkActive="active"
-        class="nav-link"
-      >
-        <span class="nav-icon">▤</span> Purchase Orders
+      <a routerLink="/purchase-orders" routerLinkActive="active">
+        <span class="nav-icon">▤</span>
+        Purchase Orders
       </a>
 
-      <a
-        routerLink="/goods-received"
-        routerLinkActive="active"
-        class="nav-link"
-      >
-        <span class="nav-icon">▣</span> Goods Received
+      <a routerLink="/goods-received" routerLinkActive="active">
+        <span class="nav-icon">▣</span>
+        Goods Received
       </a>
 
-      <a
-        routerLink="/users"
-        routerLinkActive="active"
-        class="nav-link">
+      <a routerLink="/reports" routerLinkActive="active" class="nav-link">
+        <span class="nav-icon">▥</span> Report Management
+      </a>
+
+      <a routerLink="/users" routerLinkActive="active">
         <span class="nav-icon">♙</span>
-        <span>User Management</span>
+        User Management
       </a>
-
     </nav>
 
-    <div class="sidebar-footer">
-      Healthcare Inventory Management System
-    </div>
+    <!-- Sidebar Bottom -->
+    <div class="sidebar-bottom">
+      <div class="admin-profile">
+        <div class="avatar">A</div>
+        <div>
+          <strong>Admin User</strong>
+          <small>System Admin</small>
+        </div>
+      </div>
 
+      <a routerLink="/login" class="nav-link logout-link">
+        <span class="nav-icon">↪</span>
+        Logout
+      </a>
+    </div>
   </aside>
 
   <!-- Main Content -->

@@ -8,7 +8,7 @@ import {
 
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink, RouterLinkActive } from '@angular/router';
 
 import {
   Supplier,
@@ -23,7 +23,8 @@ import { SupplierService } from '../../services/supplier.service';
   imports: [
     CommonModule,
     FormsModule,
-    RouterLink
+    RouterLink,
+    RouterLinkActive
   ],
   templateUrl: './supplier-form.html',
   styleUrl: './supplier-form.css'

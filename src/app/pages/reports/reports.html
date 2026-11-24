@@ -1,0 +1,452 @@
+<div class="hims-layout">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-icon">+</div>
+      <div>
+        <h2>HealthCare <span>IMS</span></h2>
+        <p>Inventory Management</p>
+      </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="sidebar-nav">
+      <a routerLink="/dashboard" routerLinkActive="active">
+        <span class="nav-icon">▦</span>
+        Dashboard
+      </a>
+
+      <a routerLink="/items" routerLinkActive="active">
+        <span class="nav-icon">▤</span>
+        Inventory Items
+      </a>
+
+      <a routerLink="/stock" routerLinkActive="active">
+        <span class="nav-icon">⇅</span>
+        Stock Management
+      </a>
+
+      <a routerLink="/suppliers" routerLinkActive="active">
+        <span class="nav-icon">♧</span>
+        Supplier Management
+      </a>
+
+      <a routerLink="/purchase-orders" routerLinkActive="active">
+        <span class="nav-icon">▤</span>
+        Purchase Orders
+      </a>
+
+      <a routerLink="/goods-received" routerLinkActive="active">
+        <span class="nav-icon">▣</span>
+        Goods Received
+      </a>
+
+      <a routerLink="/reports" routerLinkActive="active" class="nav-link">
+        <span class="nav-icon">▥</span> Report Management
+      </a>
+
+      <a routerLink="/users" routerLinkActive="active">
+        <span class="nav-icon">♙</span>
+        User Management
+      </a>
+    </nav>
+
+    <!-- Sidebar Bottom -->
+    <div class="sidebar-bottom">
+      <div class="admin-profile">
+        <div class="avatar">A</div>
+        <div>
+          <strong>Admin User</strong>
+          <small>System Admin</small>
+        </div>
+      </div>
+
+      <a routerLink="/login" class="nav-link logout-link">
+        <span class="nav-icon">↪</span>
+        Logout
+      </a>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- PAGE HEADER -->
+    <header class="page-header">
+      <div>
+        <div class="breadcrumb">Dashboard / Report Management</div>
+        <h1>Report Management</h1>
+        <p>View, analyze and export your healthcare inventory reports.</p>
+      </div>
+
+      <!-- CHOOSE REPORT DROPDOWN -->
+      <div class="header-actions">
+        <div class="header-report-selector">
+          <div class="header-report-icon">
+            <i class="bi" [ngClass]="currentReport.icon"></i>
+          </div>
+
+          <div class="header-report-content">
+            <label for="reportSelect">Choose Report</label>
+
+            <select
+              id="reportSelect"
+              class="report-dropdown"
+              [ngModel]="selectedReport"
+              (ngModelChange)="selectReport($event)"
+            >
+              <option *ngFor="let report of reports" [value]="report.id">
+                {{ report.name }}
+              </option>
+            </select>
+
+            <small>{{ reports.length }} reports available</small>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- ALERTS -->
+    <div class="alert alert-danger" *ngIf="errorMessage">
+      <i class="bi bi-exclamation-circle"></i>
+      <span>{{ errorMessage }}</span>
+    </div>
+
+    <div class="alert alert-success" *ngIf="successMessage">
+      <i class="bi bi-check-circle"></i>
+      <span>{{ successMessage }}</span>
+    </div>
+
+    <!-- STATISTICS -->
+    <section class="summary-grid">
+      <div class="summary-card">
+        <div class="summary-icon records-icon">
+          <i class="bi bi-database"></i>
+        </div>
+        <div class="summary-content">
+          <span>Total Records</span>
+          <h3>{{ totalRecords }}</h3>
+          <small>Available report records</small>
+        </div>
+      </div>
+
+      <div class="summary-card">
+        <div class="summary-icon filtered-icon">
+          <i class="bi bi-funnel"></i>
+        </div>
+        <div class="summary-content">
+          <span>Filtered Records</span>
+          <h3>{{ filteredRecords }}</h3>
+          <small>Records matching filters</small>
+        </div>
+      </div>
+
+      <div class="summary-card" *ngIf="selectedReport === 'stock-summary'">
+        <div class="summary-icon value-icon">
+          <i class="bi bi-cash-stack"></i>
+        </div>
+        <div class="summary-content">
+          <span>Total Stock Value</span>
+          <h3>{{ formatAmount(totalStockValue) }}</h3>
+          <small>{{ selectedCurrency }}</small>
+        </div>
+      </div>
+
+      <div class="summary-card" *ngIf="selectedReport === 'purchase-orders'">
+        <div class="summary-icon value-icon">
+          <i class="bi bi-cart-check"></i>
+        </div>
+        <div class="summary-content">
+          <span>Total Purchase Value</span>
+          <h3>{{ formatAmount(totalPurchaseValue) }}</h3>
+          <small>{{ selectedCurrency }}</small>
+        </div>
+      </div>
+
+      <div class="summary-card" *ngIf="selectedReport === 'inventory-valuation'">
+        <div class="summary-icon value-icon">
+          <i class="bi bi-currency-exchange"></i>
+        </div>
+        <div class="summary-content">
+          <span>Total Inventory Value</span>
+          <h3>{{ formatAmount(totalInventoryValue) }}</h3>
+          <small>{{ selectedCurrency }}</small>
+        </div>
+      </div>
+
+      <div
+        class="summary-card"
+        *ngIf="
+          selectedReport !== 'stock-summary' &&
+          selectedReport !== 'purchase-orders' &&
+          selectedReport !== 'inventory-valuation'
+        "
+      >
+        <div class="summary-icon report-icon">
+          <i class="bi bi-file-earmark-bar-graph"></i>
+        </div>
+        <div class="summary-content">
+          <span>Report Type</span>
+          <h3 class="report-type-value">{{ currentReport.name }}</h3>
+          <small>Currently selected report</small>
+        </div>
+      </div>
+    </section>
+
+    <!-- REPORT TABLE CARD -->
+    <section class="inventory-card">
+      <!-- CARD HEADER -->
+      <div class="card-header">
+        <div class="table-title">
+          <div class="table-title-icon">
+            <i class="bi" [ngClass]="currentReport.icon"></i>
+          </div>
+
+          <div>
+            <h2>{{ currentReport.name }}</h2>
+            <p>{{ currentReport.description }}</p>
+          </div>
+        </div>
+
+        <div class="export-actions">
+          <button
+            type="button"
+            class="btn-excel"
+            (click)="exportExcel()"
+            [disabled]="isLoading || isExporting || filteredData.length === 0"
+          >
+            <i class="bi bi-file-earmark-excel"></i>
+            Excel
+          </button>
+
+          <button
+            type="button"
+            class="btn-pdf"
+            (click)="exportPdf()"
+            [disabled]="isLoading || isExporting || filteredData.length === 0"
+          >
+            <i class="bi bi-file-earmark-pdf"></i>
+            PDF
+          </button>
+        </div>
+      </div>
+
+      <!-- FILTER BAR -->
+      <div class="filter-bar">
+        <div class="search-box">
+          <i class="bi bi-search search-icon"></i>
+
+          <input
+            type="text"
+            placeholder="Search report records..."
+            [(ngModel)]="searchText"
+            (ngModelChange)="applyFilters()"
+          />
+        </div>
+
+        <div class="filter-controls">
+          <select
+            class="status-filter"
+            [(ngModel)]="selectedStatus"
+            (ngModelChange)="applyFilters()"
+          >
+            <option *ngFor="let status of availableStatuses" [value]="status">
+              {{ status === 'All' ? 'All Statuses' : status }}
+            </option>
+          </select>
+
+          <button type="button" class="clear-button" (click)="clearFilters()">
+            <i class="bi bi-x-circle"></i>
+            Clear
+          </button>
+        </div>
+      </div>
+
+      <!-- LOADING -->
+      <div class="loading-state" *ngIf="isLoading">
+        <div class="spinner"></div>
+
+        <h3>Loading Report</h3>
+        <p>Please wait while report data is being loaded.</p>
+      </div>
+
+      <!-- DATA TABLE -->
+      <div class="table-wrapper" *ngIf="!isLoading && filteredData.length > 0">
+        <table class="inventory-table">
+          <thead>
+            <tr>
+              <th
+                *ngFor="let column of mainColumns"
+                [class.item-heading]="column.key === 'itemName'"
+              >
+                {{ column.label }}
+              </th>
+
+              <th class="expand-heading" *ngIf="additionalColumns.length > 0">More</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <ng-container *ngFor="let row of filteredData; let i = index">
+              <!-- NORMAL DATA ROW -->
+              <tr class="data-row">
+                <td *ngFor="let column of mainColumns; let colIndex = index">
+                  <!-- ITEM NAME WITH IMAGE -->
+                  <ng-container *ngIf="column.key === 'itemName'; else normalCell">
+                    <div class="item-cell">
+                      <ng-container
+                        *ngIf="selectedReport === 'stock-summary'; else itemPlaceholder"
+                      >
+                        <ng-container *ngIf="getItemImage(row) as itemImage">
+                          <img
+                            [src]="itemImage"
+                            [alt]="row['itemName'] || 'Inventory item'"
+                            class="item-thumbnail"
+                          />
+                        </ng-container>
+
+                        <ng-container *ngIf="!getItemImage(row)">
+                          <div class="item-thumbnail-placeholder">
+                            <i class="bi bi-box-seam"></i>
+                          </div>
+                        </ng-container>
+                      </ng-container>
+
+                      <ng-template #itemPlaceholder>
+                        <div class="item-thumbnail-placeholder">
+                          <i class="bi bi-box-seam"></i>
+                        </div>
+                      </ng-template>
+
+                      <strong>{{ formatCell(row, column) }}</strong>
+                    </div>
+                  </ng-container>
+
+                  <!-- OTHER COLUMNS -->
+                  <ng-template #normalCell>
+                    <div class="report-first-column" *ngIf="colIndex === 0; else regularValue">
+                      <i class="bi first-column-icon" [ngClass]="currentReport.icon"> </i>
+
+                      <span
+                        [class.money-cell]="column.money"
+                        [class.status-badge]="column.key === 'status' || column.key === 'isActive'"
+                        [ngClass]="
+                          column.key === 'status' || column.key === 'isActive'
+                            ? getStatusClass(row, column)
+                            : ''
+                        "
+                      >
+                        {{ formatCell(row, column) }}
+                      </span>
+                    </div>
+
+                    <ng-template #regularValue>
+                      <span
+                        [class.money-cell]="column.money"
+                        [class.status-badge]="column.key === 'status' || column.key === 'isActive'"
+                        [ngClass]="
+                          column.key === 'status' || column.key === 'isActive'
+                            ? getStatusClass(row, column)
+                            : ''
+                        "
+                      >
+                        {{ formatCell(row, column) }}
+                      </span>
+                    </ng-template>
+                  </ng-template>
+                </td>
+
+                <!-- EXPAND BUTTON -->
+                <td class="expand-cell" *ngIf="additionalColumns.length > 0">
+                  <button
+                    type="button"
+                    class="expand-button"
+                    [class.expanded]="isRowExpanded(i)"
+                    (click)="toggleRow(i)"
+                    [attr.aria-expanded]="isRowExpanded(i)"
+                    [attr.aria-label]="isRowExpanded(i) ? 'Hide details' : 'Show more details'"
+                  >
+                    <i class="bi" [ngClass]="isRowExpanded(i) ? 'bi-dash-lg' : 'bi-plus-lg'"> </i>
+                  </button>
+                </td>
+              </tr>
+
+              <!-- EXPANDED DETAILS AS A NESTED TABLE -->
+              <tr class="expanded-row" *ngIf="additionalColumns.length > 0 && isRowExpanded(i)">
+                <td class="expanded-details-cell" [attr.colspan]="mainColumns.length + 1">
+                  <div class="expanded-details">
+                    <div class="expanded-details-heading">
+                      <i class="bi bi-card-list"></i>
+                      Additional Information
+                    </div>
+
+                    <!-- ADDITIONAL DATA TABLE -->
+                    <div class="expanded-table-wrapper">
+                      <table class="expanded-details-table">
+                        <thead>
+                          <tr>
+                            <th *ngFor="let column of additionalColumns">
+                              {{ column.label }}
+                            </th>
+                          </tr>
+                        </thead>
+
+                        <tbody>
+                          <tr>
+                            <td *ngFor="let column of additionalColumns">
+                              <span
+                                [class.money-cell]="column.money"
+                                [class.status-badge]="
+                                  column.key === 'status' || column.key === 'isActive'
+                                "
+                                [ngClass]="
+                                  column.key === 'status' || column.key === 'isActive'
+                                    ? getStatusClass(row, column)
+                                    : ''
+                                "
+                              >
+                                {{ formatCell(row, column) }}
+                              </span>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            </ng-container>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- EMPTY STATE -->
+      <div class="empty-state" *ngIf="!isLoading && filteredData.length === 0">
+        <div class="empty-icon">
+          <i class="bi bi-inbox"></i>
+        </div>
+
+        <h3>No Records Found</h3>
+
+        <p>No records are available for this report or the selected filters.</p>
+
+        <button type="button" class="clear-button" (click)="clearFilters()">
+          <i class="bi bi-arrow-counterclockwise"></i>
+          Clear Filters
+        </button>
+      </div>
+
+      <!-- TABLE FOOTER -->
+      <div class="table-footer" *ngIf="!isLoading">
+        <span> Showing {{ filteredRecords }} of {{ totalRecords }} records </span>
+
+        <span>{{ currentReport.name }}</span>
+      </div>
+    </section>
+
+    <!-- PAGE FOOTER -->
+    <footer class="page-footer">
+      <span>© HealthCare IMS</span>
+      <span>Inventory Management System</span>
+    </footer>
+  </main>
+</div>

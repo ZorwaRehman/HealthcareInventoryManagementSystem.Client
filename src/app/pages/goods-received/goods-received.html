@@ -10,6 +10,7 @@
       </div>
     </div>
 
+    <!-- Navigation -->
     <nav class="sidebar-nav">
       <a routerLink="/dashboard" routerLinkActive="active">
         <span class="nav-icon">▦</span>
@@ -18,11 +19,11 @@
 
       <a routerLink="/items" routerLinkActive="active">
         <span class="nav-icon">▤</span>
-        Item Management
+        Inventory Items
       </a>
 
       <a routerLink="/stock" routerLinkActive="active">
-        <span class="nav-icon">▣</span>
+        <span class="nav-icon">⇅</span>
         Stock Management
       </a>
 
@@ -36,13 +37,13 @@
         Purchase Orders
       </a>
 
-      <a
-        routerLink="/goods-received"
-        routerLinkActive="active"
-        [routerLinkActiveOptions]="{ exact: true }"
-      >
+      <a routerLink="/goods-received" routerLinkActive="active">
         <span class="nav-icon">▣</span>
         Goods Received
+      </a>
+
+      <a routerLink="/reports" routerLinkActive="active" class="nav-link">
+        <span class="nav-icon">▥</span> Report Management
       </a>
 
       <a routerLink="/users" routerLinkActive="active">
@@ -51,6 +52,7 @@
       </a>
     </nav>
 
+    <!-- Sidebar Bottom -->
     <div class="sidebar-bottom">
       <div class="admin-profile">
         <div class="avatar">A</div>

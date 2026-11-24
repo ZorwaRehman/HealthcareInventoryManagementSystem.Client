@@ -37,80 +37,90 @@ button {
 }
 
 /* ==============================
-   SIDEBAR - MATCH INVENTORY ITEMS
+   SIDEBAR
 ============================== */
 
 .sidebar {
-  width: 255px;
-  min-width: 255px;
+  position: fixed;
+  inset: 0 auto 0 0;
+  z-index: 10;
   display: flex;
   flex-direction: column;
+  width: 250px;
+  min-width: 250px;
+  height: 100vh;
+  overflow-y: hidden;
+  padding: 27px 18px 18px;
   background: #ffffff;
-  border-right: 1px solid #e5eaf1;
-  padding: 25px 17px;
+  border-right: 1px solid #e7eeee;
 }
 
 .sidebar-brand {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 0 7px 32px;
+  gap: 10px;
+  margin: 0 0 43px 5px;
 }
 
 .brand-icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 43px;
-  height: 43px;
+  width: 38px;
+  height: 38px;
   flex-shrink: 0;
-  border-radius: 12px;
-  background: #0d9488;
+  border-radius: 11px;
   color: #ffffff;
-  font-size: 24px;
-  font-weight: 700;
+  background: #087f72;
+  font-size: 30px;
+  font-weight: 300;
+  line-height: 1;
 }
 
-.brand-name {
-  color: #0f766e;
-  font-size: 19px;
+.sidebar-brand h2 {
+  margin: 0;
+  color: #183b40;
+  font-size: 17px;
   font-weight: 750;
-  white-space: nowrap;
+  letter-spacing: -0.5px;
 }
 
-.brand-name strong {
-  color: #0d9488;
+.sidebar-brand h2 span {
+  color: #087f72;
+}
+
+.sidebar-brand p {
+  margin: 4px 0 0;
+  color: #87979b;
+  font-size: 11px;
 }
 
 .sidebar-nav {
-  display: flex;
-  flex-direction: column;
+  display: grid;
   gap: 7px;
-  padding: 0;
 }
 
-.sidebar-nav a {
+.sidebar-nav a,
+.nav-link {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px 13px;
-  border-radius: 8px;
-  color: #64748b;
-  text-decoration: none;
+  gap: 13px;
+  min-height: 46px;
+  padding: 0 13px;
+  border-radius: 9px;
+  color: #657a7e;
   font-size: 13px;
-  font-weight: 550;
-  transition: 0.2s ease;
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 0.2s, background 0.2s;
 }
 
-.sidebar-nav a:hover {
-  background: #f0fdfa;
-  color: #0f766e;
-}
-
-.sidebar-nav a.active {
-  background: #ccfbf1;
-  color: #0f766e;
-  font-weight: 700;
+.sidebar-nav a:hover,
+.sidebar-nav a.active,
+.nav-link:hover,
+.nav-link.active {
+  color: #087f72;
+  background: #eaf6f3;
 }
 
 .nav-icon {
@@ -120,11 +130,50 @@ button {
   font-size: 18px;
 }
 
-.sidebar-footer {
+.sidebar-bottom {
   margin-top: auto;
-  padding: 25px 7px 0;
+  padding-top: 25px;
+}
+
+.admin-profile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 7px;
+  margin-bottom: 8px;
+  border-top: 1px solid #e5eaf1;
+}
+
+.avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: #dbeafe;
+  color: #1d4ed8;
+  font-weight: 700;
+}
+
+.admin-profile strong,
+.admin-profile small {
+  display: block;
+}
+
+.admin-profile strong {
+  font-size: 12px;
+}
+
+.admin-profile small {
+  margin-top: 4px;
   color: #94a3b8;
   font-size: 11px;
+}
+
+.logout-link {
+  min-height: 42px;
 }
 
 /* ==============================
@@ -134,7 +183,9 @@ button {
 .main-content {
   flex: 1;
   min-width: 0;
-  padding: 32px 38px;
+  width: calc(100% - 250px);
+  margin-left: 250px;
+  padding: 32px;
 }
 
 /* ==============================

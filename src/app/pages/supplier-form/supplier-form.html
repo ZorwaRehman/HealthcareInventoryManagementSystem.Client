@@ -1,9 +1,6 @@
-
 <div class="hims-layout">
-
   <!-- Sidebar -->
   <aside class="sidebar">
-
     <div class="sidebar-brand">
       <div class="brand-icon">+</div>
       <div>
@@ -12,83 +9,86 @@
       </div>
     </div>
 
+    <!-- Navigation -->
     <nav class="sidebar-nav">
-
-      <a routerLink="/dashboard">
+      <a routerLink="/dashboard" routerLinkActive="active">
         <span class="nav-icon">▦</span>
         Dashboard
       </a>
 
-      <a routerLink="/items">
+      <a routerLink="/items" routerLinkActive="active">
         <span class="nav-icon">▤</span>
         Inventory Items
       </a>
 
-      <a routerLink="/stock">
+      <a routerLink="/stock" routerLinkActive="active">
         <span class="nav-icon">⇅</span>
         Stock Management
       </a>
 
-      <a routerLink="/suppliers" class="active">
+      <a routerLink="/suppliers" routerLinkActive="active">
         <span class="nav-icon">♧</span>
         Supplier Management
       </a>
 
-        <a
-        routerLink="/purchase-orders"
-        routerLinkActive="active"
-        class="nav-link"
-      >
-        <span class="nav-icon">▤</span> Purchase Orders
+      <a routerLink="/purchase-orders" routerLinkActive="active">
+        <span class="nav-icon">▤</span>
+        Purchase Orders
       </a>
 
-      <a
-        routerLink="/goods-received"
-        routerLinkActive="active"
-        class="nav-link"
-      >
-        <span class="nav-icon">▣</span> Goods Received
+      <a routerLink="/goods-received" routerLinkActive="active">
+        <span class="nav-icon">▣</span>
+        Goods Received
       </a>
 
-      <a routerLink="/users">
+      <a routerLink="/reports" routerLinkActive="active" class="nav-link">
+        <span class="nav-icon">▥</span> Report Management
+      </a>
+
+      <a routerLink="/users" routerLinkActive="active">
         <span class="nav-icon">♙</span>
         User Management
       </a>
-
     </nav>
 
-    <div class="sidebar-footer">
-      <p>HealthCare Inventory System</p>
-      <small>Management Portal</small>
-    </div>
+    <!-- Sidebar Bottom -->
+    <div class="sidebar-bottom">
+      <div class="admin-profile">
+        <div class="avatar">A</div>
+        <div>
+          <strong>Admin User</strong>
+          <small>System Admin</small>
+        </div>
+      </div>
 
+      <a routerLink="/login" class="nav-link logout-link">
+        <span class="nav-icon">↪</span>
+        Logout
+      </a>
+    </div>
   </aside>
 
   <!-- Main Content -->
   <main class="main-content">
-
     <!-- Page Header -->
     <header class="page-header">
-
       <div>
-        <p class="breadcrumb">Supplier Management / {{ isEditMode ? 'Edit Supplier' : 'Add Supplier' }}</p>
+        <p class="breadcrumb">
+          Supplier Management / {{ isEditMode ? 'Edit Supplier' : 'Add Supplier' }}
+        </p>
 
         <h1>{{ isEditMode ? 'Edit Supplier' : 'Add New Supplier' }}</h1>
 
         <p class="page-subtitle">
-          {{ isEditMode
-            ? 'Update the supplier information below.'
-            : 'Enter the details to register a new supplier.' }}
+          {{
+            isEditMode
+              ? 'Update the supplier information below.'
+              : 'Enter the details to register a new supplier.'
+          }}
         </p>
       </div>
 
-      <button
-        type="button"
-        class="btn-back"
-        (click)="cancel()">
-        ← Back to Suppliers
-      </button>
-
+      <button type="button" class="btn-back" (click)="cancel()">← Back to Suppliers</button>
     </header>
 
     <!-- Message -->
@@ -96,23 +96,20 @@
       <div
         class="message-box"
         [class.error]="messageType === 'error'"
-        [class.success]="messageType === 'success'">
+        [class.success]="messageType === 'success'"
+      >
         {{ message }}
       </div>
     }
 
     <!-- Loading -->
     @if (isLoading) {
-      <div class="loading-box">
-        Loading supplier details...
-      </div>
+      <div class="loading-box">Loading supplier details...</div>
     }
 
     <!-- Supplier Form -->
     @if (!isLoading) {
-
       <section class="form-card">
-
         <div class="form-card-header">
           <div>
             <h2>Supplier Information</h2>
@@ -122,9 +119,7 @@
         </div>
 
         <form #supplierForm="ngForm" (ngSubmit)="saveSupplier()">
-
           <div class="form-grid">
-
             <!-- Supplier Name -->
             <div class="form-group">
               <label for="name">Supplier Name *</label>
@@ -136,12 +131,11 @@
                 [(ngModel)]="supplier.name"
                 placeholder="Enter supplier name"
                 required
-                #name="ngModel">
+                #name="ngModel"
+              />
 
               @if (name.invalid && name.touched) {
-                <small class="field-error">
-                  Supplier name is required.
-                </small>
+                <small class="field-error"> Supplier name is required. </small>
               }
             </div>
 
@@ -156,12 +150,11 @@
                 [(ngModel)]="supplier.phone"
                 placeholder="Enter phone number"
                 required
-                #phone="ngModel">
+                #phone="ngModel"
+              />
 
               @if (phone.invalid && phone.touched) {
-                <small class="field-error">
-                  Phone number is required.
-                </small>
+                <small class="field-error"> Phone number is required. </small>
               }
             </div>
 
@@ -177,12 +170,11 @@
                 placeholder="Enter email address"
                 required
                 email
-                #email="ngModel">
+                #email="ngModel"
+              />
 
               @if (email.invalid && email.touched) {
-                <small class="field-error">
-                  Please enter a valid email address.
-                </small>
+                <small class="field-error"> Please enter a valid email address. </small>
               }
             </div>
 
@@ -197,12 +189,11 @@
                 [(ngModel)]="supplier.address"
                 placeholder="Enter supplier address"
                 required
-                #address="ngModel">
+                #address="ngModel"
+              />
 
               @if (address.invalid && address.touched) {
-                <small class="field-error">
-                  Address is required.
-                </small>
+                <small class="field-error"> Address is required. </small>
               }
             </div>
 
@@ -215,7 +206,8 @@
                 id="contactPerson"
                 name="contactPerson"
                 [(ngModel)]="supplier.contactPerson"
-                placeholder="Enter contact person name">
+                placeholder="Enter contact person name"
+              />
             </div>
 
             <!-- City -->
@@ -227,7 +219,8 @@
                 id="city"
                 name="city"
                 [(ngModel)]="supplier.city"
-                placeholder="Enter city">
+                placeholder="Enter city"
+              />
             </div>
 
             <!-- Country -->
@@ -239,7 +232,8 @@
                 id="country"
                 name="country"
                 [(ngModel)]="supplier.country"
-                placeholder="Enter country">
+                placeholder="Enter country"
+              />
             </div>
 
             <!-- Tax Number -->
@@ -251,7 +245,8 @@
                 id="taxNumber"
                 name="taxNumber"
                 [(ngModel)]="supplier.taxNumber"
-                placeholder="Enter tax number">
+                placeholder="Enter tax number"
+              />
             </div>
 
             <!-- Notes -->
@@ -263,47 +258,26 @@
                 name="notes"
                 [(ngModel)]="supplier.notes"
                 rows="4"
-                placeholder="Enter any additional information">
+                placeholder="Enter any additional information"
+              >
               </textarea>
             </div>
-
           </div>
 
           <!-- Form Actions -->
           <div class="form-actions">
-
-            <button
-              type="button"
-              class="btn-cancel"
-              (click)="cancel()"
-              [disabled]="isSaving">
+            <button type="button" class="btn-cancel" (click)="cancel()" [disabled]="isSaving">
               Cancel
             </button>
 
-            <button
-              type="submit"
-              class="btn-save"
-              [disabled]="isSaving || !supplierForm.valid">
-
-              {{ isSaving
-                ? 'Saving...'
-                : (isEditMode ? 'Update Supplier' : 'Save Supplier') }}
-
+            <button type="submit" class="btn-save" [disabled]="isSaving || !supplierForm.valid">
+              {{ isSaving ? 'Saving...' : isEditMode ? 'Update Supplier' : 'Save Supplier' }}
             </button>
-
           </div>
-
         </form>
-
       </section>
-
     }
 
-    <footer class="main-footer">
-      © 2026 HealthCare Inventory Management System
-    </footer>
-
+    <footer class="main-footer">© 2026 HealthCare Inventory Management System</footer>
   </main>
-
 </div>
-
