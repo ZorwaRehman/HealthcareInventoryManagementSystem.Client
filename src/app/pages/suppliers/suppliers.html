@@ -1,3 +1,4 @@
+
 <div class="hims-layout">
   <!-- Sidebar -->
   <aside class="sidebar">
@@ -42,7 +43,8 @@
       </a>
 
       <a routerLink="/reports" routerLinkActive="active" class="nav-link">
-        <span class="nav-icon">▥</span> Report Management
+        <span class="nav-icon">▥</span>
+        Report Management
       </a>
 
       <a routerLink="/users" routerLinkActive="active">
@@ -70,6 +72,7 @@
 
   <!-- Main Content -->
   <main class="main-content">
+
     <!-- Page Header -->
     <header class="page-header">
       <div>
@@ -83,7 +86,13 @@
         <p>Manage supplier information and maintain your supplier records.</p>
       </div>
 
-      <button type="button" class="add-button" (click)="openAddForm()">+ Add New Supplier</button>
+      <button
+        type="button"
+        class="add-button"
+        (click)="openAddForm()"
+      >
+        + Add New Supplier
+      </button>
     </header>
 
     <!-- Success and Error Messages -->
@@ -138,6 +147,7 @@
           <input
             type="text"
             [(ngModel)]="searchText"
+            (keyup.enter)="onSearchChange()"
             placeholder="Search by name, email, phone, or city..."
             aria-label="Search suppliers"
           />
@@ -145,6 +155,7 @@
 
         <select
           [(ngModel)]="selectedStatus"
+          (ngModelChange)="onStatusChange()"
           aria-label="Filter suppliers by status"
           class="category-filter"
         >
@@ -153,7 +164,13 @@
           <option value="Inactive">Inactive Suppliers</option>
         </select>
 
-        <button type="button" class="clear-button" (click)="clearFilters()">Clear</button>
+        <button
+          type="button"
+          class="clear-button"
+          (click)="clearFilters()"
+        >
+          Clear
+        </button>
       </div>
 
       <!-- Loading -->
@@ -162,6 +179,7 @@
           <p>Loading suppliers...</p>
         </div>
       } @else {
+
         <div class="table-wrapper">
           <table class="inventory-table">
             <thead>
@@ -178,7 +196,10 @@
 
             <tbody>
               @for (supplier of filteredSuppliers; track supplier.supplierId) {
-                <tr class="clickable-row" (click)="openSupplierDetails(supplier)">
+                <tr
+                  class="clickable-row"
+                  (click)="openSupplierDetails(supplier)"
+                >
                   <td>
                     <div class="supplier-name">
                       <div class="supplier-avatar">
@@ -187,7 +208,9 @@
 
                       <div class="supplier-info">
                         <strong>{{ supplier.name }}</strong>
-                        <small>{{ supplier.country || 'Country not provided' }}</small>
+                        <small>
+                          {{ supplier.country || 'Country not provided' }}
+                        </small>
                       </div>
                     </div>
                   </td>
@@ -208,7 +231,10 @@
                   </td>
 
                   <td class="actions-cell">
-                    <div class="action-menu-container" (click)="$event.stopPropagation()">
+                    <div
+                      class="action-menu-container"
+                      (click)="$event.stopPropagation()"
+                    >
                       <button
                         type="button"
                         class="more-button"
@@ -222,6 +248,7 @@
 
                       @if (openActionMenuId === supplier.supplierId) {
                         <div class="action-dropdown">
+
                           @if (supplier.isActive) {
                             <button
                               type="button"
@@ -250,6 +277,7 @@
                               Reactivate
                             </button>
                           }
+
                         </div>
                       }
                     </div>
@@ -263,9 +291,10 @@
           @if (filteredSuppliers.length === 0) {
             <div class="empty-state">
               <h3>No suppliers found</h3>
+
               <p>
                 {{
-                  suppliers.length === 0
+                  totalCount === 0
                     ? 'Add your first supplier to get started.'
                     : 'Try changing your search or status filter.'
                 }}
@@ -274,9 +303,57 @@
           }
         </div>
 
-        <!-- Table Footer -->
-        <div class="table-footer">
-          Showing {{ filteredSuppliers.length }} of {{ suppliers.length }} suppliers
+        <!-- Server-Side Pagination -->
+        <div class="table-footer pagination-footer">
+
+          <div class="pagination-info">
+            Showing
+            {{ totalCount === 0 ? 0 : (pageNumber - 1) * pageSize + 1 }}–{{ (pageNumber - 1) * pageSize + filteredSuppliers.length }}
+            of {{ totalCount }} suppliers
+          </div>
+
+          <div class="pagination-controls">
+
+            <div class="page-size-control">
+              <label for="supplierPageSize">Rows per page:</label>
+
+              <select
+                id="supplierPageSize"
+                class="page-size-select"
+                [ngModel]="pageSize"
+                (ngModelChange)="changePageSize($event)"
+                [disabled]="isLoading"
+              >
+                <option [ngValue]="5">5</option>
+                <option [ngValue]="10">10</option>
+                <option [ngValue]="20">20</option>
+                <option [ngValue]="50">50</option>
+              </select>
+            </div>
+
+            <button
+              type="button"
+              class="pagination-button"
+              (click)="changePage(pageNumber - 1)"
+              [disabled]="pageNumber <= 1 || isLoading"
+            >
+              Previous
+            </button>
+
+            <span class="page-indicator">
+              Page {{ pageNumber }} of {{ totalPages || 1 }}
+            </span>
+
+            <button
+              type="button"
+              class="pagination-button"
+              (click)="changePage(pageNumber + 1)"
+              [disabled]="pageNumber >= totalPages || isLoading"
+            >
+              Next
+            </button>
+
+          </div>
         </div>
       }
     </section>
@@ -284,14 +361,23 @@
     <!-- Supplier Details Modal -->
     @if (selectedSupplier) {
       <div class="modal-overlay" (click)="closeSupplierDetails()">
-        <div class="details-modal" (click)="$event.stopPropagation()">
+        <div
+          class="details-modal"
+          (click)="$event.stopPropagation()"
+        >
           <div class="modal-header">
             <div>
               <h2>Supplier Details</h2>
               <p>Complete information about this supplier.</p>
             </div>
 
-            <button type="button" class="close-button" (click)="closeSupplierDetails()">×</button>
+            <button
+              type="button"
+              class="close-button"
+              (click)="closeSupplierDetails()"
+            >
+              ×
+            </button>
           </div>
 
           <div class="supplier-details-heading">
@@ -355,7 +441,11 @@
           </div>
 
           <div class="details-modal-footer">
-            <button type="button" class="cancel-button" (click)="closeSupplierDetails()">
+            <button
+              type="button"
+              class="cancel-button"
+              (click)="closeSupplierDetails()"
+            >
               Close
             </button>
           </div>
@@ -370,8 +460,9 @@
           <h2>Deactivate Supplier?</h2>
 
           <p>
-            Are you sure you want to deactivate this supplier? This supplier will remain in your
-            records but will no longer be available for new stock batches.
+            Are you sure you want to deactivate this supplier? This supplier
+            will remain in your records but will no longer be available for
+            new stock batches.
           </p>
 
           <div class="modal-actions">
@@ -398,6 +489,9 @@
     }
 
     <!-- Page Footer -->
-    <footer class="page-footer">HealthCare Inventory Management System</footer>
+    <footer class="page-footer">
+      HealthCare Inventory Management System
+    </footer>
+
   </main>
 </div>

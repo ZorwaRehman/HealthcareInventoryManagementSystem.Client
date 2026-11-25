@@ -1121,3 +1121,84 @@ button {
     width: 100%;
   }
 }
+
+
+/* ==========================================
+   SUPPLIER PAGINATION
+========================================== */
+
+.pagination-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.pagination-info {
+  color: #64748b;
+  font-size: 12px;
+}
+
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.page-size-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #64748b;
+  font-size: 12px;
+}
+
+.page-size-select {
+  padding: 7px 10px;
+  border: 1px solid #dbe3ea;
+  border-radius: 6px;
+  background: #fff;
+  color: #334155;
+  outline: none;
+}
+
+.pagination-button {
+  padding: 7px 12px;
+  border: 1px solid #dbe3ea;
+  border-radius: 6px;
+  background: #fff;
+  color: #334155;
+  font-size: 12px;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.pagination-button:hover:not(:disabled) {
+  background: #eaf6f5;
+  border-color: #159a94;
+  color: #087f79;
+}
+
+.pagination-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.page-indicator {
+  color: #475569;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+@media (max-width: 600px) {
+  .pagination-footer {
+    align-items: flex-start;
+  }
+
+  .pagination-controls {
+    width: 100%;
+    justify-content: space-between;
+  }
+}

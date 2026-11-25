@@ -1,8 +1,10 @@
+
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 
 import { Supplier, SupplierRequest } from '../models/supplier.models';
+import { PaginationResponse } from '../models/pagination.models';
 
 import { environment } from '../../environments/environment';
 
@@ -19,6 +21,7 @@ export class SupplierService {
   private cachedSuppliers: Supplier[] | null = null;
 
   // Get all suppliers, using cached data when available.
+  // Kept for existing pages that require the complete supplier list.
   getSuppliers(forceRefresh = false): Observable<Supplier[]> {
     if (this.cachedSuppliers !== null && !forceRefresh) {
       return new Observable((observer) => {
@@ -31,6 +34,31 @@ export class SupplierService {
       tap((suppliers) => {
         this.cachedSuppliers = suppliers;
       }),
+    );
+  }
+
+  // Get suppliers using server-side pagination, search, and status filtering.
+  getPagedSuppliers(
+    pageNumber = 1,
+    pageSize = 10,
+    search = '',
+    isActive?: boolean,
+  ): Observable<PaginationResponse<Supplier>> {
+    let params = new HttpParams()
+      .set('pageNumber', pageNumber)
+      .set('pageSize', pageSize);
+
+    if (search.trim()) {
+      params = params.set('search', search.trim());
+    }
+
+    if (isActive !== undefined) {
+      params = params.set('isActive', isActive);
+    }
+
+    return this.http.get<PaginationResponse<Supplier>>(
+      `${this.apiUrl}/paged`,
+      { params },
     );
   }
 
@@ -49,7 +77,10 @@ export class SupplierService {
   }
 
   // Update an existing supplier.
-  updateSupplier(id: number, request: SupplierRequest): Observable<Supplier> {
+  updateSupplier(
+    id: number,
+    request: SupplierRequest,
+  ): Observable<Supplier> {
     return this.http.put<Supplier>(`${this.apiUrl}/${id}`, request).pipe(
       tap(() => {
         this.clearSuppliersCache();
@@ -61,11 +92,7 @@ export class SupplierService {
   deactivateSupplier(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`).pipe(
       tap(() => {
-        if (this.cachedSuppliers !== null) {
-          this.cachedSuppliers = this.cachedSuppliers.map((supplier) =>
-            supplier.supplierId === id ? { ...supplier, isActive: false } : supplier,
-          );
-        }
+        this.clearSuppliersCache();
       }),
     );
   }

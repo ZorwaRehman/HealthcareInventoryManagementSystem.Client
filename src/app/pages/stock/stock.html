@@ -93,7 +93,8 @@
         [class.error]="messageType === 'error'"
         [class.loading]="messageType === 'loading'"
         role="status"
-        aria-live="polite">
+        aria-live="polite"
+      >
         {{ message }}
       </div>
     }
@@ -152,9 +153,7 @@
           <p>View and search batches across all inventory items.</p>
         </div>
 
-        <span class="record-count">
-          {{ filteredBatches.length }} records
-        </span>
+        <span class="record-count">{{ totalCount }} records</span>
       </div>
 
       <!-- Search and Filters -->
@@ -165,17 +164,23 @@
             type="text"
             placeholder="Search by batch number, item, or supplier..."
             [(ngModel)]="searchText"
-            aria-label="Search stock batches" />
+            (keyup.enter)="applyFilters()"
+            aria-label="Search stock batches"
+          />
         </div>
 
         <select
           class="category-filter"
-          [(ngModel)]="selectedItem"
-          aria-label="Filter by inventory item">
-          <option value="All">All Items</option>
+          [(ngModel)]="selectedItemId"
+          (ngModelChange)="applyFilters()"
+          aria-label="Filter by inventory item"
+        >
+          <option [ngValue]="null">All Items</option>
 
-          @for (item of itemNames; track item) {
-            <option [value]="item">{{ item }}</option>
+          @for (item of stockItems; track item.itemId) {
+            <option [ngValue]="item.itemId">
+              {{ item.itemName }}
+            </option>
           }
         </select>
 
@@ -215,8 +220,8 @@
                 <td>
                   <span class="category-badge">
                     {{
-                      stockItems.find(item => item.itemId === batch.itemId)?.itemName ||
-                      'Unknown Item'
+                      stockItems.find((item) => item.itemId === batch.itemId)?.itemName ||
+                        'Unknown Item'
                     }}
                   </span>
                 </td>
@@ -237,21 +242,22 @@
                   }
                 </td>
 
-                <!-- Three-dot Actions Dropdown - Same as Items Module -->
+                <!-- Three-dot Actions Dropdown -->
                 <td class="actions-cell">
                   <div
                     class="action-menu-wrapper"
                     (mouseenter)="openActionMenu(batch.stockBatchId)"
                     (mouseleave)="closeActionMenu()"
-                    (click)="$event.stopPropagation()">
-
+                    (click)="$event.stopPropagation()"
+                  >
                     <button
                       type="button"
                       class="action-menu-trigger"
                       title="Actions"
                       aria-label="Batch actions"
                       [attr.aria-expanded]="openActionMenuId === batch.stockBatchId"
-                      [disabled]="isLoading || isUpdatingBatchNumber">
+                      [disabled]="isLoading || isUpdatingBatchNumber"
+                    >
                       <span>⋮</span>
                     </button>
 
@@ -260,7 +266,8 @@
                         <button
                           type="button"
                           class="dropdown-action edit-action"
-                          (click)="openEditBatchNumber(batch)">
+                          (click)="openEditBatchNumber(batch)"
+                        >
                           <span class="dropdown-icon">✎</span>
                           Edit Batch Number
                         </button>
@@ -268,12 +275,9 @@
                         <button
                           type="button"
                           class="dropdown-action view-action"
-                          [routerLink]="[
-                            '/stock/batches',
-                            batch.stockBatchId,
-                            'transactions'
-                          ]"
-                          (click)="closeActionMenu()">
+                          [routerLink]="['/stock/batches', batch.stockBatchId, 'transactions']"
+                          (click)="closeActionMenu()"
+                        >
                           <span class="dropdown-icon">↗</span>
                           View Transactions
                         </button>
@@ -290,10 +294,7 @@
                   <div class="empty-icon">⌕</div>
                   <h3>No stock batches found</h3>
                   <p>Try changing your search or item filter.</p>
-                  <button
-                    type="button"
-                    class="btn-secondary"
-                    (click)="clearFilters()">
+                  <button type="button" class="btn-secondary" (click)="clearFilters()">
                     Clear Filters
                   </button>
                 </td>
@@ -303,12 +304,56 @@
         </table>
       </div>
 
-      <!-- Table Footer -->
-      <div class="table-footer">
-        <span>
-          Showing {{ filteredBatches.length }} of {{ stockBatches.length }} batches
-        </span>
-        <span>Healthcare Inventory Management System</span>
+      <!-- Standardized Server-Side Pagination -->
+      <div class="table-footer pagination-footer">
+        <div class="pagination-info">
+          Showing
+          {{ totalCount === 0 ? 0 : (pageNumber - 1) * pageSize + 1 }}–{{
+            (pageNumber - 1) * pageSize + filteredBatches.length
+          }}
+          of {{ totalCount }} batches
+        </div>
+
+        <div class="pagination-controls">
+          <div class="page-size-control">
+            <label for="stockPageSize">Rows per page:</label>
+
+            <select
+              id="stockPageSize"
+              class="page-size-select"
+              [ngModel]="pageSize"
+              (ngModelChange)="changePageSize($event)"
+              [disabled]="isLoading"
+            >
+              <option [ngValue]="5">5</option>
+              <option [ngValue]="10">10</option>
+              <option [ngValue]="20">20</option>
+              <option [ngValue]="50">50</option>
+            </select>
+          </div>
+
+          <button
+            type="button"
+            class="pagination-button"
+            (click)="changePage(pageNumber - 1)"
+            [disabled]="pageNumber <= 1 || isLoading"
+          >
+            Previous
+          </button>
+
+          <span class="page-indicator">
+            Page {{ pageNumber }} of {{ totalPages || 1 }}
+          </span>
+
+          <button
+            type="button"
+            class="pagination-button"
+            (click)="changePage(pageNumber + 1)"
+            [disabled]="pageNumber >= totalPages || isLoading"
+          >
+            Next
+          </button>
+        </div>
       </div>
     </section>
 
@@ -326,8 +371,8 @@
         role="dialog"
         aria-modal="true"
         aria-labelledby="editBatchModalTitle"
-        (click)="$event.stopPropagation()">
-
+        (click)="$event.stopPropagation()"
+      >
         <div class="stock-modal-header">
           <div>
             <h2 id="editBatchModalTitle">Edit Batch Number</h2>
@@ -339,7 +384,8 @@
             class="stock-modal-close"
             aria-label="Close modal"
             [disabled]="isUpdatingBatchNumber"
-            (click)="closeEditBatchNumberModal()">
+            (click)="closeEditBatchNumberModal()"
+          >
             ×
           </button>
         </div>
@@ -354,8 +400,8 @@
             <span>Inventory Item</span>
             <strong>
               {{
-                stockItems.find(item => item.itemId === selectedBatch!.itemId)?.itemName ||
-                'Unknown Item'
+                stockItems.find((item) => item.itemId === selectedBatch!.itemId)?.itemName ||
+                  'Unknown Item'
               }}
             </strong>
           </div>
@@ -370,7 +416,8 @@
               maxlength="100"
               placeholder="Enter batch number"
               [disabled]="isUpdatingBatchNumber"
-              required />
+              required
+            />
             <small>Maximum 100 characters.</small>
           </div>
         </div>
@@ -380,7 +427,8 @@
             type="button"
             class="btn-modal-cancel"
             [disabled]="isUpdatingBatchNumber"
-            (click)="closeEditBatchNumberModal()">
+            (click)="closeEditBatchNumberModal()"
+          >
             Cancel
           </button>
 
@@ -388,7 +436,8 @@
             type="button"
             class="btn-modal-save"
             [disabled]="isUpdatingBatchNumber"
-            (click)="saveBatchNumber()">
+            (click)="saveBatchNumber()"
+          >
             @if (isUpdatingBatchNumber) {
               Saving...
             } @else {

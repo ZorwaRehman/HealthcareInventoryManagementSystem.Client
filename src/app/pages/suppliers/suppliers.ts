@@ -1,9 +1,9 @@
 
 import { Component, OnInit, ChangeDetectorRef, inject } from '@angular/core';
-
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { forkJoin } from 'rxjs';
 
 import { Supplier } from '../../models/supplier.models';
 import { SupplierService } from '../../services/supplier.service';
@@ -24,6 +24,17 @@ export class Suppliers implements OnInit {
 
   searchText = '';
   selectedStatus = 'All';
+
+  // Server-side pagination properties.
+  pageNumber = 1;
+  pageSize = 10;
+  totalCount = 0;
+  totalPages = 0;
+
+  // Supplier summary statistics.
+  totalSuppliers = 0;
+  activeSuppliers = 0;
+  inactiveSuppliers = 0;
 
   isLoading = false;
   message = '';
@@ -53,14 +64,52 @@ export class Suppliers implements OnInit {
     this.loadSuppliers();
   }
 
-  // Load suppliers from the backend API.
+  // Load the current supplier page and global summary statistics.
   loadSuppliers(): void {
     this.isLoading = true;
     this.cdr.markForCheck();
 
-    this.supplierService.getSuppliers(true).subscribe({
-      next: (suppliers) => {
-        this.suppliers = suppliers;
+    const isActive =
+      this.selectedStatus === 'Active'
+        ? true
+        : this.selectedStatus === 'Inactive'
+          ? false
+          : undefined;
+
+    // Page data uses the current search and status filters.
+    // Summary requests use no search filter so the cards remain global.
+    forkJoin({
+      page: this.supplierService.getPagedSuppliers(
+        this.pageNumber,
+        this.pageSize,
+        this.searchText,
+        isActive,
+      ),
+      total: this.supplierService.getPagedSuppliers(1, 1),
+      active: this.supplierService.getPagedSuppliers(1, 1, '', true),
+      inactive: this.supplierService.getPagedSuppliers(1, 1, '', false),
+    }).subscribe({
+      next: (result) => {
+        // If the last record on the current page was removed,
+        // move back to the last available page.
+        if (
+          result.page.totalPages > 0 &&
+          this.pageNumber > result.page.totalPages
+        ) {
+          this.pageNumber = result.page.totalPages;
+          this.loadSuppliers();
+          return;
+        }
+
+        this.suppliers = result.page.items;
+        this.totalCount = result.page.totalCount;
+        this.totalPages = result.page.totalPages;
+
+        // Keep summary cards accurate across all suppliers.
+        this.totalSuppliers = result.total.totalCount;
+        this.activeSuppliers = result.active.totalCount;
+        this.inactiveSuppliers = result.inactive.totalCount;
+
         this.isLoading = false;
         this.cdr.markForCheck();
       },
@@ -78,39 +127,60 @@ export class Suppliers implements OnInit {
     });
   }
 
-  // Filter suppliers according to search text and selected status.
+  // The API already returns filtered suppliers for the current page.
   get filteredSuppliers(): Supplier[] {
-    const search = this.searchText.trim().toLowerCase();
-
-    return this.suppliers.filter((supplier) => {
-      const matchesSearch =
-        supplier.name.toLowerCase().includes(search) ||
-        supplier.email.toLowerCase().includes(search) ||
-        supplier.phone.toLowerCase().includes(search) ||
-        (supplier.city ?? '').toLowerCase().includes(search);
-
-      const matchesStatus =
-        this.selectedStatus === 'All' ||
-        (this.selectedStatus === 'Active' && supplier.isActive) ||
-        (this.selectedStatus === 'Inactive' && !supplier.isActive);
-
-      return matchesSearch && matchesStatus;
-    });
+    return this.suppliers;
   }
 
-  // Count all suppliers.
-  get totalSuppliers(): number {
-    return this.suppliers.length;
+  // Apply search from the backend.
+  onSearchChange(): void {
+    this.pageNumber = 1;
+    this.closeActionMenu();
+    this.loadSuppliers();
   }
 
-  // Count active suppliers.
-  get activeSuppliers(): number {
-    return this.suppliers.filter((supplier) => supplier.isActive).length;
+  // Apply Active or Inactive status filtering from the backend.
+  onStatusChange(): void {
+    this.pageNumber = 1;
+    this.closeActionMenu();
+    this.loadSuppliers();
   }
 
-  // Count inactive suppliers.
-  get inactiveSuppliers(): number {
-    return this.suppliers.filter((supplier) => !supplier.isActive).length;
+  // Change the current page.
+  changePage(page: number): void {
+    if (
+      page < 1 ||
+      page > this.totalPages ||
+      page === this.pageNumber ||
+      this.isLoading
+    ) {
+      return;
+    }
+
+    this.pageNumber = page;
+    this.closeActionMenu();
+    this.loadSuppliers();
+  }
+
+  // Change the number of rows displayed per page.
+  changePageSize(size: number): void {
+    if (size < 1 || this.isLoading) {
+      return;
+    }
+
+    this.pageSize = size;
+    this.pageNumber = 1;
+    this.closeActionMenu();
+    this.loadSuppliers();
+  }
+
+  // Clear search and status filters.
+  clearFilters(): void {
+    this.searchText = '';
+    this.selectedStatus = 'All';
+    this.pageNumber = 1;
+    this.closeActionMenu();
+    this.loadSuppliers();
   }
 
   // Navigate to the Add Supplier page.
@@ -193,18 +263,12 @@ export class Suppliers implements OnInit {
 
     this.supplierService.deactivateSupplier(id).subscribe({
       next: () => {
-        this.suppliers = this.suppliers.map((supplier) =>
-          supplier.supplierId === id
-            ? { ...supplier, isActive: false }
-            : supplier,
-        );
-
         this.message = 'Supplier deactivated successfully!';
 
         this.selectedSupplierId = null;
-        this.isLoading = false;
+        this.pageNumber = 1;
 
-        this.cdr.markForCheck();
+        this.loadSuppliers();
       },
 
       error: (error) => {
@@ -247,16 +311,10 @@ export class Suppliers implements OnInit {
 
     this.supplierService.reactivateSupplier(id).subscribe({
       next: () => {
-        this.suppliers = this.suppliers.map((supplier) =>
-          supplier.supplierId === id
-            ? { ...supplier, isActive: true }
-            : supplier,
-        );
-
         this.message = 'Supplier reactivated successfully!';
 
-        this.isLoading = false;
-        this.cdr.markForCheck();
+        this.pageNumber = 1;
+        this.loadSuppliers();
       },
 
       error: (error) => {
@@ -270,12 +328,5 @@ export class Suppliers implements OnInit {
         this.cdr.markForCheck();
       },
     });
-  }
-
-  // Clear search and status filters.
-  clearFilters(): void {
-    this.searchText = '';
-    this.selectedStatus = 'All';
-    this.closeActionMenu();
   }
 }

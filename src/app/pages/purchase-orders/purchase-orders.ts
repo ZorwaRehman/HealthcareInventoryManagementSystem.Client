@@ -1,7 +1,10 @@
+
 import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { DatePipe, NgClass } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { forkJoin } from 'rxjs';
+
 import { CurrencyService } from '../../services/currency.service';
 import { PurchaseOrder } from '../../models/purchase-order.models';
 import { Supplier } from '../../models/supplier.models';
@@ -24,7 +27,7 @@ export class PurchaseOrders implements OnInit {
   // Shared currency service for displaying converted amounts.
   private readonly currencyService = inject(CurrencyService);
 
-  // Format PKR amounts using the currency selected on Dashboard.
+  // Format amounts using the currency selected on Dashboard.
   formatPrice(amount: number): string {
     return this.currencyService.formatPrice(amount);
   }
@@ -38,6 +41,18 @@ export class PurchaseOrders implements OnInit {
 
   purchaseOrders: PurchaseOrder[] = [];
   suppliers: Supplier[] = [];
+
+  // Server-side pagination.
+  pageNumber = 1;
+  pageSize = 10;
+  totalCount = 0;
+  totalPages = 0;
+
+  // Overall summary counts.
+  totalOrders = 0;
+  draftCount = 0;
+  pendingApprovalCount = 0;
+  completedCount = 0;
 
   selectedPurchaseOrder: PurchaseOrder | null = null;
   selectedSupplier: Supplier | null = null;
@@ -62,13 +77,44 @@ export class PurchaseOrders implements OnInit {
     this.loadSuppliers();
   }
 
+  // Load the current page and overall summary counts.
   loadPurchaseOrders(): void {
     this.isLoading = true;
     this.cdr.markForCheck();
 
-    this.purchaseOrderService.getAllPurchaseOrders().subscribe({
-      next: (purchaseOrders) => {
-        this.purchaseOrders = purchaseOrders;
+    forkJoin({
+      page: this.purchaseOrderService.getPagedPurchaseOrders(
+        this.pageNumber,
+        this.pageSize,
+        this.searchText,
+        this.selectedStatus
+      ),
+
+      total: this.purchaseOrderService.getPagedPurchaseOrders(1, 1),
+
+      drafts: this.purchaseOrderService.getPagedPurchaseOrders(
+        1, 1, '', 'Draft'
+      ),
+
+      pending: this.purchaseOrderService.getPagedPurchaseOrders(
+        1, 1, '', 'Submitted'
+      ),
+
+      received: this.purchaseOrderService.getPagedPurchaseOrders(
+        1, 1, '', 'Received'
+      ),
+    }).subscribe({
+      next: (result) => {
+        this.purchaseOrders = result.page.items;
+        this.totalCount = result.page.totalCount;
+        this.totalPages = result.page.totalPages;
+
+        // Keep summary cards independent of the current page and filters.
+        this.totalOrders = result.total.totalCount;
+        this.draftCount = result.drafts.totalCount;
+        this.pendingApprovalCount = result.pending.totalCount;
+        this.completedCount = result.received.totalCount;
+
         this.isLoading = false;
         this.cdr.markForCheck();
       },
@@ -78,7 +124,7 @@ export class PurchaseOrders implements OnInit {
         this.showMessage(
           error.error?.message ||
             'Unable to load Purchase Orders. Please check that the backend is running.',
-          'error',
+          'error'
         );
 
         this.isLoading = false;
@@ -99,38 +145,47 @@ export class PurchaseOrders implements OnInit {
     });
   }
 
+  // The API already applies search and status filters.
   get filteredPurchaseOrders(): PurchaseOrder[] {
-    const search = this.searchText.trim().toLowerCase();
-
-    return this.purchaseOrders.filter((order) => {
-      const matchesSearch =
-        order.orderNumber.toLowerCase().includes(search) ||
-        order.supplierName.toLowerCase().includes(search);
-
-      const matchesStatus = this.selectedStatus === 'All' || order.status === this.selectedStatus;
-
-      return matchesSearch && matchesStatus;
-    });
+    return this.purchaseOrders;
   }
 
-  get totalOrders(): number {
-    return this.purchaseOrders.length;
+  // Apply search filter.
+  applyFilters(): void {
+    this.pageNumber = 1;
+    this.loadPurchaseOrders();
   }
 
-  get draftCount(): number {
-    return this.countByStatus('Draft');
+  // Apply status filter.
+  onStatusChange(): void {
+    this.pageNumber = 1;
+    this.loadPurchaseOrders();
   }
 
-  get pendingApprovalCount(): number {
-    return this.countByStatus('Submitted');
+  // Change the current page.
+  changePage(page: number): void {
+    if (
+      page < 1 ||
+      page > this.totalPages ||
+      page === this.pageNumber ||
+      this.isLoading
+    ) {
+      return;
+    }
+
+    this.pageNumber = page;
+    this.loadPurchaseOrders();
   }
 
-  get completedCount(): number {
-    return this.countByStatus('Received');
-  }
+  // Change the number of records displayed per page.
+  changePageSize(size: number): void {
+    if (this.isLoading) {
+      return;
+    }
 
-  private countByStatus(status: string): number {
-    return this.purchaseOrders.filter((order) => order.status === status).length;
+    this.pageSize = Number(size);
+    this.pageNumber = 1;
+    this.loadPurchaseOrders();
   }
 
   getStatusLabel(status: string): string {
@@ -176,7 +231,9 @@ export class PurchaseOrders implements OnInit {
   openSupplierDetails(supplierId: number, event: MouseEvent): void {
     event.stopPropagation();
 
-    const supplier = this.suppliers.find((item) => item.supplierId === supplierId);
+    const supplier = this.suppliers.find(
+      (item) => item.supplierId === supplierId
+    );
 
     if (!supplier) {
       this.showMessage('Supplier details could not be found.', 'error');
@@ -187,7 +244,7 @@ export class PurchaseOrders implements OnInit {
     this.modalView = 'supplier';
   }
 
-  // Return to the Purchase Order details without opening another modal.
+  // Return to the Purchase Order details.
   backToPurchaseOrder(): void {
     if (this.selectedPurchaseOrder) {
       this.selectedSupplier = null;
@@ -204,7 +261,8 @@ export class PurchaseOrders implements OnInit {
   toggleActionMenu(purchaseOrderId: number, event: MouseEvent): void {
     event.stopPropagation();
 
-    this.openActionMenuId = this.openActionMenuId === purchaseOrderId ? null : purchaseOrderId;
+    this.openActionMenuId =
+      this.openActionMenuId === purchaseOrderId ? null : purchaseOrderId;
   }
 
   closeActionMenu(): void {
@@ -228,7 +286,10 @@ export class PurchaseOrders implements OnInit {
 
     this.purchaseOrderService.submitPurchaseOrder(order.purchaseOrderId).subscribe({
       next: (response) => {
-        this.showMessage(response.message || 'Purchase Order submitted successfully!', 'success');
+        this.showMessage(
+          response.message || 'Purchase Order submitted successfully!',
+          'success'
+        );
         this.loadPurchaseOrders();
       },
       error: (error) => {
@@ -254,7 +315,10 @@ export class PurchaseOrders implements OnInit {
 
     this.purchaseOrderService.approvePurchaseOrder(order.purchaseOrderId).subscribe({
       next: (response) => {
-        this.showMessage(response.message || 'Purchase Order approved successfully!', 'success');
+        this.showMessage(
+          response.message || 'Purchase Order approved successfully!',
+          'success'
+        );
         this.loadPurchaseOrders();
       },
       error: (error) => {
@@ -280,7 +344,10 @@ export class PurchaseOrders implements OnInit {
 
     this.purchaseOrderService.markPurchaseOrderAsOrdered(order.purchaseOrderId).subscribe({
       next: (response) => {
-        this.showMessage(response.message || 'Purchase Order marked as ordered!', 'success');
+        this.showMessage(
+          response.message || 'Purchase Order marked as ordered!',
+          'success'
+        );
         this.loadPurchaseOrders();
       },
       error: (error) => {
@@ -292,13 +359,20 @@ export class PurchaseOrders implements OnInit {
   cancelPurchaseOrder(order: PurchaseOrder): void {
     this.closeActionMenu();
 
-    const cancellableStatuses = ['Draft', 'Submitted', 'Approved', 'Ordered'];
+    const cancellableStatuses = [
+      'Draft',
+      'Submitted',
+      'Approved',
+      'Ordered',
+    ];
 
     if (this.isLoading || !cancellableStatuses.includes(order.status)) {
       return;
     }
 
-    if (!window.confirm(`Are you sure you want to cancel Purchase Order ${order.orderNumber}?`)) {
+    if (!window.confirm(
+      `Are you sure you want to cancel Purchase Order ${order.orderNumber}?`
+    )) {
       return;
     }
 
@@ -308,7 +382,10 @@ export class PurchaseOrders implements OnInit {
 
     this.purchaseOrderService.cancelPurchaseOrder(order.purchaseOrderId).subscribe({
       next: (response) => {
-        this.showMessage(response.message || 'Purchase Order cancelled successfully!', 'success');
+        this.showMessage(
+          response.message || 'Purchase Order cancelled successfully!',
+          'success'
+        );
 
         this.loadPurchaseOrders();
       },
@@ -321,7 +398,10 @@ export class PurchaseOrders implements OnInit {
   receivePurchaseOrder(order: PurchaseOrder): void {
     this.closeActionMenu();
 
-    if (this.isLoading || (order.status !== 'Ordered' && order.status !== 'PartiallyReceived')) {
+    if (
+      this.isLoading ||
+      (order.status !== 'Ordered' && order.status !== 'PartiallyReceived')
+    ) {
       return;
     }
 
@@ -332,7 +412,10 @@ export class PurchaseOrders implements OnInit {
     });
   }
 
-  private showMessage(message: string, type: 'success' | 'error'): void {
+  private showMessage(
+    message: string,
+    type: 'success' | 'error'
+  ): void {
     this.message = message;
     this.messageType = type;
     this.cdr.markForCheck();
@@ -350,5 +433,7 @@ export class PurchaseOrders implements OnInit {
   clearFilters(): void {
     this.searchText = '';
     this.selectedStatus = 'All';
+    this.pageNumber = 1;
+    this.loadPurchaseOrders();
   }
 }

@@ -1,12 +1,14 @@
 
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 import {
   PurchaseOrder,
   PurchaseOrderRequest
 } from '../models/purchase-order.models';
+
+import { PaginationResponse } from '../models/pagination.models';
 
 import { environment } from '../../environments/environment';
 
@@ -22,6 +24,31 @@ export class PurchaseOrderService {
   // Get all Purchase Orders.
   getAllPurchaseOrders(): Observable<PurchaseOrder[]> {
     return this.http.get<PurchaseOrder[]>(this.apiUrl);
+  }
+
+  // Get paginated Purchase Orders with optional search and status filtering.
+  getPagedPurchaseOrders(
+    pageNumber = 1,
+    pageSize = 10,
+    search = '',
+    status = 'All'
+  ): Observable<PaginationResponse<PurchaseOrder>> {
+    let params = new HttpParams()
+      .set('pageNumber', pageNumber)
+      .set('pageSize', pageSize);
+
+    if (search.trim()) {
+      params = params.set('search', search.trim());
+    }
+
+    if (status !== 'All') {
+      params = params.set('status', status);
+    }
+
+    return this.http.get<PaginationResponse<PurchaseOrder>>(
+      `${this.apiUrl}/paged`,
+      { params }
+    );
   }
 
   // Get one Purchase Order by ID.

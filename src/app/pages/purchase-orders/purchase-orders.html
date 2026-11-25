@@ -1,3 +1,4 @@
+
 <div class="hims-layout">
   <!-- Sidebar -->
   <aside class="sidebar">
@@ -42,7 +43,8 @@
       </a>
 
       <a routerLink="/reports" routerLinkActive="active" class="nav-link">
-        <span class="nav-icon">▥</span> Report Management
+        <span class="nav-icon">▥</span>
+        Report Management
       </a>
 
       <a routerLink="/users" routerLinkActive="active">
@@ -137,14 +139,20 @@
       <div class="filter-bar">
         <div class="search-box">
           <span class="search-icon">⌕</span>
+
           <input
             type="text"
             placeholder="Search by order number or supplier..."
             [(ngModel)]="searchText"
+            (keyup.enter)="applyFilters()"
           />
         </div>
 
-        <select class="status-filter" [(ngModel)]="selectedStatus">
+        <select
+          class="status-filter"
+          [(ngModel)]="selectedStatus"
+          (ngModelChange)="onStatusChange()"
+        >
           <option value="All">All Statuses</option>
 
           @for (status of statuses; track status) {
@@ -154,7 +162,13 @@
           }
         </select>
 
-        <button class="clear-button" type="button" (click)="clearFilters()">Clear</button>
+        <button
+          class="clear-button"
+          type="button"
+          (click)="clearFilters()"
+        >
+          Clear
+        </button>
       </div>
 
       <!-- Loading -->
@@ -189,6 +203,7 @@
                   <td class="po-column">
                     <div class="po-number-cell">
                       <div class="po-icon">PO</div>
+
                       <div class="po-number-info">
                         <strong>{{ order.orderNumber }}</strong>
                         <small>Purchase Order</small>
@@ -196,7 +211,7 @@
                     </div>
                   </td>
 
-                  <!-- Complete Supplier Name -->
+                  <!-- Supplier -->
                   <td class="supplier-column">
                     <button
                       class="supplier-link"
@@ -226,13 +241,19 @@
                   </td>
 
                   <td>
-                    <span class="status-badge" [ngClass]="getStatusClass(order.status)">
+                    <span
+                      class="status-badge"
+                      [ngClass]="getStatusClass(order.status)"
+                    >
                       {{ getStatusLabel(order.status) }}
                     </span>
                   </td>
 
                   <!-- Actions -->
-                  <td class="actions-column" (click)="$event.stopPropagation()">
+                  <td
+                    class="actions-column"
+                    (click)="$event.stopPropagation()"
+                  >
                     <div class="action-menu-wrapper">
                       <button
                         class="action-menu-trigger"
@@ -246,39 +267,60 @@
 
                       @if (openActionMenuId === order.purchaseOrderId) {
                         <div class="action-dropdown">
-                          <button type="button" (click)="viewPurchaseOrder(order)">
+                          <button
+                            type="button"
+                            (click)="viewPurchaseOrder(order)"
+                          >
                             <span>⌕</span>
                             View Details
                           </button>
 
                           @if (order.status === 'Draft') {
-                            <button type="button" (click)="editPurchaseOrder(order)">
+                            <button
+                              type="button"
+                              (click)="editPurchaseOrder(order)"
+                            >
                               <span>✎</span>
                               Edit
                             </button>
 
-                            <button type="button" (click)="submitPurchaseOrder(order)">
+                            <button
+                              type="button"
+                              (click)="submitPurchaseOrder(order)"
+                            >
                               <span>➤</span>
                               Submit
                             </button>
                           }
 
                           @if (order.status === 'Submitted') {
-                            <button type="button" (click)="approvePurchaseOrder(order)">
+                            <button
+                              type="button"
+                              (click)="approvePurchaseOrder(order)"
+                            >
                               <span>✓</span>
                               Approve
                             </button>
                           }
 
                           @if (order.status === 'Approved') {
-                            <button type="button" (click)="markAsOrdered(order)">
+                            <button
+                              type="button"
+                              (click)="markAsOrdered(order)"
+                            >
                               <span>▣</span>
                               Mark Ordered
                             </button>
                           }
 
-                          @if (order.status === 'Ordered' || order.status === 'PartiallyReceived') {
-                            <button type="button" (click)="receivePurchaseOrder(order)">
+                          @if (
+                            order.status === 'Ordered' ||
+                            order.status === 'PartiallyReceived'
+                          ) {
+                            <button
+                              type="button"
+                              (click)="receivePurchaseOrder(order)"
+                            >
                               <span>↓</span>
                               Receive Items
                             </button>
@@ -313,7 +355,9 @@
                   <td colspan="8" class="empty-state">
                     <div class="empty-icon">▤</div>
                     <h3>No Purchase Orders Found</h3>
-                    <p>No purchase orders match your search or selected filter.</p>
+                    <p>
+                      No purchase orders match your search or selected filter.
+                    </p>
                   </td>
                 </tr>
               }
@@ -322,8 +366,56 @@
         </div>
       }
 
-      <div class="table-footer">
-        Showing {{ filteredPurchaseOrders.length }} of {{ purchaseOrders.length }} purchase orders
+      <!-- Server-side Pagination -->
+      <div class="table-footer pagination-footer">
+        <div class="pagination-info">
+          Showing
+          {{ totalCount === 0 ? 0 : (pageNumber - 1) * pageSize + 1 }}–{{
+            (pageNumber - 1) * pageSize + filteredPurchaseOrders.length
+          }}
+          of {{ totalCount }} purchase orders
+        </div>
+
+        <div class="pagination-controls">
+          <div class="page-size-control">
+            <label for="purchaseOrderPageSize">Rows per page:</label>
+
+            <select
+              id="purchaseOrderPageSize"
+              class="page-size-select"
+              [ngModel]="pageSize"
+              (ngModelChange)="changePageSize($event)"
+              [disabled]="isLoading"
+            >
+              <option [ngValue]="5">5</option>
+              <option [ngValue]="10">10</option>
+              <option [ngValue]="20">20</option>
+              <option [ngValue]="50">50</option>
+            </select>
+          </div>
+
+          <button
+            type="button"
+            class="pagination-button"
+            (click)="changePage(pageNumber - 1)"
+            [disabled]="pageNumber <= 1 || isLoading"
+          >
+            Previous
+          </button>
+
+          <span class="page-indicator">
+            Page {{ pageNumber }} of {{ totalPages || 1 }}
+          </span>
+
+          <button
+            type="button"
+            class="pagination-button"
+            (click)="changePage(pageNumber + 1)"
+            [disabled]="pageNumber >= totalPages || isLoading"
+          >
+            Next
+          </button>
+        </div>
       </div>
     </section>
   </main>
@@ -333,6 +425,7 @@
 @if (selectedPurchaseOrder || selectedSupplier) {
   <div class="modal-backdrop" (click)="closeDetailsModal()">
     <div class="details-modal" (click)="$event.stopPropagation()">
+
       <!-- Purchase Order Details -->
       @if (modalView === 'purchaseOrder' && selectedPurchaseOrder) {
         <div class="modal-header">
@@ -341,10 +434,17 @@
             <p>{{ selectedPurchaseOrder.orderNumber }}</p>
           </div>
 
-          <button type="button" class="modal-close" (click)="closeDetailsModal()">×</button>
+          <button
+            type="button"
+            class="modal-close"
+            (click)="closeDetailsModal()"
+          >
+            ×
+          </button>
         </div>
 
         <div class="modal-body">
+          <!-- Order Information -->
           <div class="detail-section">
             <h3>Order Information</h3>
 
@@ -356,7 +456,10 @@
 
               <div class="detail-item">
                 <label>Status</label>
-                <span class="status-badge" [ngClass]="getStatusClass(selectedPurchaseOrder.status)">
+                <span
+                  class="status-badge"
+                  [ngClass]="getStatusClass(selectedPurchaseOrder.status)"
+                >
                   {{ getStatusLabel(selectedPurchaseOrder.status) }}
                 </span>
               </div>
@@ -425,7 +528,10 @@
                 </thead>
 
                 <tbody>
-                  @for (item of selectedPurchaseOrder.items; track item.purchaseOrderItemId) {
+                  @for (
+                    item of selectedPurchaseOrder.items;
+                    track item.purchaseOrderItemId
+                  ) {
                     <tr>
                       <td>{{ item.itemName }}</td>
                       <td>{{ item.sku }}</td>
@@ -478,7 +584,9 @@
           @if (selectedPurchaseOrder.notes) {
             <div class="detail-section">
               <h3>Notes</h3>
-              <p class="notes-content">{{ selectedPurchaseOrder.notes }}</p>
+              <p class="notes-content">
+                {{ selectedPurchaseOrder.notes }}
+              </p>
             </div>
           }
 
@@ -524,7 +632,11 @@
         </div>
 
         <div class="modal-footer">
-          <button type="button" class="secondary-button" (click)="closeDetailsModal()">
+          <button
+            type="button"
+            class="secondary-button"
+            (click)="closeDetailsModal()"
+          >
             Close
           </button>
         </div>
@@ -538,7 +650,13 @@
             <p>Supplier information</p>
           </div>
 
-          <button type="button" class="modal-close" (click)="closeDetailsModal()">×</button>
+          <button
+            type="button"
+            class="modal-close"
+            (click)="closeDetailsModal()"
+          >
+            ×
+          </button>
         </div>
 
         <div class="modal-body">
@@ -610,7 +728,9 @@
           @if (selectedSupplier.notes) {
             <div class="detail-section">
               <h3>Notes</h3>
-              <p class="notes-content">{{ selectedSupplier.notes }}</p>
+              <p class="notes-content">
+                {{ selectedSupplier.notes }}
+              </p>
             </div>
           }
 
@@ -635,12 +755,20 @@
 
         <div class="modal-footer">
           @if (selectedPurchaseOrder) {
-            <button type="button" class="secondary-button" (click)="backToPurchaseOrder()">
+            <button
+              type="button"
+              class="secondary-button"
+              (click)="backToPurchaseOrder()"
+            >
               Back to Purchase Order
             </button>
           }
 
-          <button type="button" class="secondary-button" (click)="closeDetailsModal()">
+          <button
+            type="button"
+            class="secondary-button"
+            (click)="closeDetailsModal()"
+          >
             Close
           </button>
         </div>

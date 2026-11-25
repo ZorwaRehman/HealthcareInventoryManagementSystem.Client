@@ -1,9 +1,6 @@
-
 <div class="users-layout">
-
   <!-- Sidebar -->
   <aside class="sidebar">
-
     <div class="brand">
       <div class="brand-icon">
         <span>+</span>
@@ -14,7 +11,6 @@
     <div class="sidebar-section">MAIN MENU</div>
 
     <nav class="sidebar-nav">
-
       <a routerLink="/dashboard" routerLinkActive="active" class="nav-link">
         <span class="nav-icon">▦</span>
         <span>Dashboard</span>
@@ -48,18 +44,17 @@
       </a>
 
       <a routerLink="/reports" routerLinkActive="active" class="nav-link">
-        <span class="nav-icon">▥</span> Report Management
+        <span class="nav-icon">▥</span>
+        <span>Report Management</span>
       </a>
 
       <a routerLink="/users" routerLinkActive="active" class="nav-link">
         <span class="nav-icon">♙</span>
         <span>User Management</span>
       </a>
-
     </nav>
 
     <div class="sidebar-bottom">
-
       <div class="admin-profile">
         <div class="admin-avatar">A</div>
 
@@ -74,20 +69,15 @@
         <span class="nav-icon">↪</span>
         <span>Logout</span>
       </a>
-
     </div>
   </aside>
 
   <!-- Main Content -->
   <main class="main-content">
-
     <!-- Top Header -->
     <header class="topbar">
-
       <div class="header-left">
-        <div class="breadcrumb">
-          Home / <span>User Management</span>
-        </div>
+        <div class="breadcrumb">Home / <span>User Management</span></div>
         <h1>User Management</h1>
       </div>
 
@@ -99,12 +89,10 @@
 
         <div class="top-avatar">A</div>
       </div>
-
     </header>
 
     <!-- Page Content -->
     <section class="page-content">
-
       <div class="page-intro">
         <div>
           <h2>Manage Users</h2>
@@ -114,7 +102,6 @@
 
       <!-- Summary Cards -->
       <div class="summary-grid">
-
         <div class="summary-card">
           <div class="summary-icon total-icon">
             <span>♙</span>
@@ -154,57 +141,45 @@
             <strong>{{ activeUsers }}</strong>
           </div>
         </div>
-
       </div>
 
       <!-- Search and Filter -->
       <div class="toolbar">
-
         <div class="search-filter-panel">
-
           <div class="search-box">
             <span class="search-icon">⌕</span>
 
             <input
               type="text"
               placeholder="Search by name, email or role..."
-              [(ngModel)]="searchText">
+              [(ngModel)]="searchText"
+              (ngModelChange)="onSearchChange()"
+            />
           </div>
 
           <div class="filter-box">
-            <select [(ngModel)]="selectedRole">
+            <select [(ngModel)]="selectedRole" (ngModelChange)="onRoleChange()">
               <option value="All Roles">All Roles</option>
 
-              <option
-                *ngFor="let role of availableRoles"
-                [value]="role.name">
+              <option *ngFor="let role of availableRoles" [value]="role.name">
                 {{ role.name }}
               </option>
             </select>
           </div>
 
-          <button
-            type="button"
-            class="clear-button"
-            (click)="clearFilters()">
-            Clear
-          </button>
-
+          <button type="button" class="clear-button" (click)="clearFilters()">Clear</button>
         </div>
       </div>
 
       <!-- Users Table -->
       <div class="table-panel">
-
         <div class="table-heading">
           <div>
             <h3>Registered Users</h3>
             <p>Users registered in the healthcare inventory system</p>
           </div>
 
-          <span class="record-count">
-            {{ filteredUsers.length }} users
-          </span>
+          <span class="record-count"> {{ totalCount }} users </span>
         </div>
 
         <!-- Loading -->
@@ -214,21 +189,14 @@
         </div>
 
         <!-- Error -->
-        <div
-          class="state-message error-message"
-          *ngIf="!isLoading && errorMessage">
-
+        <div class="state-message error-message" *ngIf="!isLoading && errorMessage">
           <span>{{ errorMessage }}</span>
           <button type="button" (click)="loadUsers()">Retry</button>
         </div>
 
         <!-- Table -->
-        <div
-          class="table-responsive"
-          *ngIf="!isLoading && !errorMessage">
-
+        <div class="table-responsive" *ngIf="!isLoading && !errorMessage">
           <table>
-
             <thead>
               <tr>
                 <th class="name-column">NAME</th>
@@ -241,29 +209,24 @@
             </thead>
 
             <tbody>
-
               <tr
                 *ngFor="let user of filteredUsers; trackBy: trackByUserId"
                 class="user-row"
                 [class.menu-open]="openActionMenuId === user.id"
                 tabindex="0"
                 (click)="viewUser(user)"
-                (keydown.enter)="viewUser(user)">
-
+                (keydown.enter)="viewUser(user)"
+              >
                 <td class="name-cell">
                   <div class="user-name-wrapper">
-
                     <div class="user-avatar">
                       {{ getInitials(user) }}
                     </div>
 
                     <div class="user-name-info">
-                      <strong>
-                        {{ user.firstName }} {{ user.lastName }}
-                      </strong>
+                      <strong> {{ user.firstName }} {{ user.lastName }} </strong>
                       <span>User ID: {{ user.id }}</span>
                     </div>
-
                   </div>
                 </td>
 
@@ -277,8 +240,9 @@
                     [ngClass]="{
                       'admin-role': user.roleName === 'Admin',
                       'manager-role': user.roleName === 'Store Manager',
-                      'user-role': user.roleName === 'User'
-                    }">
+                      'user-role': user.roleName === 'User',
+                    }"
+                  >
                     {{ user.roleName }}
                   </span>
                 </td>
@@ -286,25 +250,20 @@
                 <td>
                   <span
                     class="status-badge"
-                    [ngClass]="user.isActive ? 'active-status' : 'inactive-status'">
-
+                    [ngClass]="user.isActive ? 'active-status' : 'inactive-status'"
+                  >
                     <span class="status-indicator"></span>
                     {{ user.isActive ? 'Active' : 'Inactive' }}
-
                   </span>
                 </td>
 
                 <td class="date-cell">
-                  {{ user.createdAt | date:'dd MMM yyyy' }}
+                  {{ user.createdAt | date: 'dd MMM yyyy' }}
                 </td>
 
                 <!-- Actions -->
                 <td class="actions-cell">
-
-                  <div
-                    class="action-menu-wrapper"
-                    (click)="$event.stopPropagation()">
-
+                  <div class="action-menu-wrapper" (click)="$event.stopPropagation()">
                     <button
                       type="button"
                       class="action-menu-trigger"
@@ -312,26 +271,20 @@
                       title="More actions"
                       [disabled]="updatingUserId === user.id"
                       [attr.aria-expanded]="openActionMenuId === user.id"
-                      (click)="toggleActionMenu(user.id, $event)">
+                      (click)="toggleActionMenu(user.id, $event)"
+                    >
                       ⋮
                     </button>
 
                     @if (openActionMenuId === user.id) {
                       <div class="action-dropdown">
-
-                        <button
-                          type="button"
-                          class="dropdown-item"
-                          (click)="viewUser(user)">
+                        <button type="button" class="dropdown-item" (click)="viewUser(user)">
                           <span class="dropdown-icon">◎</span>
                           View Details
                         </button>
 
                         <div class="dropdown-role-section">
-
-                          <label [for]="'role-' + user.id">
-                            Change Role
-                          </label>
+                          <label [for]="'role-' + user.id"> Change Role </label>
 
                           <select
                             [id]="'role-' + user.id"
@@ -339,16 +292,12 @@
                             [ngModel]="user.roleId"
                             (ngModelChange)="assignRole(user, $event)"
                             (click)="$event.stopPropagation()"
-                            [disabled]="updatingUserId === user.id">
-
-                            <option
-                              *ngFor="let role of availableRoles"
-                              [ngValue]="role.id">
+                            [disabled]="updatingUserId === user.id"
+                          >
+                            <option *ngFor="let role of availableRoles" [ngValue]="role.id">
                               {{ role.name }}
                             </option>
-
                           </select>
-
                         </div>
 
                         <div class="dropdown-divider"></div>
@@ -358,48 +307,81 @@
                           class="dropdown-item"
                           [ngClass]="user.isActive ? 'danger-item' : 'activate-item'"
                           [disabled]="updatingUserId === user.id"
-                          (click)="toggleUserStatus(user)">
-
+                          (click)="toggleUserStatus(user)"
+                        >
                           <span class="dropdown-icon">
                             {{ user.isActive ? '⊘' : '✓' }}
                           </span>
 
                           {{ user.isActive ? 'Deactivate User' : 'Activate User' }}
-
                         </button>
-
                       </div>
                     }
-
                   </div>
                 </td>
-
               </tr>
 
               <!-- Empty State -->
               <tr *ngIf="filteredUsers.length === 0">
                 <td colspan="6" class="empty-state">
-
                   <div class="empty-icon">♙</div>
                   <strong>No users found</strong>
                   <span>Try changing your search or filter criteria.</span>
-
                 </td>
               </tr>
-
             </tbody>
           </table>
         </div>
 
-        <div
-          class="table-footer"
-          *ngIf="!isLoading && !errorMessage">
+        <!-- Server-Side Pagination -->
+        <div class="table-footer pagination-footer" *ngIf="!isLoading && !errorMessage">
+          <div class="pagination-info">
+            Showing
+            {{ totalCount === 0 ? 0 : (currentPage - 1) * pageSize + 1 }}–{{
+              (currentPage - 1) * pageSize + users.length
+            }}
+            of {{ totalCount }} users
+          </div>
 
-          Showing {{ filteredUsers.length }} of
-          {{ totalUsers }} registered users
+          <div class="pagination-controls">
+            <div class="page-size-control">
+              <label for="userPageSize">Rows per page:</label>
 
+              <select
+                id="userPageSize"
+                class="page-size-select"
+                [ngModel]="pageSize"
+                (ngModelChange)="onPageSizeChange($event)"
+                [disabled]="isLoading"
+              >
+                <option [ngValue]="5">5</option>
+                <option [ngValue]="10">10</option>
+                <option [ngValue]="20">20</option>
+                <option [ngValue]="50">50</option>
+              </select>
+            </div>
+
+            <button
+              type="button"
+              class="pagination-button"
+              (click)="previousPage()"
+              [disabled]="!hasPreviousPage || isLoading"
+            >
+              Previous
+            </button>
+
+            <span class="page-indicator"> Page {{ currentPage }} of {{ totalPages || 1 }} </span>
+
+            <button
+              type="button"
+              class="pagination-button"
+              (click)="nextPage()"
+              [disabled]="!hasNextPage || isLoading"
+            >
+              Next
+            </button>
+          </div>
         </div>
-
       </div>
     </section>
   </main>
@@ -409,34 +391,27 @@
 <div
   class="modal-overlay"
   *ngIf="showDetailsModal && selectedUser as user"
-  (click)="closeDetails()">
-
+  (click)="closeDetails()"
+>
   <div
     class="details-modal"
     role="dialog"
     aria-modal="true"
     aria-labelledby="user-details-title"
-    (click)="$event.stopPropagation()">
-
+    (click)="$event.stopPropagation()"
+  >
     <div class="modal-header">
-
       <div>
         <span class="modal-eyebrow">USER INFORMATION</span>
         <h2 id="user-details-title">User Details</h2>
       </div>
 
-      <button
-        type="button"
-        class="modal-close"
-        aria-label="Close modal"
-        (click)="closeDetails()">
+      <button type="button" class="modal-close" aria-label="Close modal" (click)="closeDetails()">
         ×
       </button>
-
     </div>
 
     <div class="modal-user-profile">
-
       <div class="modal-avatar">
         {{ getInitials(user) }}
       </div>
@@ -445,11 +420,9 @@
         <h3>{{ user.firstName }} {{ user.lastName }}</h3>
         <p>{{ user.email }}</p>
       </div>
-
     </div>
 
     <div class="details-grid">
-
       <div class="detail-item">
         <span>User ID</span>
         <strong>{{ user.id }}</strong>
@@ -460,11 +433,10 @@
         <strong>
           <span
             class="status-badge"
-            [ngClass]="user.isActive ? 'active-status' : 'inactive-status'">
-
+            [ngClass]="user.isActive ? 'active-status' : 'inactive-status'"
+          >
             <span class="status-indicator"></span>
             {{ user.isActive ? 'Active' : 'Inactive' }}
-
           </span>
         </strong>
       </div>
@@ -497,27 +469,20 @@
       <div class="detail-item">
         <span>Registered Date</span>
         <strong>
-          {{ user.createdAt | date:'dd MMM yyyy, hh:mm a' }}
+          {{ user.createdAt | date: 'dd MMM yyyy, hh:mm a' }}
         </strong>
       </div>
 
       <div class="detail-item">
         <span>Last Updated</span>
         <strong>
-          {{ user.updatedAt ? (user.updatedAt | date:'dd MMM yyyy, hh:mm a') : 'Not updated' }}
+          {{ user.updatedAt ? (user.updatedAt | date: 'dd MMM yyyy, hh:mm a') : 'Not updated' }}
         </strong>
       </div>
-
     </div>
 
     <div class="modal-footer">
-      <button
-        type="button"
-        class="modal-done-button"
-        (click)="closeDetails()">
-        Close
-      </button>
+      <button type="button" class="modal-done-button" (click)="closeDetails()">Close</button>
     </div>
-
   </div>
 </div>

@@ -16,7 +16,7 @@ import { Stock as StockModel, StockBatch } from '../../models/stock.models';
 
 import { ItemService } from '../../services/item.service';
 import { StockService } from '../../services/stock.service';
-import { CurrencyService } from '../../services/currency.service'; // Added
+import { CurrencyService } from '../../services/currency.service';
 
 @Component({
   selector: 'app-items',
@@ -30,8 +30,6 @@ export class Items implements OnInit {
   private readonly stockService = inject(StockService);
   private readonly router = inject(Router);
   private readonly cdr = inject(ChangeDetectorRef);
-
-  // Added: Existing shared currency service.
   private readonly currencyService = inject(CurrencyService);
 
   searchText = '';
@@ -41,6 +39,12 @@ export class Items implements OnInit {
   isLoading = false;
 
   items: Item[] = [];
+
+  // Server-side pagination information.
+  pageNumber = 1;
+  pageSize = 10;
+  totalCount = 0;
+  totalPages = 0;
 
   // Actual stock summaries and batches from Stock Management.
   stockItems: StockModel[] = [];
@@ -78,13 +82,13 @@ export class Items implements OnInit {
     this.loadItems();
   }
 
-  // Added: Format inventory values using the currency selected on Dashboard.
+  // Format inventory values using the currency selected on Dashboard.
   // Original stock prices remain stored in PKR.
   formatPrice(amount: number): string {
     return this.currencyService.formatPrice(amount);
   }
 
-  // Load inventory items and refresh stock information.
+  // Load the current page of items and refresh stock information.
   loadItems(): void {
     this.isLoading = true;
     this.cdr.markForCheck();
@@ -93,12 +97,26 @@ export class Items implements OnInit {
     let stockFailed = false;
 
     forkJoin({
-      // Force refresh so newly added or edited items appear.
-      items: this.itemService.getItems(true).pipe(
+      // Retrieve only the requested page from the backend.
+      pagedItems: this.itemService.getPagedItems(
+        this.pageNumber,
+        this.pageSize,
+        this.searchText,
+        this.selectedCategory
+      ).pipe(
         catchError((error) => {
           console.error('Error loading items:', error);
           itemsFailed = true;
-          return of([] as Item[]);
+
+          return of({
+            items: [] as Item[],
+            totalCount: 0,
+            pageNumber: this.pageNumber,
+            pageSize: this.pageSize,
+            totalPages: 0,
+            hasPreviousPage: false,
+            hasNextPage: false,
+          });
         })
       ),
 
@@ -121,7 +139,13 @@ export class Items implements OnInit {
       ),
     }).subscribe({
       next: (result) => {
-        this.items = result.items;
+        // Update the current page of inventory items.
+        this.items = result.pagedItems.items;
+        this.totalCount = result.pagedItems.totalCount;
+        this.totalPages = result.pagedItems.totalPages;
+        this.pageNumber = result.pagedItems.pageNumber;
+
+        // Update stock information.
         this.stockItems = result.stock;
         this.stockBatches = result.batches;
 
@@ -147,22 +171,44 @@ export class Items implements OnInit {
     });
   }
 
-  // Search and filter items.
+  // Return the items already filtered by the backend.
+  // This getter is retained for compatibility with the existing HTML.
   get filteredItems(): Item[] {
-    const search = this.searchText.trim().toLowerCase();
+    return this.items;
+  }
 
-    return this.items.filter((item) => {
-      const matchesSearch =
-        item.name.toLowerCase().includes(search) ||
-        item.category.toLowerCase().includes(search) ||
-        item.sku.toLowerCase().includes(search);
+  // Apply search and category filters from the first page.
+  applyFilters(): void {
+    this.pageNumber = 1;
+    this.loadItems();
+  }
 
-      const matchesCategory =
-        this.selectedCategory === 'All' ||
-        item.category === this.selectedCategory;
+  // Navigate to a specific page.
+  changePage(page: number): void {
+    if (
+      this.isLoading ||
+      page < 1 ||
+      page > this.totalPages ||
+      page === this.pageNumber
+    ) {
+      return;
+    }
 
-      return matchesSearch && matchesCategory;
-    });
+    this.pageNumber = page;
+    this.loadItems();
+  }
+
+  // Change the number of items displayed per page.
+  changePageSize(size: number): void {
+    const newSize = Number(size);
+
+    if (!Number.isFinite(newSize) || newSize < 1) {
+      return;
+    }
+
+    this.pageSize = Math.min(newSize, 100);
+    this.pageNumber = 1;
+    this.loadItems();
   }
 
   // Count items whose actual stock is at or below reorder level.
@@ -252,18 +298,21 @@ export class Items implements OnInit {
 
     this.itemService.deleteItem(id).subscribe({
       next: () => {
-        this.items = this.items.filter((item) => item.id !== id);
-
-        // Close the details modal too if the deleted item was selected.
+        // Close the details modal if the deleted item was selected.
         if (this.selectedItem?.id === id) {
           this.selectedItem = null;
         }
 
+        // Move back one page if the deleted item was the only row.
+        if (this.items.length === 1 && this.pageNumber > 1) {
+          this.pageNumber--;
+        }
+
         this.message = 'Item deleted successfully!';
-        this.isLoading = false;
         this.selectedItemId = null;
 
-        this.cdr.markForCheck();
+        // Reload the current page and refresh stock information.
+        this.loadItems();
       },
 
       error: (error) => {
@@ -295,5 +344,8 @@ export class Items implements OnInit {
   clearFilters(): void {
     this.searchText = '';
     this.selectedCategory = 'All';
+    this.pageNumber = 1;
+
+    this.loadItems();
   }
 }

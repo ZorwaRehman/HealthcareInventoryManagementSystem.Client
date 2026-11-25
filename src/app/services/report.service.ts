@@ -16,6 +16,7 @@ import {
   InventoryValuationReport
 } from '../models/report.models';
 
+import { PaginationResponse } from '../models/pagination.models';
 import { CurrencyCode } from './currency.service';
 
 @Injectable({
@@ -28,53 +29,45 @@ export class ReportService {
   private readonly apiUrl = `${environment.apiUrl}/Report`;
 
   // ==========================================
-  // GET REPORT DATA
+  // GET COMPLETE REPORT DATA
   // ==========================================
 
-  // Get Stock Summary Report.
   getStockSummary(): Observable<StockReport[]> {
     return this.http.get<StockReport[]>(`${this.apiUrl}/stock-summary`);
   }
 
-  // Get Low Stock Report.
   getLowStockReport(): Observable<LowStockReport[]> {
     return this.http.get<LowStockReport[]>(`${this.apiUrl}/low-stock`);
   }
 
-  // Get Expiry Report.
   getExpiryReport(): Observable<ExpiryReport[]> {
     return this.http.get<ExpiryReport[]>(`${this.apiUrl}/expiry`);
   }
 
-  // Get Stock Transactions Report.
   getStockTransactionsReport(): Observable<StockTransactionReport[]> {
     return this.http.get<StockTransactionReport[]>(
       `${this.apiUrl}/stock-transactions`
     );
   }
 
-  // Get Purchase Orders Report.
   getPurchaseOrdersReport(): Observable<PurchaseReport[]> {
     return this.http.get<PurchaseReport[]>(
       `${this.apiUrl}/purchase-orders`
     );
   }
 
-  // Get Goods Received Report.
   getGoodsReceivedReport(): Observable<GoodsReceivedReport[]> {
     return this.http.get<GoodsReceivedReport[]>(
       `${this.apiUrl}/goods-received`
     );
   }
 
-  // Get Supplier Report.
   getSupplierReport(): Observable<SupplierReport[]> {
     return this.http.get<SupplierReport[]>(
       `${this.apiUrl}/suppliers`
     );
   }
 
-  // Get Inventory Valuation Report.
   getInventoryValuationReport(): Observable<InventoryValuationReport[]> {
     return this.http.get<InventoryValuationReport[]>(
       `${this.apiUrl}/inventory-valuation`
@@ -82,10 +75,126 @@ export class ReportService {
   }
 
   // ==========================================
+  // PAGINATED REPORT DATA
+  // ==========================================
+
+  private getPagedReport<T>(
+    reportType: string,
+    pageNumber: number,
+    pageSize: number,
+    search: string = '',
+    status: string = 'All'
+  ): Observable<PaginationResponse<T>> {
+    let params = new HttpParams()
+      .set('pageNumber', pageNumber.toString())
+      .set('pageSize', pageSize.toString());
+
+    if (search.trim()) {
+      params = params.set('search', search.trim());
+    }
+
+    if (status !== 'All') {
+      params = params.set('status', status);
+    }
+
+    return this.http.get<PaginationResponse<T>>(
+      `${this.apiUrl}/${reportType}/paged`,
+      { params }
+    );
+  }
+
+  getPagedStockSummary(
+    pageNumber = 1,
+    pageSize = 10,
+    search = '',
+    status = 'All'
+  ): Observable<PaginationResponse<StockReport>> {
+    return this.getPagedReport(
+      'stock-summary', pageNumber, pageSize, search, status
+    );
+  }
+
+  getPagedLowStockReport(
+    pageNumber = 1,
+    pageSize = 10,
+    search = '',
+    status = 'All'
+  ): Observable<PaginationResponse<LowStockReport>> {
+    return this.getPagedReport(
+      'low-stock', pageNumber, pageSize, search, status
+    );
+  }
+
+  getPagedExpiryReport(
+    pageNumber = 1,
+    pageSize = 10,
+    search = '',
+    status = 'All'
+  ): Observable<PaginationResponse<ExpiryReport>> {
+    return this.getPagedReport(
+      'expiry', pageNumber, pageSize, search, status
+    );
+  }
+
+  getPagedStockTransactionsReport(
+    pageNumber = 1,
+    pageSize = 10,
+    search = '',
+    status = 'All'
+  ): Observable<PaginationResponse<StockTransactionReport>> {
+    return this.getPagedReport(
+      'stock-transactions', pageNumber, pageSize, search, status
+    );
+  }
+
+  getPagedPurchaseOrdersReport(
+    pageNumber = 1,
+    pageSize = 10,
+    search = '',
+    status = 'All'
+  ): Observable<PaginationResponse<PurchaseReport>> {
+    return this.getPagedReport(
+      'purchase-orders', pageNumber, pageSize, search, status
+    );
+  }
+
+  getPagedGoodsReceivedReport(
+    pageNumber = 1,
+    pageSize = 10,
+    search = '',
+    status = 'All'
+  ): Observable<PaginationResponse<GoodsReceivedReport>> {
+    return this.getPagedReport(
+      'goods-received', pageNumber, pageSize, search, status
+    );
+  }
+
+  getPagedSupplierReport(
+    pageNumber = 1,
+    pageSize = 10,
+    search = '',
+    status = 'All'
+  ): Observable<PaginationResponse<SupplierReport>> {
+    return this.getPagedReport(
+      'suppliers', pageNumber, pageSize, search, status
+    );
+  }
+
+  getPagedInventoryValuationReport(
+    pageNumber = 1,
+    pageSize = 10,
+    search = '',
+    status = 'All'
+  ): Observable<PaginationResponse<InventoryValuationReport>> {
+    return this.getPagedReport(
+      'inventory-valuation', pageNumber, pageSize, search, status
+    );
+  }
+
+  // ==========================================
   // EXCEL EXPORTS
   // ==========================================
 
-  // Download Stock Summary Excel report.
   exportStockSummaryExcel(): Observable<Blob> {
     return this.http.get(
       `${this.apiUrl}/stock-summary/excel`,
@@ -93,7 +202,6 @@ export class ReportService {
     );
   }
 
-  // Download Low Stock Excel report.
   exportLowStockExcel(): Observable<Blob> {
     return this.http.get(
       `${this.apiUrl}/low-stock/excel`,
@@ -101,7 +209,6 @@ export class ReportService {
     );
   }
 
-  // Download Expiry Excel report.
   exportExpiryExcel(): Observable<Blob> {
     return this.http.get(
       `${this.apiUrl}/expiry/excel`,
@@ -109,7 +216,6 @@ export class ReportService {
     );
   }
 
-  // Download Stock Transactions Excel report.
   exportStockTransactionsExcel(): Observable<Blob> {
     return this.http.get(
       `${this.apiUrl}/stock-transactions/excel`,
@@ -117,7 +223,6 @@ export class ReportService {
     );
   }
 
-  // Download Purchase Orders Excel report.
   exportPurchaseOrdersExcel(
     currencyCode: CurrencyCode,
     exchangeRate: number
@@ -130,7 +235,6 @@ export class ReportService {
     );
   }
 
-  // Download Goods Received Excel report.
   exportGoodsReceivedExcel(): Observable<Blob> {
     return this.http.get(
       `${this.apiUrl}/goods-received/excel`,
@@ -138,7 +242,6 @@ export class ReportService {
     );
   }
 
-  // Download Supplier Excel report.
   exportSupplierExcel(
     currencyCode: CurrencyCode,
     exchangeRate: number
@@ -151,7 +254,6 @@ export class ReportService {
     );
   }
 
-  // Download Inventory Valuation Excel report.
   exportInventoryValuationExcel(
     currencyCode: CurrencyCode,
     exchangeRate: number
@@ -168,7 +270,6 @@ export class ReportService {
   // PDF EXPORTS
   // ==========================================
 
-  // Download Stock Summary PDF report.
   exportStockSummaryPdf(): Observable<Blob> {
     return this.http.get(
       `${this.apiUrl}/stock-summary/pdf`,
@@ -176,7 +277,6 @@ export class ReportService {
     );
   }
 
-  // Download Low Stock PDF report.
   exportLowStockPdf(): Observable<Blob> {
     return this.http.get(
       `${this.apiUrl}/low-stock/pdf`,
@@ -184,7 +284,6 @@ export class ReportService {
     );
   }
 
-  // Download Expiry PDF report.
   exportExpiryPdf(): Observable<Blob> {
     return this.http.get(
       `${this.apiUrl}/expiry/pdf`,
@@ -192,7 +291,6 @@ export class ReportService {
     );
   }
 
-  // Download Stock Transactions PDF report.
   exportStockTransactionsPdf(): Observable<Blob> {
     return this.http.get(
       `${this.apiUrl}/stock-transactions/pdf`,
@@ -200,7 +298,6 @@ export class ReportService {
     );
   }
 
-  // Download Purchase Orders PDF report.
   exportPurchaseOrdersPdf(
     currencyCode: CurrencyCode,
     exchangeRate: number
@@ -213,7 +310,6 @@ export class ReportService {
     );
   }
 
-  // Download Goods Received PDF report.
   exportGoodsReceivedPdf(): Observable<Blob> {
     return this.http.get(
       `${this.apiUrl}/goods-received/pdf`,
@@ -221,7 +317,6 @@ export class ReportService {
     );
   }
 
-  // Download Supplier PDF report.
   exportSupplierPdf(
     currencyCode: CurrencyCode,
     exchangeRate: number
@@ -234,7 +329,6 @@ export class ReportService {
     );
   }
 
-  // Download Inventory Valuation PDF report.
   exportInventoryValuationPdf(
     currencyCode: CurrencyCode,
     exchangeRate: number
@@ -251,7 +345,6 @@ export class ReportService {
   // PRIVATE HELPERS
   // ==========================================
 
-  // Prepare currency parameters for supported monetary exports.
   private getCurrencyParams(
     currencyCode: CurrencyCode,
     exchangeRate: number

@@ -1,13 +1,13 @@
-
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of, tap } from 'rxjs';
 
 import { Item, ItemRequest } from '../models/item.models';
 import { environment } from '../../environments/environment';
+import { PaginationResponse } from '../models/pagination.models';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class ItemService {
   private readonly http = inject(HttpClient);
@@ -25,10 +25,35 @@ export class ItemService {
     }
 
     return this.http.get<Item[]>(this.apiUrl).pipe(
-      tap(items => {
+      tap((items) => {
         this.cachedItems = items;
-      })
+      }),
     );
+  }
+
+  // Get items from the backend with server-side pagination and filtering.
+  getPagedItems(
+    pageNumber: number = 1,
+    pageSize: number = 10,
+    search: string = '',
+    category: string = 'All',
+  ): Observable<PaginationResponse<Item>> {
+    const params: Record<string, string> = {
+      pageNumber: String(pageNumber),
+      pageSize: String(pageSize),
+    };
+
+    // Include search only when a search term is provided.
+    if (search.trim()) {
+      params['search'] = search.trim();
+    }
+
+    // Include category only when a specific category is selected.
+    if (category.trim() && category !== 'All') {
+      params['category'] = category.trim();
+    }
+
+    return this.http.get<PaginationResponse<Item>>(`${this.apiUrl}/paged`, { params });
   }
 
   // Get one item by its ID.
@@ -38,53 +63,35 @@ export class ItemService {
 
   // Search items by name.
   searchItems(name: string): Observable<Item[]> {
-    return this.http.get<Item[]>(
-      `${this.apiUrl}/search`,
-      { params: { name } }
-    );
+    return this.http.get<Item[]>(`${this.apiUrl}/search`, { params: { name } });
   }
 
   // Add a new item with an optional image.
-  createItem(
-    request: ItemRequest,
-    image: File | null = null
-  ): Observable<Item> {
+  createItem(request: ItemRequest, image: File | null = null): Observable<Item> {
     const formData = this.createFormData(request, image);
     return this.http.post<Item>(this.apiUrl, formData).pipe(
-      tap(newItem => {
+      tap((newItem) => {
         if (this.cachedItems !== null) {
           this.cachedItems = [...this.cachedItems, newItem];
         }
-      })
+      }),
     );
   }
 
   // Update an existing item with an optional replacement image.
-  updateItem(
-    id: number,
-    request: ItemRequest,
-    image: File | null = null
-  ): Observable<Item> {
+  updateItem(id: number, request: ItemRequest, image: File | null = null): Observable<Item> {
     const formData = this.createFormData(request, image);
-    return this.http.put<Item>(
-      `${this.apiUrl}/${id}`,
-      formData
-    ).pipe(
-      tap(updatedItem => {
+    return this.http.put<Item>(`${this.apiUrl}/${id}`, formData).pipe(
+      tap((updatedItem) => {
         if (this.cachedItems !== null) {
-          this.cachedItems = this.cachedItems.map(item =>
-            item.id === id ? updatedItem : item
-          );
+          this.cachedItems = this.cachedItems.map((item) => (item.id === id ? updatedItem : item));
         }
-      })
+      }),
     );
   }
 
   // Convert item details and an optional image into FormData.
-  private createFormData(
-    request: ItemRequest,
-    image: File | null
-  ): FormData {
+  private createFormData(request: ItemRequest, image: File | null): FormData {
     const formData = new FormData();
 
     formData.append('name', request.name);
@@ -107,11 +114,9 @@ export class ItemService {
     return this.http.delete<void>(`${this.apiUrl}/${id}`).pipe(
       tap(() => {
         if (this.cachedItems !== null) {
-          this.cachedItems = this.cachedItems.filter(
-            item => item.id !== id
-          );
+          this.cachedItems = this.cachedItems.filter((item) => item.id !== id);
         }
-      })
+      }),
     );
   }
 

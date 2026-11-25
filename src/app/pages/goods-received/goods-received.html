@@ -1,3 +1,4 @@
+
 <div class="hims-layout">
 
   <!-- Sidebar -->
@@ -168,7 +169,7 @@
           </div>
 
           <span class="record-count">
-            {{ filteredGoodsReceived.length }} records
+            {{ totalCount }} records
           </span>
         </div>
 
@@ -181,13 +182,16 @@
             <input
               type="text"
               [(ngModel)]="searchText"
+              (keyup.enter)="applyFilters()"
               placeholder="Search by receipt, order number or supplier..."
             />
           </div>
 
           <select
             [(ngModel)]="selectedStatus"
+            (ngModelChange)="onStatusChange()"
             class="status-filter"
+            [disabled]="isLoading"
           >
             <option value="All">All Statuses</option>
 
@@ -202,6 +206,7 @@
             type="button"
             class="clear-button"
             (click)="clearFilters()"
+            [disabled]="isLoading"
           >
             Clear
           </button>
@@ -234,7 +239,7 @@
                   (click)="viewGoodsReceived(record)"
                 >
 
-                  <!-- Receipt Number with RN Badge -->
+                  <!-- Receipt Number -->
                   <td>
                     <div class="receipt-number-cell">
                       <div class="receipt-icon">RN</div>
@@ -370,10 +375,59 @@
           </table>
         </div>
 
-        <!-- Table Footer -->
-        <div class="table-footer">
-          Showing {{ filteredGoodsReceived.length }} of
-          {{ totalReceipts }} records
+        <!-- Pagination Footer -->
+        <div class="table-footer pagination-footer">
+
+          <div class="pagination-info">
+            Showing
+            {{ totalCount === 0 ? 0 : (pageNumber - 1) * pageSize + 1 }}–{{
+              (pageNumber - 1) * pageSize + filteredGoodsReceived.length
+            }}
+            of {{ totalCount }} receipts
+          </div>
+
+          <div class="pagination-controls">
+
+            <div class="page-size-control">
+              <label for="goodsReceivedPageSize">Rows per page:</label>
+
+              <select
+                id="goodsReceivedPageSize"
+                class="page-size-select"
+                [ngModel]="pageSize"
+                (ngModelChange)="changePageSize($event)"
+                [disabled]="isLoading"
+              >
+                <option [ngValue]="5">5</option>
+                <option [ngValue]="10">10</option>
+                <option [ngValue]="20">20</option>
+                <option [ngValue]="50">50</option>
+              </select>
+            </div>
+
+            <button
+              type="button"
+              class="pagination-button"
+              (click)="changePage(pageNumber - 1)"
+              [disabled]="pageNumber <= 1 || isLoading"
+            >
+              Previous
+            </button>
+
+            <span class="page-indicator">
+              Page {{ pageNumber }} of {{ totalPages || 1 }}
+            </span>
+
+            <button
+              type="button"
+              class="pagination-button"
+              (click)="changePage(pageNumber + 1)"
+              [disabled]="pageNumber >= totalPages || isLoading"
+            >
+              Next
+            </button>
+
+          </div>
         </div>
 
       </section>

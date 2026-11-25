@@ -43,7 +43,8 @@
       </a>
 
       <a routerLink="/reports" routerLinkActive="active" class="nav-link">
-        <span class="nav-icon">▥</span> Report Management
+        <span class="nav-icon">▥</span>
+        Report Management
       </a>
 
       <a routerLink="/users" routerLinkActive="active">
@@ -106,7 +107,7 @@
         <div class="stat-icon total-icon">▤</div>
         <div>
           <p>Total Items</p>
-          <h2>{{ items.length }}</h2>
+          <h2>{{ totalCount }}</h2>
           <small>Item records</small>
         </div>
       </div>
@@ -116,7 +117,7 @@
         <div>
           <p>Reorder Level</p>
           <h2>{{ lowStockCount }}</h2>
-          <small>Stock checks </small>
+          <small>Stock checks</small>
         </div>
       </div>
 
@@ -148,7 +149,7 @@
         </div>
 
         <span class="record-count">
-          {{ filteredItems.length }} records
+          {{ totalCount }} records
         </span>
       </div>
 
@@ -156,10 +157,12 @@
       <div class="filter-bar">
         <div class="search-box">
           <span class="search-icon">⌕</span>
+
           <input
             type="text"
             placeholder="Search by name, category, or SKU..."
             [(ngModel)]="searchText"
+            (keyup.enter)="applyFilters()"
             aria-label="Search inventory items"
           />
         </div>
@@ -167,6 +170,7 @@
         <select
           class="category-filter"
           [(ngModel)]="selectedCategory"
+          (ngModelChange)="applyFilters()"
           aria-label="Filter by category"
         >
           <option value="All">All Categories</option>
@@ -176,7 +180,11 @@
           }
         </select>
 
-        <button type="button" class="btn-secondary" (click)="clearFilters()">
+        <button
+          type="button"
+          class="btn-secondary"
+          (click)="clearFilters()"
+        >
           Clear
         </button>
       </div>
@@ -311,12 +319,54 @@
         </table>
       </div>
 
-      <!-- Table Footer -->
-      <div class="table-footer">
-        <span>
-          Showing {{ filteredItems.length }} of {{ items.length }} items
-        </span>
-        <span>Healthcare Inventory Management System</span>
+      <!-- Table Footer with Server-Side Pagination -->
+      <div class="table-footer pagination-footer">
+        <div class="pagination-info">
+          Showing
+          {{ totalCount === 0 ? 0 : (pageNumber - 1) * pageSize + 1 }}–{{ (pageNumber - 1) * pageSize + filteredItems.length }}
+          of {{ totalCount }} items
+        </div>
+
+        <div class="pagination-controls">
+          <div class="page-size-control">
+            <label for="itemPageSize">Rows per page:</label>
+
+            <select
+              id="itemPageSize"
+              class="page-size-select"
+              [ngModel]="pageSize"
+              (ngModelChange)="changePageSize($event)"
+              [disabled]="isLoading"
+            >
+              <option [ngValue]="5">5</option>
+              <option [ngValue]="10">10</option>
+              <option [ngValue]="20">20</option>
+              <option [ngValue]="50">50</option>
+            </select>
+          </div>
+
+          <button
+            type="button"
+            class="pagination-button"
+            (click)="changePage(pageNumber - 1)"
+            [disabled]="pageNumber <= 1 || isLoading"
+          >
+            Previous
+          </button>
+
+          <span class="page-indicator">
+            Page {{ pageNumber }} of {{ totalPages || 1 }}
+          </span>
+
+          <button
+            type="button"
+            class="pagination-button"
+            (click)="changePage(pageNumber + 1)"
+            [disabled]="pageNumber >= totalPages || isLoading"
+          >
+            Next
+          </button>
+        </div>
       </div>
     </section>
 

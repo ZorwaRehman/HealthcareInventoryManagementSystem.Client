@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
+import { PaginationResponse } from '../models/pagination.models';
 
 import {
   Stock,
@@ -59,6 +60,28 @@ export class StockService {
       }),
     );
   }
+
+  
+  // Get stock batches using server-side pagination, search, and item filtering.
+  getPagedBatches(
+    pageNumber = 1,
+    pageSize = 10,
+    search = '',
+    itemId?: number
+  ): Observable<PaginationResponse<StockBatch>> {
+    return this.http.get<PaginationResponse<StockBatch>>(
+      `${this.apiUrl}/batches/paged`,
+      {
+        params: {
+          pageNumber,
+          pageSize,
+          search,
+          ...(itemId !== undefined ? { itemId } : {}),
+        },
+      }
+    );
+  }
+
 
   // Get stock information for one inventory item.
   getStockByItemId(itemId: number): Observable<Stock> {
