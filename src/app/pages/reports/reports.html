@@ -437,9 +437,45 @@
 
       <!-- TABLE FOOTER -->
       <div class="table-footer" *ngIf="!isLoading">
-        <span> Showing {{ filteredRecords }} of {{ totalRecords }} records </span>
+        <span> Showing {{ showingFrom }}–{{ showingTo }} of {{ filteredRecords }} records </span>
 
-        <span>{{ currentReport.name }}</span>
+        <div class="pagination-controls">
+          <div class="page-size-control">
+            <label for="reportPageSize">Rows per page:</label>
+
+            <select
+              id="reportPageSize"
+              class="page-size-select"
+              [ngModel]="pageSize"
+              (ngModelChange)="changePageSize($event)"
+            >
+              <option [ngValue]="5">5</option>
+              <option [ngValue]="10">10</option>
+              <option [ngValue]="20">20</option>
+              <option [ngValue]="50">50</option>
+            </select>
+          </div>
+
+          <button
+            type="button"
+            class="pagination-button"
+            (click)="changePage(pageNumber - 1)"
+            [disabled]="pageNumber <= 1"
+          >
+            Previous
+          </button>
+
+          <span class="page-indicator"> Page {{ pageNumber }} of {{ totalPages }} </span>
+
+          <button
+            type="button"
+            class="pagination-button"
+            (click)="changePage(pageNumber + 1)"
+            [disabled]="pageNumber >= totalPages"
+          >
+            Next
+          </button>
+        </div>
       </div>
     </section>
 

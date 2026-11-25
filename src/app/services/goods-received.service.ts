@@ -1,6 +1,6 @@
 
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 import {
@@ -9,6 +9,7 @@ import {
 } from '../models/goods-received.models';
 
 import { PurchaseOrder } from '../models/purchase-order.models';
+import { PaginationResponse } from '../models/pagination.models';
 import { environment } from '../../environments/environment';
 
 @Injectable({
@@ -23,6 +24,31 @@ export class GoodsReceivedService {
   // Get all Goods Received records.
   getAllGoodsReceived(): Observable<GoodsReceived[]> {
     return this.http.get<GoodsReceived[]>(this.apiUrl);
+  }
+
+  // Get paginated Goods Received records with optional search and status filters.
+  getPagedGoodsReceived(
+    pageNumber = 1,
+    pageSize = 10,
+    search = '',
+    status = 'All'
+  ): Observable<PaginationResponse<GoodsReceived>> {
+    let params = new HttpParams()
+      .set('pageNumber', pageNumber)
+      .set('pageSize', pageSize);
+
+    if (search.trim()) {
+      params = params.set('search', search.trim());
+    }
+
+    if (status !== 'All') {
+      params = params.set('status', status);
+    }
+
+    return this.http.get<PaginationResponse<GoodsReceived>>(
+      `${this.apiUrl}/paged`,
+      { params }
+    );
   }
 
   // Get one Goods Received record by ID.

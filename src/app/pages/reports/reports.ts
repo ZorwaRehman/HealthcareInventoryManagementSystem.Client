@@ -11,6 +11,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { forkJoin, Observable } from 'rxjs';
 
 import { ReportService } from '../../services/report.service';
 import {
@@ -28,6 +29,8 @@ import {
   SupplierReport,
   InventoryValuationReport
 } from '../../models/report.models';
+
+import { PaginationResponse } from '../../models/pagination.models';
 
 type ReportType =
   | 'stock-summary'
@@ -71,11 +74,20 @@ export class Reports implements OnInit {
 
   selectedReport: ReportType = 'stock-summary';
 
+  // Complete data is retained for accurate summary totals.
   reportData: ReportRow[] = [];
+
+  // Only the current server page is displayed in the table.
   filteredData: ReportRow[] = [];
 
   searchText = '';
   selectedStatus = 'All';
+
+  // Pagination state.
+  pageNumber = 1;
+  pageSize = 10;
+  totalCount = 0;
+  totalPages = 0;
 
   isLoading = false;
   isExporting = false;
@@ -84,7 +96,6 @@ export class Reports implements OnInit {
   successMessage = '';
 
   // Currency is selected on the Dashboard.
-  // Reports only reads the selected currency from CurrencyService.
   selectedCurrency: CurrencyCode =
     this.currencyService.selectedCurrency;
 
@@ -342,6 +353,7 @@ export class Reports implements OnInit {
     this.selectedReport = reportId;
     this.searchText = '';
     this.selectedStatus = 'All';
+    this.pageNumber = 1;
 
     this.expandedRows.clear();
 
@@ -351,6 +363,10 @@ export class Reports implements OnInit {
     this.loadReport(reportId);
   }
 
+  // ==========================================
+  // LOAD REPORT AND CURRENT PAGE
+  // ==========================================
+
   loadReport(reportId: ReportType): void {
 
     this.isLoading = true;
@@ -358,114 +374,162 @@ export class Reports implements OnInit {
     this.successMessage = '';
     this.expandedRows.clear();
 
-    const handleSuccess = (data: object[]) => {
-      this.reportData = data as ReportRow[];
-      this.applyFilters();
-      this.isLoading = false;
-      this.cdr.detectChanges();
-    };
-
-    const handleError = () => {
-      this.reportData = [];
-      this.filteredData = [];
-      this.errorMessage =
-        'Unable to load report data. Please try again.';
-      this.isLoading = false;
-      this.cdr.detectChanges();
-    };
+    const search = this.searchText.trim();
+    const status = this.selectedStatus;
 
     switch (reportId) {
 
       case 'stock-summary':
-        this.reportService.getStockSummary().subscribe({
-          next: handleSuccess,
-          error: handleError
-        });
+        this.loadReportData(
+          this.reportService.getStockSummary(),
+          this.reportService.getPagedStockSummary(
+            this.pageNumber, this.pageSize, search, status
+          )
+        );
         break;
 
       case 'low-stock':
-        this.reportService.getLowStockReport().subscribe({
-          next: handleSuccess,
-          error: handleError
-        });
+        this.loadReportData(
+          this.reportService.getLowStockReport(),
+          this.reportService.getPagedLowStockReport(
+            this.pageNumber, this.pageSize, search, status
+          )
+        );
         break;
 
       case 'expiry':
-        this.reportService.getExpiryReport().subscribe({
-          next: handleSuccess,
-          error: handleError
-        });
+        this.loadReportData(
+          this.reportService.getExpiryReport(),
+          this.reportService.getPagedExpiryReport(
+            this.pageNumber, this.pageSize, search, status
+          )
+        );
         break;
 
       case 'stock-transactions':
-        this.reportService.getStockTransactionsReport().subscribe({
-          next: handleSuccess,
-          error: handleError
-        });
+        this.loadReportData(
+          this.reportService.getStockTransactionsReport(),
+          this.reportService.getPagedStockTransactionsReport(
+            this.pageNumber, this.pageSize, search, status
+          )
+        );
         break;
 
       case 'purchase-orders':
-        this.reportService.getPurchaseOrdersReport().subscribe({
-          next: handleSuccess,
-          error: handleError
-        });
+        this.loadReportData(
+          this.reportService.getPurchaseOrdersReport(),
+          this.reportService.getPagedPurchaseOrdersReport(
+            this.pageNumber, this.pageSize, search, status
+          )
+        );
         break;
 
       case 'goods-received':
-        this.reportService.getGoodsReceivedReport().subscribe({
-          next: handleSuccess,
-          error: handleError
-        });
+        this.loadReportData(
+          this.reportService.getGoodsReceivedReport(),
+          this.reportService.getPagedGoodsReceivedReport(
+            this.pageNumber, this.pageSize, search, status
+          )
+        );
         break;
 
       case 'suppliers':
-        this.reportService.getSupplierReport().subscribe({
-          next: handleSuccess,
-          error: handleError
-        });
+        this.loadReportData(
+          this.reportService.getSupplierReport(),
+          this.reportService.getPagedSupplierReport(
+            this.pageNumber, this.pageSize, search, status
+          )
+        );
         break;
 
       case 'inventory-valuation':
-        this.reportService.getInventoryValuationReport().subscribe({
-          next: handleSuccess,
-          error: handleError
-        });
+        this.loadReportData(
+          this.reportService.getInventoryValuationReport(),
+          this.reportService.getPagedInventoryValuationReport(
+            this.pageNumber, this.pageSize, search, status
+          )
+        );
         break;
     }
   }
 
+  private loadReportData<T extends object>(
+    completeRequest: Observable<T[]>,
+    pagedRequest: Observable<PaginationResponse<T>>
+  ): void {
+
+    forkJoin({
+      complete: completeRequest,
+      paged: pagedRequest
+    })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+
+        next: result => {
+
+          // Full report data is used for summary calculations and statuses.
+          this.reportData = result.complete as ReportRow[];
+
+          // Only the selected page is displayed in the table.
+          this.filteredData = result.paged.items as ReportRow[];
+
+          this.totalCount = result.paged.totalCount;
+          this.totalPages = result.paged.totalPages;
+
+          // Keep the current page valid if the filtered result count changes.
+          if (
+            this.totalPages > 0 &&
+            this.pageNumber > this.totalPages
+          ) {
+            this.pageNumber = this.totalPages;
+            this.loadReport(this.selectedReport);
+            return;
+          }
+
+          this.isLoading = false;
+          this.cdr.detectChanges();
+        },
+
+        error: () => {
+          this.reportData = [];
+          this.filteredData = [];
+          this.totalCount = 0;
+          this.totalPages = 0;
+
+          this.errorMessage =
+            'Unable to load report data. Please try again.';
+
+          this.isLoading = false;
+          this.cdr.detectChanges();
+        }
+      });
+  }
+
+  // ==========================================
+  // SEARCH AND STATUS FILTERS
+  // ==========================================
+
   applyFilters(): void {
-
-    let result = [...this.reportData];
-
-    if (this.searchText.trim()) {
-      const search = this.searchText.toLowerCase().trim();
-
-      result = result.filter(row =>
-        Object.values(row).some(value =>
-          String(value ?? '').toLowerCase().includes(search)
-        )
-      );
-    }
-
-    if (this.selectedStatus !== 'All') {
-      result = result.filter(row =>
-        String(row['status'] ?? '').toLowerCase() ===
-        this.selectedStatus.toLowerCase()
-      );
-    }
-
-    this.filteredData = result;
+    this.pageNumber = 1;
     this.expandedRows.clear();
+    this.loadReport(this.selectedReport);
   }
 
   clearFilters(): void {
     this.searchText = '';
     this.selectedStatus = 'All';
-    this.applyFilters();
+    this.pageNumber = 1;
+    this.expandedRows.clear();
+
+    this.loadReport(this.selectedReport);
   }
 
   get availableStatuses(): string[] {
+
+    if (this.selectedReport === 'suppliers') {
+      return ['All', 'Active', 'Inactive'];
+    }
+
     const statuses = this.reportData
       .map(row => String(row['status'] ?? '').trim())
       .filter(status => status.length > 0);
@@ -473,13 +537,72 @@ export class Reports implements OnInit {
     return ['All', ...new Set(statuses)];
   }
 
+  // ==========================================
+  // PAGINATION
+  // ==========================================
+
+  changePage(page: number): void {
+
+    if (
+      page < 1 ||
+      page > this.totalPages ||
+      page === this.pageNumber ||
+      this.isLoading
+    ) {
+      return;
+    }
+
+    this.pageNumber = page;
+    this.expandedRows.clear();
+
+    this.loadReport(this.selectedReport);
+  }
+
+  changePageSize(size: number): void {
+
+    const newSize = Number(size);
+
+    if (![5, 10, 20, 50].includes(newSize)) {
+      return;
+    }
+
+    this.pageSize = newSize;
+    this.pageNumber = 1;
+    this.expandedRows.clear();
+
+    this.loadReport(this.selectedReport);
+  }
+
   get totalRecords(): number {
     return this.reportData.length;
   }
 
   get filteredRecords(): number {
-    return this.filteredData.length;
+    return this.totalCount;
   }
+
+  get showingFrom(): number {
+    if (this.totalCount === 0) {
+      return 0;
+    }
+
+    return (this.pageNumber - 1) * this.pageSize + 1;
+  }
+
+  get showingTo(): number {
+    if (this.totalCount === 0) {
+      return 0;
+    }
+
+    return Math.min(
+      (this.pageNumber - 1) * this.pageSize + this.filteredData.length,
+      this.totalCount
+    );
+  }
+
+  // ==========================================
+  // SUMMARY TOTALS
+  // ==========================================
 
   get totalStockValue(): number {
     if (this.selectedReport !== 'stock-summary') {
@@ -513,6 +636,10 @@ export class Reports implements OnInit {
       0
     );
   }
+
+  // ==========================================
+  // TABLE FORMATTING
+  // ==========================================
 
   formatCell(row: ReportRow, column: ReportColumn): string {
 
@@ -552,6 +679,10 @@ export class Reports implements OnInit {
       : null;
   }
 
+  // ==========================================
+  // EXPANDED TABLE ROWS
+  // ==========================================
+
   toggleRow(index: number): void {
 
     const updated = new Set(this.expandedRows);
@@ -568,6 +699,10 @@ export class Reports implements OnInit {
   isRowExpanded(index: number): boolean {
     return this.expandedRows.has(index);
   }
+
+  // ==========================================
+  // STATUS STYLING
+  // ==========================================
 
   getStatusClass(row: ReportRow, column: ReportColumn): string {
 
@@ -610,6 +745,10 @@ export class Reports implements OnInit {
     return 'status-neutral';
   }
 
+  // ==========================================
+  // CURRENCY
+  // ==========================================
+
   get currentExchangeRate(): number | null {
     if (this.selectedCurrency === 'PKR') {
       return 1;
@@ -628,6 +767,10 @@ export class Reports implements OnInit {
   formatAmount(amount: number): string {
     return this.currencyService.formatPrice(amount);
   }
+
+  // ==========================================
+  // EXPORTS
+  // ==========================================
 
   exportExcel(): void {
     this.exportReport('excel');
@@ -674,7 +817,7 @@ export class Reports implements OnInit {
 
     const rate = this.currentExchangeRate ?? 1;
 
-    let request;
+    let request: Observable<Blob> | undefined;
 
     switch (this.selectedReport) {
 

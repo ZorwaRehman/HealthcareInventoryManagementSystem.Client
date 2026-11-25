@@ -8,6 +8,7 @@ import {
 import { DatePipe, NgClass } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { forkJoin } from 'rxjs';
 
 import {
   GoodsReceived,
@@ -39,6 +40,18 @@ export class GoodsReceivedPage implements OnInit {
   searchText = '';
   selectedStatus = 'All';
 
+  // Pagination values.
+  pageNumber = 1;
+  pageSize = 10;
+  totalCount = 0;
+  totalPages = 0;
+
+  // Summary statistics.
+  totalReceipts = 0;
+  draftCount = 0;
+  confirmedCount = 0;
+  cancelledCount = 0;
+
   // Page messages and loading state.
   message = '';
   messageType: 'success' | 'error' = 'success';
@@ -64,14 +77,52 @@ export class GoodsReceivedPage implements OnInit {
     this.loadGoodsReceived();
   }
 
-  // Load Goods Received records from the backend.
+  // Load paginated Goods Received records and summary counts.
   loadGoodsReceived(): void {
     this.isLoading = true;
     this.cdr.markForCheck();
 
-    this.goodsReceivedService.getAllGoodsReceived().subscribe({
-      next: (records) => {
-        this.goodsReceivedRecords = records;
+    forkJoin({
+      page: this.goodsReceivedService.getPagedGoodsReceived(
+        this.pageNumber,
+        this.pageSize,
+        this.searchText,
+        this.selectedStatus
+      ),
+
+      total: this.goodsReceivedService.getPagedGoodsReceived(1, 1),
+
+      drafts: this.goodsReceivedService.getPagedGoodsReceived(
+        1, 1, '', 'Draft'
+      ),
+
+      confirmed: this.goodsReceivedService.getPagedGoodsReceived(
+        1, 1, '', 'Confirmed'
+      ),
+
+      cancelled: this.goodsReceivedService.getPagedGoodsReceived(
+        1, 1, '', 'Cancelled'
+      ),
+    }).subscribe({
+      next: (result) => {
+        this.totalCount = result.page.totalCount;
+        this.totalPages = result.page.totalPages;
+
+        // If the current page no longer exists, move to the last available page.
+        if (this.totalPages > 0 && this.pageNumber > this.totalPages) {
+          this.pageNumber = this.totalPages;
+          this.loadGoodsReceived();
+          return;
+        }
+
+        this.goodsReceivedRecords = result.page.items;
+
+        // Summary counts are independent of the current filters and page.
+        this.totalReceipts = result.total.totalCount;
+        this.draftCount = result.drafts.totalCount;
+        this.confirmedCount = result.confirmed.totalCount;
+        this.cancelledCount = result.cancelled.totalCount;
+
         this.isLoading = false;
         this.cdr.markForCheck();
       },
@@ -90,45 +141,51 @@ export class GoodsReceivedPage implements OnInit {
     });
   }
 
-  // Filter records by search text and status.
+  // Current page records are already filtered by the backend.
   get filteredGoodsReceived(): GoodsReceived[] {
-    const search = this.searchText.trim().toLowerCase();
-
-    return this.goodsReceivedRecords.filter((record) => {
-      const matchesSearch =
-        record.receiptNumber.toLowerCase().includes(search) ||
-        record.purchaseOrderNumber.toLowerCase().includes(search) ||
-        record.supplierName.toLowerCase().includes(search);
-
-      const matchesStatus =
-        this.selectedStatus === 'All' ||
-        record.status.toString() === this.selectedStatus;
-
-      return matchesSearch && matchesStatus;
-    });
+    return this.goodsReceivedRecords;
   }
 
-  // Statistics.
-  get totalReceipts(): number {
-    return this.goodsReceivedRecords.length;
+  // Apply search filter.
+  applyFilters(): void {
+    this.pageNumber = 1;
+    this.closeActionMenu();
+    this.loadGoodsReceived();
   }
 
-  get draftCount(): number {
-    return this.countByStatus(GoodsReceivedStatus.Draft);
+  // Apply status filter.
+  onStatusChange(): void {
+    this.pageNumber = 1;
+    this.closeActionMenu();
+    this.loadGoodsReceived();
   }
 
-  get confirmedCount(): number {
-    return this.countByStatus(GoodsReceivedStatus.Confirmed);
+  // Navigate between pages.
+  changePage(page: number): void {
+    if (
+      page < 1 ||
+      page > this.totalPages ||
+      page === this.pageNumber ||
+      this.isLoading
+    ) {
+      return;
+    }
+
+    this.pageNumber = page;
+    this.closeActionMenu();
+    this.loadGoodsReceived();
   }
 
-  get cancelledCount(): number {
-    return this.countByStatus(GoodsReceivedStatus.Cancelled);
-  }
+  // Change the number of records displayed per page.
+  changePageSize(size: number): void {
+    if (this.isLoading || size === this.pageSize) {
+      return;
+    }
 
-  private countByStatus(status: GoodsReceivedStatus): number {
-    return this.goodsReceivedRecords.filter(
-      (record) => record.status === status
-    ).length;
+    this.pageSize = size;
+    this.pageNumber = 1;
+    this.closeActionMenu();
+    this.loadGoodsReceived();
   }
 
   // Convert numeric backend status into a readable label.
@@ -373,6 +430,9 @@ export class GoodsReceivedPage implements OnInit {
 
         this.isLoading = false;
         this.cdr.markForCheck();
+
+        // Refresh the page and summary data.
+        this.loadGoodsReceived();
       },
       error: (error) => {
         console.error('Error refreshing Goods Received record:', error);
@@ -409,6 +469,8 @@ export class GoodsReceivedPage implements OnInit {
   clearFilters(): void {
     this.searchText = '';
     this.selectedStatus = 'All';
+    this.pageNumber = 1;
     this.closeActionMenu();
+    this.loadGoodsReceived();
   }
 }

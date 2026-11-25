@@ -1,4 +1,3 @@
-
 import { CommonModule, DOCUMENT } from '@angular/common';
 import {
   ChangeDetectorRef,
@@ -25,13 +24,26 @@ export class Users implements OnInit, OnDestroy {
   private cdr = inject(ChangeDetectorRef);
   private document = inject(DOCUMENT);
 
-  // Users and roles loaded from the backend.
+  // Users displayed on the current page.
   users: User[] = [];
+
+  // All users are retained for accurate summary-card counts.
+  private allUsers: User[] = [];
+
   availableRoles: UserRole[] = [];
 
   // Search and filter.
   searchText = '';
   selectedRole = 'All Roles';
+
+  // Pagination.
+  currentPage = 1;
+  pageSize = 10;
+  pageSizes = [5, 10, 20, 50];
+  totalCount = 0;
+  totalPages = 0;
+  hasPreviousPage = false;
+  hasNextPage = false;
 
   // Page state.
   isLoading = false;
@@ -48,18 +60,32 @@ export class Users implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadUsers();
+    this.loadSummaryUsers();
     this.loadRoles();
   }
 
-  // Load registered users from the backend.
+  // Load the current page from the backend.
   loadUsers(): void {
     this.isLoading = true;
     this.errorMessage = '';
 
-    this.userService.getUsers().subscribe({
+    this.userService.getPagedUsers(
+      this.currentPage,
+      this.pageSize,
+      this.searchText,
+      this.selectedRole
+    ).subscribe({
       next: (response) => {
-        this.users = response;
+        this.users = response.items;
+        this.totalCount = response.totalCount;
+        this.currentPage = response.pageNumber;
+        this.pageSize = response.pageSize;
+        this.totalPages = response.totalPages;
+        this.hasPreviousPage = response.hasPreviousPage;
+        this.hasNextPage = response.hasNextPage;
+
         this.isLoading = false;
+        this.closeActionMenu();
         this.cdr.detectChanges();
       },
       error: (error) => {
@@ -72,6 +98,19 @@ export class Users implements OnInit, OnDestroy {
 
         this.isLoading = false;
         this.cdr.detectChanges();
+      }
+    });
+  }
+
+  // Load all users for the summary cards.
+  loadSummaryUsers(): void {
+    this.userService.getUsers().subscribe({
+      next: (response) => {
+        this.allUsers = response;
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        console.error('Error loading user summary:', error);
       }
     });
   }
@@ -89,46 +128,80 @@ export class Users implements OnInit, OnDestroy {
     });
   }
 
-  // Search users and filter by role.
+  // Search users from the backend.
+  onSearchChange(): void {
+    this.currentPage = 1;
+    this.loadUsers();
+  }
+
+  // Filter users by role from the backend.
+  onRoleChange(): void {
+    this.currentPage = 1;
+    this.loadUsers();
+  }
+
+  // Change the selected page size.
+  onPageSizeChange(newPageSize: number): void {
+  this.pageSize = newPageSize;
+  this.currentPage = 1;
+  this.loadUsers();
+}
+
+  // Go to the previous page.
+  previousPage(): void {
+    if (this.hasPreviousPage) {
+      this.currentPage--;
+      this.loadUsers();
+    }
+  }
+
+  // Go to the next page.
+  nextPage(): void {
+    if (this.hasNextPage) {
+      this.currentPage++;
+      this.loadUsers();
+    }
+  }
+
+  // First record number displayed on the current page.
+  get startRecord(): number {
+    return this.totalCount === 0
+      ? 0
+      : (this.currentPage - 1) * this.pageSize + 1;
+  }
+
+  // Last record number displayed on the current page.
+  get endRecord(): number {
+    return Math.min(
+      this.currentPage * this.pageSize,
+      this.totalCount
+    );
+  }
+
+  // Keep the existing template's filteredUsers reference.
   get filteredUsers(): User[] {
-    const search = this.searchText.trim().toLowerCase();
-
-    return this.users.filter(user => {
-      const fullName =
-        `${user.firstName} ${user.lastName}`.toLowerCase();
-
-      const matchesSearch =
-        fullName.includes(search) ||
-        user.email.toLowerCase().includes(search) ||
-        user.roleName.toLowerCase().includes(search);
-
-      const matchesRole =
-        this.selectedRole === 'All Roles' ||
-        user.roleName === this.selectedRole;
-
-      return matchesSearch && matchesRole;
-    });
+    return this.users;
   }
 
   // Summary card counts.
   get totalUsers(): number {
-    return this.users.length;
+    return this.allUsers.length;
   }
 
   get administrators(): number {
-    return this.users.filter(
+    return this.allUsers.filter(
       user => user.roleName === 'Admin'
     ).length;
   }
 
   get storeManagers(): number {
-    return this.users.filter(
+    return this.allUsers.filter(
       user => user.roleName === 'Store Manager'
     ).length;
   }
 
   get activeUsers(): number {
-    return this.users.filter(
+    return this.allUsers.filter(
       user => user.isActive
     ).length;
   }
@@ -148,6 +221,8 @@ export class Users implements OnInit, OnDestroy {
   clearFilters(): void {
     this.searchText = '';
     this.selectedRole = 'All Roles';
+    this.currentPage = 1;
+    this.loadUsers();
   }
 
   // Open or close a user's three-dot action menu.
@@ -223,6 +298,9 @@ export class Users implements OnInit, OnDestroy {
 
         this.updatingUserId = null;
         this.closeActionMenu();
+
+        this.loadUsers();
+        this.loadSummaryUsers();
         this.cdr.detectChanges();
       },
       error: (error) => {
@@ -256,10 +334,11 @@ export class Users implements OnInit, OnDestroy {
 
     this.userService.updateStatus(user.id, newStatus).subscribe({
       next: () => {
-        user.isActive = newStatus;
-
         this.updatingUserId = null;
         this.closeActionMenu();
+
+        this.loadUsers();
+        this.loadSummaryUsers();
         this.cdr.detectChanges();
       },
       error: (error) => {
